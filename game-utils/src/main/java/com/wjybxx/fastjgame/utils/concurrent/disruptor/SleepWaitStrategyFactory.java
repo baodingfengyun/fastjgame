@@ -107,11 +107,6 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
             return availableSequence;
         }
 
-        @Override
-        public void signalAllWhenBlocking() {
-            // 消费者并不会在等待时阻塞，因此什么也不做
-        }
-
         private int applyWaitMethod(final SequenceBarrier barrier, int counter)
                 throws AlertException {
             // 检查中断/终止信号
@@ -129,6 +124,11 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
                 LockSupport.parkNanos(sleepTimeNs);
             }
             return counter;
+        }
+
+        @Override
+        public void signalAllWhenBlocking() {
+            // 消费者并不会在等待时阻塞，因此什么也不做
         }
     }
 }

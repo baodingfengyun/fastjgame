@@ -29,10 +29,14 @@ import com.wjybxx.fastjgame.net.rpc.RpcFuture;
 import com.wjybxx.fastjgame.net.rpc.RpcPromise;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
-import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.utils.concurrent.VoidPromise;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.event.EventDispatchTask;
 import com.wjybxx.fastjgame.utils.concurrent.event.EventLoopTerminalEvent;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
 import com.wjybxx.fastjgame.utils.eventbus.Subscribe;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -45,8 +49,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 
-import static com.wjybxx.fastjgame.utils.ThreadUtils.sleepQuietly;
-
 /**
  * 网络事件循环。
  * <p>
@@ -58,7 +60,7 @@ import static com.wjybxx.fastjgame.utils.ThreadUtils.sleepQuietly;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
+class NetEventLoopImp extends UnboundedEventLoop implements NetEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(NetEventLoopImp.class);
     private static final int TASK_BATCH_SIZE = 8192;
@@ -179,28 +181,11 @@ class NetEventLoopImp extends SingleThreadEventLoop implements NetEventLoop {
     }
 
     @Override
-    protected void loop() {
-        while (true) {
-            try {
-                // 批量执行任务
-                runTasksBatch(TASK_BATCH_SIZE);
-
-                // 更新时间
-                netTimeManager.update(System.currentTimeMillis());
-                // 检测定时器
-                netTimerManager.tick();
-
-                if (confirmShutdown()) {
-                    break;
-                }
-
-                // 等待以降低cpu利用率
-                sleepQuietly(1);
-            } catch (Throwable e) {
-                // 避免错误的退出循环
-                logger.warn("loop caught exception", e);
-            }
-        }
+    protected void loopOnce() throws Exception {
+        // 更新时间
+        netTimeManager.update(System.currentTimeMillis());
+        // 检测定时器
+        netTimerManager.tick();
     }
 
     @Override

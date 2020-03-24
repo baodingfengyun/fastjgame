@@ -1,56 +1,59 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.concurrent;
+package com.wjybxx.fastjgame.utils.concurrent.unbounded;
 
 
+import com.lmax.disruptor.RingBuffer;
+import com.wjybxx.fastjgame.utils.concurrent.*;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.WaitStrategyFactory.WaitStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * 事件循环的模板实现。
  * 它是无界事件循环的超类，如果期望使用有界队列，请使用{@link DisruptorEventLoop}。
+ * 等待策略实现与{@link DisruptorEventLoop}的等待策略是一致的。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public abstract class SingleThreadEventLoop extends AbstractEventLoop {
+public class UnboundedEventLoop extends AbstractEventLoop {
 
-    private static final Logger logger = LoggerFactory.getLogger(SingleThreadEventLoop.class);
-    /**
-     * 缓存队列的大小，不宜过大，但也不能过小。
-     * 过大容易造成内存浪费，过小对于性能无太大意义。
-     */
-    private static final int CACHE_QUEUE_CAPACITY = 256;
+    private static final Logger logger = LoggerFactory.getLogger(UnboundedEventLoop.class);
 
     /**
-     * 用于友好的唤醒当前线程的任务
+     * 批量拉取(执行)任务数 - 该值越小{@link #loopOnce()}执行越频繁，响应关闭请求越快。
      */
-    private static final Runnable WAKE_UP_TASK = () -> {
-    };
+    private static final int DEFAULT_BATCH_EVENT_SIZE = 1024;
 
     // 线程的状态
     /**
@@ -78,7 +81,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      * 持有的线程
      */
     private final Thread thread;
-
     /**
      * 线程的生命周期标识。
      * 未和netty一样使用{@link AtomicIntegerFieldUpdater}，需要更多的理解成本，对于不熟悉的人来说容易用错。
@@ -86,13 +88,25 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      */
     private final AtomicInteger stateHolder = new AtomicInteger(ST_NOT_STARTED);
     /**
-     * 任务队列
+     * 任务队列。
+     * Q: 为什么选择{@link ConcurrentLinkedQueue}？
+     * A: 关于任务队列，对{@link RingBuffer} {@link ConcurrentLinkedQueue} {@link LinkedBlockingQueue}也对比了很多次，测试结果大致如下：
+     * 1. {@link RingBuffer}的性能始终是最好的，但是它是有界的。
+     * 2. 在高竞争下，{@link LinkedBlockingQueue}优于{@link ConcurrentLinkedQueue}，但是差距不算大（可能竞争还不够激烈）。
+     * 3. 在低竞争下，{@link ConcurrentLinkedQueue}表现更好，{@link LinkedBlockingQueue}在低竞争下吞吐量实在不能看。
+     * 考虑到高竞争的情况较少，最终选择了{@link ConcurrentLinkedQueue}。
      */
-    private final BlockingQueue<Runnable> taskQueue;
+    private final ConcurrentLinkedQueue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
+
     /**
-     * 缓存队列，用于批量的将{@link #taskQueue}中的任务拉取到本地线程下，减少锁竞争，
+     * 批量执行任务的大小
      */
-    private final ArrayDeque<Runnable> cacheQueue = new ArrayDeque<>(CACHE_QUEUE_CAPACITY);
+    private final int taskBatchSize;
+    /**
+     * 当没有可执行任务时的等待策略
+     */
+    private final WaitStrategy waitStrategy;
+
     /**
      * 任务被拒绝时的处理策略
      */
@@ -103,32 +117,52 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      */
     private final BlockingPromise<?> terminationFuture = new DefaultBlockingPromise<>(GlobalEventLoop.INSTANCE);
 
+    protected UnboundedEventLoop(@Nullable EventLoopGroup parent,
+                                 @Nonnull ThreadFactory threadFactory,
+                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+        this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_BATCH_EVENT_SIZE, new SleepWaitStrategyFactory());
+    }
+
+    protected UnboundedEventLoop(@Nullable EventLoopGroup parent,
+                                 @Nonnull ThreadFactory threadFactory,
+                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                                 int taskBatchSize) {
+        this(parent, threadFactory, rejectedExecutionHandler, taskBatchSize, new SleepWaitStrategyFactory());
+    }
+
+    protected UnboundedEventLoop(@Nullable EventLoopGroup parent,
+                                 @Nonnull ThreadFactory threadFactory,
+                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                                 @Nonnull WaitStrategyFactory waitStrategyFactory) {
+        this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_BATCH_EVENT_SIZE, waitStrategyFactory);
+    }
+
     /**
      * @param parent                   EventLoop所属的容器，nullable
      * @param threadFactory            线程工厂，创建的线程不要直接启动，建议调用
      *                                 {@link Thread#setUncaughtExceptionHandler(Thread.UncaughtExceptionHandler)}设置异常处理器
      * @param rejectedExecutionHandler 拒绝任务的策略
+     * @param taskBatchSize            批量执行任务数，设定合理的任务数可避免执行任务耗费太多时间。
+     * @param waitStrategyFactory      没有任务时的等待策略
      */
-    protected SingleThreadEventLoop(@Nullable EventLoopGroup parent,
-                                    @Nonnull ThreadFactory threadFactory,
-                                    @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+    protected UnboundedEventLoop(@Nullable EventLoopGroup parent,
+                                 @Nonnull ThreadFactory threadFactory,
+                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                                 int taskBatchSize,
+                                 @Nonnull WaitStrategyFactory waitStrategyFactory) {
         super(parent);
+
+        if (taskBatchSize <= 0) {
+            throw new IllegalArgumentException("taskBatchSize expected: > 0");
+        }
+
         this.thread = Objects.requireNonNull(threadFactory.newThread(new Worker()), "newThread");
         // 记录异常退出日志
         UncaughtExceptionHandlers.logIfAbsent(thread, logger);
 
+        this.waitStrategy = waitStrategyFactory.newInstance();
+        this.taskBatchSize = taskBatchSize;
         this.rejectedExecutionHandler = rejectedExecutionHandler;
-        this.taskQueue = newTaskQueue();
-    }
-
-    /**
-     * 我自己测试了好多遍，{@link LinkedBlockingQueue} 和 {@link ConcurrentLinkedQueue}在EventLoop架构下基本没啥差别。
-     * (多生产者单消费者)
-     *
-     * @return queue
-     */
-    protected BlockingQueue<Runnable> newTaskQueue() {
-        return new LinkedBlockingQueue<>();
     }
 
     @Override
@@ -229,7 +263,9 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
             terminationFuture.setSuccess(null);
         } else {
             if (!inEventLoop()) {
-                // 不确定是活跃状态
+                // 可能阻塞在等待任务处
+                waitStrategy.signalAllWhenBlocking();
+
                 wakeUpForShutdown();
             }
             // else 当前是活跃状态(自己调用，当然是活跃状态)
@@ -237,17 +273,10 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * 用于其它线程友好的唤醒EventLoop线程，默认实现是向taskQueue中填充一个任务。
-     * 如果填充任务不能唤醒线程，则子类需要重写该方法
-     * <p>
-     * Q: 为什么默认实现是向taskQueue中插入一个任务，而不是中断线程{@link #interruptThread()} ?
-     * A: 我先不说这里能不能唤醒线程这个问题。
-     * 中断最致命的一点是：向目标线程发出中断请求以后，你并不知道目标线程接收到中断信号的时候正在做什么！！！
-     * 因此它并不是一种唤醒/停止目标线程的最佳方式，它可能导致一些需要原子执行的操作失败，也可能导致其它的问题。
-     * 因此最好是对症下药，默认实现里认为线程可能阻塞在taskQueue上，因此我们尝试压入一个任务以尝试唤醒它。
+     * 如果子类可能阻塞在其它地方，那么应该重写该方法以唤醒线程
      */
     protected void wakeUpForShutdown() {
-        taskQueue.offer(WAKE_UP_TASK);
+
     }
 
     /**
@@ -263,7 +292,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     @Override
     public final void execute(@Nonnull Runnable task) {
         if (addTask(task) && !inEventLoop()) {
-            // 其它线程添加任务成功后，需要确保executor已启动，自己添加任务的话，自然已经启动过了
+            waitStrategy.signalAllWhenBlocking();
             ensureStarted();
         }
     }
@@ -309,104 +338,20 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * 阻塞式地从阻塞队列中获取一个任务。
-     *
-     * @return 如果executor被唤醒或被中断，则返回null
+     * 这里提醒一下，对于{@link ConcurrentLinkedQueue}，一定不要用size方法，size方法会遍历所有元素，性能极差。
      */
-    @Nullable
-    protected final Runnable takeTask() {
+    final boolean isTaskQueueEmpty() {
         assert inEventLoop();
-        try {
-            return taskQueue.take();
-        } catch (InterruptedException ignore) {
-            // 被中断唤醒 wake up
-            return null;
+        return taskQueue.isEmpty();
+    }
+
+    /**
+     * 如果EventLoop已经开始关闭，则抛出{@link ShuttingDownException}
+     */
+    final void checkShuttingDown() throws ShuttingDownException {
+        if (isShuttingDown()) {
+            throw ShuttingDownException.INSTANCE;
         }
-    }
-
-    /**
-     * 阻塞式地从阻塞队列中获取一个任务。
-     *
-     * @param timeout 超时时间
-     * @return 如果executor被唤醒或被中断或实时间到，则返回null
-     */
-    @Nullable
-    protected final Runnable pollTask(long timeout, TimeUnit timeUnit) {
-        assert inEventLoop();
-        try {
-            return taskQueue.poll(timeout, timeUnit);
-        } catch (InterruptedException ignore) {
-            // 被中断唤醒 wake up
-            return null;
-        }
-    }
-
-    /**
-     * 从任务队列中尝试获取一个有效任务
-     *
-     * @return 如果没有可执行任务则返回null
-     * @see Queue#poll()
-     */
-    @Nullable
-    protected final Runnable pollTask() {
-        assert inEventLoop();
-        return taskQueue.poll();
-    }
-
-    /**
-     * @see Queue#isEmpty()
-     */
-    protected final boolean hasTasks() {
-        assert inEventLoop();
-        return !taskQueue.isEmpty();
-    }
-
-    /**
-     * 运行任务队列中当前所有的任务。
-     *
-     * @return 至少有一个任务执行时返回true。
-     */
-    protected final boolean runAllTasks() {
-        return runTasksBatch(Integer.MAX_VALUE);
-    }
-
-    /**
-     * 尝试批量运行任务队列中的任务。
-     *
-     * @param taskBatchSize 执行的最大任务数，设定合理的任务数可避免执行任务耗费太多时间。
-     * @return 至少有一个任务执行时返回true。
-     */
-    protected final boolean runTasksBatch(final int taskBatchSize) {
-        if (taskBatchSize <= 0) {
-            throw new IllegalArgumentException("taskBatchSize expected: > 0");
-        }
-
-        int countDown = taskBatchSize;
-        int maxDrainTasks;
-        int size;
-
-        while (true) {
-            maxDrainTasks = Math.min(CACHE_QUEUE_CAPACITY, countDown);
-
-            // drainTo - 批量拉取可执行任务(可减少竞争)
-            size = taskQueue.drainTo(cacheQueue, maxDrainTasks);
-
-            if (size <= 0) {
-                break;
-            }
-
-            for (int index = 0; index < size; index++) {
-                safeExecute(cacheQueue.pollFirst());
-            }
-
-            countDown -= size;
-
-            if (countDown <= 0) {
-                break;
-            }
-        }
-
-        return countDown < taskBatchSize;
     }
 
     // --------------------------------------- 线程管理 ----------------------------------------
@@ -421,24 +366,15 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * 子类自己决定如何实现事件循环。
+     * 执行一次循环（刷帧）。
+     * 调用时机分两种：
+     * 1. 每执行一批任务，会执行一次循环。
+     * 2. 等待任务期间，每等待一段“时间”会执行一次循环。
      *
-     * @apiNote 子类实现应该是一个死循环方法，并在适当的时候调用{@link #confirmShutdown()}确认是否需要退出循环。
-     * 子类可以有更多的判断，但是至少需要调用{@link #confirmShutdown()}确定是否需要退出。
-     * <p>
-     * 警告：如果子类未捕获异常则会导致线程退出。
+     * @apiNote 注意由于调用时机并不确定，子类实现需要自己控制真实的帧间隔。
      */
-    protected abstract void loop();
+    protected void loopOnce() throws Exception {
 
-    /**
-     * 确认是否需要立即退出事件循环，即是否可以立即退出{@link #loop()}方法。
-     * <p>
-     * Confirm that the shutdown if the instance should be done now!
-     *
-     * @apiNote 如果返回true，应该立即退出。
-     */
-    protected final boolean confirmShutdown() {
-        return isShuttingDown();
     }
 
     /**
@@ -446,6 +382,23 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
      */
     protected void clean() throws Exception {
 
+    }
+
+    /**
+     * 安全的执行一次循环。
+     * 注意：该方法不是给子类的API。用于{@link WaitStrategy}的api
+     */
+    final void safeLoopOnce() {
+        assert inEventLoop();
+        try {
+            loopOnce();
+        } catch (Throwable t) {
+            if (t instanceof VirtualMachineError) {
+                logger.error("loopOnce caught exception", t);
+            } else {
+                logger.warn("loopOnce caught exception", t);
+            }
+        }
     }
 
     /**
@@ -484,13 +437,60 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
             }
         }
 
-        private void cleanTaskQueue() {
-            while (!isShutdown()) {
-                if (!runTasksBatch(CACHE_QUEUE_CAPACITY)) {
-                    break;
+        private void loop() {
+            while (true) {
+                try {
+                    waitStrategy.waitTask(UnboundedEventLoop.this);
+
+                    runTasksBatch();
+
+                    safeLoopOnce();
+                } catch (ShuttingDownException | InterruptedException e) {
+                    // 检测到EventLoop关闭或被中断
+                    if (isShuttingDown()) {
+                        break;
+                    }
+                } catch (TimeoutException e) {
+                    // 等待超时，执行一次循环
+                    safeLoopOnce();
+                } catch (Throwable e) {
+                    // 不好的等待策略实现
+                    logger.error("bad waitStrategy imp", e);
+                    // 检测退出
+                    if (isShuttingDown()) {
+                        break;
+                    }
                 }
             }
+        }
+
+        private void runTasksBatch() {
+            Runnable task;
+            for (int countDown = taskBatchSize; countDown > 0; countDown--) {
+                task = taskQueue.poll();
+
+                if (task == null) {
+                    break;
+                }
+
+                safeExecute(task);
+            }
+        }
+
+        private void cleanTaskQueue() {
+            Runnable task;
+            while (!isShutdown()) {
+                task = taskQueue.poll();
+
+                if (task == null) {
+                    break;
+                }
+
+                safeExecute(task);
+            }
+
             taskQueue.clear();
         }
     }
+
 }

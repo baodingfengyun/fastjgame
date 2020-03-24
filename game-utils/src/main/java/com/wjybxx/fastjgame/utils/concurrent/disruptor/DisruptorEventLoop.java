@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.utils.concurrent.disruptor;
 
 import com.lmax.disruptor.*;
 import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,25 +33,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 基于Disruptor的事件循环。
+ * 它是有界事件循环的超类，如果期望使用无界队列，请使用{@link UnboundedEventLoop}。
+ * 等待策略与{@link UnboundedEventLoop}是一致的。
  *
  * <p>
- * Q: {@link DisruptorEventLoop}比起{@link SingleThreadEventLoop}，优势在哪？<br>
- * A: 1. {@link DisruptorEventLoop}采用的是无锁队列，性能高于{@link SingleThreadEventLoop}。
- * 2. {@link DisruptorEventLoop}对资源的利用率远胜{@link SingleThreadEventLoop}。
+ * Q: {@link DisruptorEventLoop}比起{@link UnboundedEventLoop}，优势在哪？<br>
+ * A: 1. {@link DisruptorEventLoop}采用的是无锁队列，性能高于{@link UnboundedEventLoop}。
+ * 2. {@link DisruptorEventLoop}对资源的利用率远胜{@link UnboundedEventLoop}。
  * <p>
  * Q: 那缺陷在哪呢？
- * A: 1. 最大的缺陷就是它只能是有界的队列，某些场景下不能使用有界队列。<br>
- * 2. {@link DisruptorEventLoop}涉及很多额外的知识，涉及到Disruptor框架，而且我为了解决它存在的一些问题，又选择了一些自定义的实现，
- * 导致其阅读难度较大，不像{@link SingleThreadEventLoop}那么清晰易懂。<br>
- * 3. 子类不能控制循环逻辑，无法自己决定什么时候调用{@link #loopOnce()}。<br>
+ * A: 最大的缺陷就是它只能是有界的队列。由于{@link EventLoop}都是单线程的，如果某个EventLoop使用有界队列，且有阻塞式操作，则可能导致死锁或较长时间阻塞。
  *
  * <p>
  * Q: 哪些事件循环适合使用{@link DisruptorEventLoop} ?<br>
  * A: 如果你的服务处于终端节点，且需要极低的延迟和极高的吞吐量的时候。
- *
- * <p>
- * 警告：由于{@link EventLoop}都是单线程的，如果某个EventLoop使用有界队列，且有阻塞式操作，则可能导致死锁或较长时间阻塞。
- * 而{@link DisruptorEventLoop}使用的就是有界队列。
  *
  * @author wjybxx
  * @version 1.0
@@ -101,29 +97,29 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * 真正执行逻辑的对象
      */
     private final Worker worker;
-
-    /**
-     * 事件队列
-     */
-    private final RingBuffer<RunnableEvent> ringBuffer;
-    /**
-     * 批量拉取任务的大小
-     */
-    private final int taskBatchSize;
-
     /**
      * 线程状态
      */
     private final AtomicInteger stateHolder = new AtomicInteger(ST_NOT_STARTED);
 
     /**
-     * 线程终止future
+     * 事件队列
      */
-    private final BlockingPromise<?> terminationFuture = new DefaultBlockingPromise(GlobalEventLoop.INSTANCE);
+    private final RingBuffer<RunnableEvent> ringBuffer;
+    /**
+     * 批量执行任务的大小
+     */
+    private final int taskBatchSize;
+
     /**
      * 任务拒绝策略
      */
     private final RejectedExecutionHandler rejectedExecutionHandler;
+
+    /**
+     * 线程终止future
+     */
+    private final BlockingPromise<?> terminationFuture = new DefaultBlockingPromise(GlobalEventLoop.INSTANCE);
 
     /**
      * @param parent                   容器节点
@@ -393,7 +389,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     /**
      * 执行一次循环（刷帧）。
-     * 调用时机分两种：+
+     * 调用时机分两种：
      * 1. 每执行一批任务，会执行一次循环。
      * 2. 等待任务期间，每等待一段“时间”会执行一次循环。
      *
@@ -454,7 +450,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                 // 如果是非正常退出，需要切换到正在关闭状态 - 告知其它线程，已经开始关闭
                 advanceRunState(ST_SHUTTING_DOWN);
                 try {
-                    // 从网关sequence中删除自己。
+                    // 从网关sequence中删除自己
                     removeFromGatingSequence();
 
                     // 清理ringBuffer中的数据
@@ -526,6 +522,9 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             }
         }
 
+        /**
+         * 这是解决死锁问题的关键，如果不从gatingSequence中移除，则{@link RingBuffer#next(int)} 方法可能死锁。
+         */
         private void removeFromGatingSequence() {
             ringBuffer.removeGatingSequence(sequence);
         }

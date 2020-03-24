@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.db.redis;
 
 import com.wjybxx.fastjgame.utils.concurrent.*;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -57,7 +58,7 @@ import static com.wjybxx.fastjgame.utils.ThreadUtils.sleepQuietly;
  * date - 2019/12/12
  * github - https://github.com/hl845740757
  */
-public class RedisEventLoop extends SingleThreadEventLoop {
+public class RedisEventLoop extends UnboundedEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(RedisEventLoop.class);
 
@@ -82,7 +83,7 @@ public class RedisEventLoop extends SingleThreadEventLoop {
                           @Nonnull ThreadFactory threadFactory,
                           @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                           @Nonnull JedisPoolAbstract jedisPool) {
-        super(parent, threadFactory, rejectedExecutionHandler);
+        super(parent, threadFactory, rejectedExecutionHandler, TASK_BATCH_SIZE);
         this.jedisPool = jedisPool;
     }
 
@@ -119,25 +120,10 @@ public class RedisEventLoop extends SingleThreadEventLoop {
     }
 
     @Override
-    protected void loop() {
-        while (true) {
-            try {
-                runTasksBatch(TASK_BATCH_SIZE);
+    protected void loopOnce() throws Exception {
+        pipelineSync();
 
-                pipelineSync();
-
-                checkConnection();
-
-                if (confirmShutdown()) {
-                    break;
-                }
-
-                // 等待以降低cpu利用率
-                sleepQuietly(1);
-            } catch (Throwable t) {
-                logger.warn("loop caught exception", t);
-            }
-        }
+        checkConnection();
     }
 
     /**

@@ -102,11 +102,6 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
             return availableSequence;
         }
 
-        @Override
-        public void signalAllWhenBlocking() {
-            // 没有消费者在这里阻塞，因此什么也不干
-        }
-
         private int applyWaitMethod(final SequenceBarrier barrier, int counter)
                 throws AlertException {
             // 检查中断、停止信号
@@ -118,6 +113,11 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
                 Thread.yield();
             }
             return counter;
+        }
+
+        @Override
+        public void signalAllWhenBlocking() {
+            // 没有消费者在这里阻塞，因此什么也不干
         }
     }
 }

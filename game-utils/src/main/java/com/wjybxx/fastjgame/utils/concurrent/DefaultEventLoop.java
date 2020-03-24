@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.ThreadFactory;
@@ -28,7 +30,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/7/21
  * github - https://github.com/hl845740757
  */
-public class DefaultEventLoop extends SingleThreadEventLoop {
+public class DefaultEventLoop extends UnboundedEventLoop {
 
     public DefaultEventLoop(@Nullable DefaultEventLoopGroup parent,
                             @Nonnull ThreadFactory threadFactory,
@@ -36,21 +38,4 @@ public class DefaultEventLoop extends SingleThreadEventLoop {
         super(parent, threadFactory, rejectedExecutionHandler);
     }
 
-    /**
-     * 它的事件循环仅仅是拉取提交的任务并执行
-     */
-    @Override
-    protected void loop() {
-        Runnable task;
-        for (; ; ) {
-            task = takeTask();
-            if (null != task) {
-                safeExecute(task);
-            }
-            // 检查是否需要退出
-            if (confirmShutdown()) {
-                break;
-            }
-        }
-    }
 }

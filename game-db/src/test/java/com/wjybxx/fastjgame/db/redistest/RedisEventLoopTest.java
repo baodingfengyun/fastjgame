@@ -21,11 +21,11 @@ import com.wjybxx.fastjgame.db.redis.RedisClient;
 import com.wjybxx.fastjgame.db.redis.RedisEventLoop;
 import com.wjybxx.fastjgame.db.redis.RedisMethodHandleFactory;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.ThreadUtils;
 import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.utils.concurrent.SingleThreadEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.YieldWaitStrategyFactory;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -76,7 +76,9 @@ public class RedisEventLoopTest {
         return redisEventLoop;
     }
 
-    private static class ClientEventLoop extends SingleThreadEventLoop {
+    private static class ClientEventLoop extends UnboundedEventLoop {
+
+        private static final int MAX_LOOP_TIMES = 100_0000;
 
         private final RedisEventLoop redisEventLoop;
         private RedisClient redisClient;
@@ -89,35 +91,21 @@ public class RedisEventLoopTest {
         @Override
         protected void init() throws Exception {
             redisClient = new DefaultRedisClient(redisEventLoop, this);
-        }
 
-        @Override
-        protected void loop() {
-            final int MAX_LOOP_TIMES = 100_0000;
             final long startTimeMS = System.currentTimeMillis();
 
-            for (int loop = 0; loop < MAX_LOOP_TIMES; loop++) {
-                runAllTasks();
-
-                sendRedisCommands(loop);
+            for (int loopTimes = 0; loopTimes < MAX_LOOP_TIMES; loopTimes++) {
+                sendRedisCommands(loopTimes);
             }
 
             // 监听前面的redis命令完成
-
             redisClient.call(RedisMethodHandleFactory.hset("test-monitor", "monitor", "1"))
-                    .addListener(future -> shutdown());
+                    .addListener(future -> onAllCommandsFinish(startTimeMS));
+        }
 
-            while (true) {
-                runAllTasks();
-
-                if (confirmShutdown()) {
-                    break;
-                }
-
-                ThreadUtils.sleepQuietly(1);
-            }
-
+        private void onAllCommandsFinish(long startTimeMS) {
             System.out.println("execute " + (2 * MAX_LOOP_TIMES) + " commands, cost time ms " + (System.currentTimeMillis() - startTimeMS));
+            shutdown();
         }
 
         private void sendRedisCommands(int loop) {
