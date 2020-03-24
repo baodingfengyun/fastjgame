@@ -31,7 +31,7 @@ public class RpcResponseWriteTask implements WriteTask {
     private final Session session;
     private final RpcResponseMessage rpcResponseMessage;
 
-    public RpcResponseWriteTask(Session session, long requestGuid, RpcErrorCode errorCode, Object body, boolean sync) {
+    public RpcResponseWriteTask(Session session, long requestGuid, boolean sync, RpcErrorCode errorCode, Object body) {
         this.session = session;
         this.rpcResponseMessage = new RpcResponseMessage(requestGuid, sync, errorCode, body);
     }

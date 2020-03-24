@@ -216,7 +216,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
                 // 不返回完整信息，意义不大
                 body = ExceptionUtils.getRootCauseMessage(future.cause());
             }
-            session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, errorCode, body, sync));
+            session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, sync, errorCode, body));
         }
     }
 

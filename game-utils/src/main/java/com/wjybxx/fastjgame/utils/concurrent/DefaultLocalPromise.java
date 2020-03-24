@@ -68,7 +68,7 @@ public class DefaultLocalPromise<V> extends AbstractPromise<V> implements LocalP
     private void notifyAllListenersNow() {
         assert appEventLoop.inEventLoop();
 
-        // 由于可能存在带执行的该方法调用，因此这里可能为null。
+        // 由于可能存在异步执行该方法的任务(Task)，因此这里可能为null。
         if (null == listenerEntries) {
             return;
         }

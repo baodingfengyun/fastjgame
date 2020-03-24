@@ -61,7 +61,9 @@ public class RejectedExecutionHandlers {
 
     /**
      * 调用者执行策略：调用execute方法的线程执行。
-     * 注意：必须有序执行的任务不能使用该策略。
+     * 注意：
+     * 1. 必须有序执行的任务不能使用该策略。
+     * 2. 如果资源只能特定线程能访问，也不能使用该策略。
      */
     public static RejectedExecutionHandler callerRuns() {
         return CALLER_RUNS_POLICY;
