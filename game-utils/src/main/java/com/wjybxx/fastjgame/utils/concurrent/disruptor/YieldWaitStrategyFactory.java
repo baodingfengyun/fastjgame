@@ -40,28 +40,28 @@ import javax.annotation.Nonnull;
 public class YieldWaitStrategyFactory implements WaitStrategyFactory {
 
     private static final int SPIN_TRIES = 100;
-    private static final int DEFAULT_WAIT_TIMES_THRESHOLD = 1024;
+    private static final int DEFAULT_LOOP_ONCE_SPIN_TRIES = 1024;
 
     private final int spinTries;
-    private final int waitTimesThreshold;
+    private final int loopOnceSpinTries;
 
     public YieldWaitStrategyFactory() {
-        this(SPIN_TRIES, DEFAULT_WAIT_TIMES_THRESHOLD);
+        this(SPIN_TRIES, DEFAULT_LOOP_ONCE_SPIN_TRIES);
     }
 
     /**
-     * @param spinTries          最大自旋次数，超过等待次数后尝试让出CPU
-     * @param waitTimesThreshold 每等待多少次执行一次事件循环
+     * @param spinTries         最大自旋次数，超过等待次数后尝试让出CPU
+     * @param loopOnceSpinTries 每自旋多少次执行一次事件循环
      */
-    public YieldWaitStrategyFactory(int spinTries, int waitTimesThreshold) {
+    public YieldWaitStrategyFactory(int spinTries, int loopOnceSpinTries) {
         this.spinTries = spinTries;
-        this.waitTimesThreshold = waitTimesThreshold;
+        this.loopOnceSpinTries = loopOnceSpinTries;
     }
 
     @Nonnull
     @Override
     public WaitStrategy newWaitStrategy(DisruptorEventLoop eventLoop) {
-        return new YieldWaitStrategy(eventLoop, spinTries, waitTimesThreshold);
+        return new YieldWaitStrategy(eventLoop, spinTries, loopOnceSpinTries);
     }
 
     /**
@@ -74,12 +74,12 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
 
         private final DisruptorEventLoop eventLoop;
         private final int spinTries;
-        private final int waitTimesThreshold;
+        private final int loopOnceSpinTries;
 
-        YieldWaitStrategy(DisruptorEventLoop eventLoop, int spinTries, int waitTimesThreshold) {
+        YieldWaitStrategy(DisruptorEventLoop eventLoop, int spinTries, int loopOnceSpinTries) {
             this.eventLoop = eventLoop;
             this.spinTries = spinTries;
-            this.waitTimesThreshold = waitTimesThreshold;
+            this.loopOnceSpinTries = loopOnceSpinTries;
         }
 
         @Override
@@ -87,13 +87,14 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
                             final SequenceBarrier barrier) throws AlertException {
             long availableSequence;
             int counter = spinTries;
-            int waitTimes = 0;
+            int spinTries = 0;
 
             while ((availableSequence = dependentSequence.get()) < sequence) {
                 counter = applyWaitMethod(barrier, counter);
+
                 // 每隔一段时间执行一次循环
-                if (++waitTimes == waitTimesThreshold) {
-                    waitTimes = 0;
+                if (++spinTries == loopOnceSpinTries) {
+                    spinTries = 0;
                     eventLoop.safeLoopOnce();
                 }
             }

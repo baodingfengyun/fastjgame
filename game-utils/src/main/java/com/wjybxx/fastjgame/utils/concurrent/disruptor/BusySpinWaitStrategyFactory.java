@@ -40,25 +40,25 @@ import javax.annotation.Nonnull;
  */
 public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
 
-    private static final int DEFAULT_WAIT_TIMES_THRESHOLD = 2048;
+    private static final int DEFAULT_LOOP_ONCE_SPIN_TRIES = 2048;
 
-    private final int waitTimesThreshold;
+    private final int loopOnceSpinTries;
 
     public BusySpinWaitStrategyFactory() {
-        this(DEFAULT_WAIT_TIMES_THRESHOLD);
+        this(DEFAULT_LOOP_ONCE_SPIN_TRIES);
     }
 
     /**
-     * @param waitTimesThreshold 每等待多少次执行一次事件循环
+     * @param loopOnceSpinTries 每自旋多少次执行一次事件循环
      */
-    public BusySpinWaitStrategyFactory(int waitTimesThreshold) {
-        this.waitTimesThreshold = waitTimesThreshold;
+    public BusySpinWaitStrategyFactory(int loopOnceSpinTries) {
+        this.loopOnceSpinTries = loopOnceSpinTries;
     }
 
     @Nonnull
     @Override
     public WaitStrategy newWaitStrategy(DisruptorEventLoop eventLoop) {
-        return new BusySpinWaitStrategy(eventLoop, waitTimesThreshold);
+        return new BusySpinWaitStrategy(eventLoop, loopOnceSpinTries);
     }
 
     /**
@@ -73,11 +73,11 @@ public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
     static final class BusySpinWaitStrategy implements WaitStrategy {
 
         private final DisruptorEventLoop eventLoop;
-        private final int waitTimesThreshold;
+        private final int loopOnceSpinTries;
 
-        BusySpinWaitStrategy(DisruptorEventLoop eventLoop, int waitTimesThreshold) {
+        BusySpinWaitStrategy(DisruptorEventLoop eventLoop, int loopOnceSpinTries) {
             this.eventLoop = eventLoop;
-            this.waitTimesThreshold = waitTimesThreshold;
+            this.loopOnceSpinTries = loopOnceSpinTries;
         }
 
         @Override
@@ -85,14 +85,14 @@ public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
                             final SequenceBarrier barrier) throws AlertException, InterruptedException {
 
             long availableSequence;
-            int waitTimes = 0;
+            int spinTries = 0;
 
             while ((availableSequence = dependentSequence.get()) < sequence) {
                 barrier.checkAlert();
                 Thread.onSpinWait();
 
-                if (++waitTimes == waitTimesThreshold) {
-                    waitTimes = 0;
+                if (++spinTries == loopOnceSpinTries) {
+                    spinTries = 0;
                     eventLoop.safeLoopOnce();
                 }
             }

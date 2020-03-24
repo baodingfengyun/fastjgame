@@ -31,9 +31,7 @@ import java.util.concurrent.locks.LockSupport;
  * 适用于那些延迟和吞吐量不那么重要的场景，eg: 日志、网络。
  * <b>该策略是默认的策略</b>
  * <p>
- * 注意：
- * 1. 每等待一段时间才会执行一次{@link DisruptorEventLoop#loopOnce()}
- * {@link SleepWaitStrategy}
+ * 注意：每睡眠一次，会调用一次{@link DisruptorEventLoop#loopOnce()}。
  *
  * @author wjybxx
  * @version 1.0
@@ -44,40 +42,35 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
 
     private static final int DEFAULT_RETRIES = 200;
     private static final long DEFAULT_SLEEP_NS = 100;
-    private static final int DEFAULT_WAIT_TIMES_THRESHOLD = 256;
 
     private final int retries;
     private final long sleepTimeNs;
-    private final int waitTimesThreshold;
 
     public SleepWaitStrategyFactory() {
-        this(DEFAULT_RETRIES, DEFAULT_SLEEP_NS, TimeUnit.NANOSECONDS, DEFAULT_WAIT_TIMES_THRESHOLD);
+        this(DEFAULT_RETRIES, DEFAULT_SLEEP_NS, TimeUnit.NANOSECONDS);
     }
 
     /**
+     * @see #SleepWaitStrategyFactory(int, long, TimeUnit)
+     */
+    public SleepWaitStrategyFactory(long sleepTimeout, TimeUnit sleepTimeUnit) {
+        this(DEFAULT_RETRIES, sleepTimeout, sleepTimeUnit);
+    }
+
+    /**
+     * @param retries       自旋多少次后开始睡眠
      * @param sleepTimeout  睡眠时间
      * @param sleepTimeUnit 时间单位
      */
-    public SleepWaitStrategyFactory(long sleepTimeout, TimeUnit sleepTimeUnit) {
-        this(DEFAULT_RETRIES, sleepTimeout, sleepTimeUnit, DEFAULT_WAIT_TIMES_THRESHOLD);
-    }
-
-    /**
-     * @param retries            尝试多少次空循环后开始睡眠
-     * @param sleepTimeout       睡眠时间
-     * @param sleepTimeUnit      时间单位
-     * @param waitTimesThreshold 每等待多少次执行一次事件循环
-     */
-    public SleepWaitStrategyFactory(int retries, long sleepTimeout, TimeUnit sleepTimeUnit, int waitTimesThreshold) {
+    public SleepWaitStrategyFactory(int retries, long sleepTimeout, TimeUnit sleepTimeUnit) {
         this.retries = retries;
         this.sleepTimeNs = sleepTimeUnit.toNanos(sleepTimeout);
-        this.waitTimesThreshold = waitTimesThreshold;
     }
 
     @Nonnull
     @Override
     public WaitStrategy newWaitStrategy(DisruptorEventLoop eventLoop) {
-        return new SleepWaitStrategy(eventLoop, retries, sleepTimeNs, waitTimesThreshold);
+        return new SleepWaitStrategy(eventLoop, retries, sleepTimeNs);
     }
 
     /**
@@ -89,13 +82,11 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
         private final DisruptorEventLoop eventLoop;
         private final int retries;
         private final long sleepTimeNs;
-        private final int waitTimesThreshold;
 
-        SleepWaitStrategy(DisruptorEventLoop eventLoop, int retries, long sleepTimeNs, int waitTimesThreshold) {
+        SleepWaitStrategy(DisruptorEventLoop eventLoop, int retries, long sleepTimeNs) {
             this.eventLoop = eventLoop;
             this.retries = retries;
             this.sleepTimeNs = sleepTimeNs;
-            this.waitTimesThreshold = waitTimesThreshold;
         }
 
         @Override
@@ -103,14 +94,13 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
                             final SequenceBarrier barrier) throws AlertException {
             long availableSequence;
             int counter = retries;
-            int waitTimes = 0;
 
             // dependentSequence 该项目组织架构中，其实只是生产者的sequence。
             while ((availableSequence = dependentSequence.get()) < sequence) {
                 counter = applyWaitMethod(barrier, counter);
-                // 每隔一段时间执行一次循环
-                if (++waitTimes == waitTimesThreshold) {
-                    waitTimes = 0;
+
+                // 每睡眠一次，执行一次循环
+                if (counter <= 0) {
                     eventLoop.safeLoopOnce();
                 }
             }

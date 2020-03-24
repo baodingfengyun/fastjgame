@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.utils.concurrent.disruptor;
 
 import com.lmax.disruptor.*;
 import com.wjybxx.fastjgame.utils.concurrent.*;
-import com.wjybxx.fastjgame.utils.timer.TimerSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -393,9 +392,12 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * 执行一次循环。
+     * 执行一次循环（刷帧）。
+     * 调用时机分两种：+
+     * 1. 每执行一批任务，会执行一次循环。
+     * 2. 等待任务期间，每等待一段“时间”会执行一次循环。
      *
-     * @apiNote 注意由于调用时机并不确定，子类实现需要自己控制真实的帧间隔，可以使用{@link TimerSystem}控制。
+     * @apiNote 注意由于调用时机并不确定，子类实现需要自己控制真实的帧间隔。
      */
     protected void loopOnce() throws Exception {
 
@@ -412,7 +414,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * 安全的执行一次循环。
      * 注意：该方法不是给子类的API。用于{@link WaitStrategy}的api
      */
-    public final void safeLoopOnce() {
+    final void safeLoopOnce() {
         assert inEventLoop();
         try {
             loopOnce();
