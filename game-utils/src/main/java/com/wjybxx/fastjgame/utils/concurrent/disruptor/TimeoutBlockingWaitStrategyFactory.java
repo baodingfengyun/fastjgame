@@ -90,13 +90,18 @@ public class TimeoutBlockingWaitStrategyFactory implements WaitStrategyFactory {
                         signalNeeded.set(true);
                         try {
                             nanos = processorNotifyCondition.awaitNanos(nanos);
-                        } finally {
-                            // 单消费者模型，因此醒来即可标记为不需要通知，可以实现更精确的通知控制
+                            // 首先，因为是单消费者模型，最多只有一个线程在锁上等待，
+                            // 因此，醒来是否将signalNeeded设置为false，并不会导致错误，只是可能会有额外开销。
+                            // 如果总是设置为false，那么也会增加开销，因为它可能是被signal唤醒的，此时已经是false
+                            // 如果总是不设置，那么也会增加开销，因为它已经醒来了，但是其它线程还是会获取锁进行通知。
+                            // 我们只对等待超时和被中断，进行处理，其它情况下认为已经是false了(认为是被signal唤醒的)
+                            if (nanos <= 0) {
+                                signalNeeded.set(false);
+                                throw TimeoutException.INSTANCE;
+                            }
+                        } catch (InterruptedException e) {
                             signalNeeded.set(false);
-                        }
-
-                        if (nanos <= 0) {
-                            throw TimeoutException.INSTANCE;
+                            throw e;
                         }
                     }
                 } finally {
