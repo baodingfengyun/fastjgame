@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.WaitStrategyFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,10 +33,19 @@ import java.util.concurrent.ThreadFactory;
  */
 public class DefaultEventLoop extends UnboundedEventLoop {
 
-    public DefaultEventLoop(@Nullable DefaultEventLoopGroup parent,
-                            @Nonnull ThreadFactory threadFactory,
-                            @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+    public DefaultEventLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
         super(parent, threadFactory, rejectedExecutionHandler);
     }
 
+    public DefaultEventLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler, int taskBatchSize) {
+        super(parent, threadFactory, rejectedExecutionHandler, taskBatchSize);
+    }
+
+    public DefaultEventLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler, @Nonnull WaitStrategyFactory waitStrategyFactory) {
+        super(parent, threadFactory, rejectedExecutionHandler, waitStrategyFactory);
+    }
+
+    public DefaultEventLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler, int taskBatchSize, @Nonnull WaitStrategyFactory waitStrategyFactory) {
+        super(parent, threadFactory, rejectedExecutionHandler, taskBatchSize, waitStrategyFactory);
+    }
 }

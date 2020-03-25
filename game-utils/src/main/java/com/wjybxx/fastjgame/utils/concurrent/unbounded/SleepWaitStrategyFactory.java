@@ -58,7 +58,7 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
         return new SleepWaitStrategy(retries, sleepTimeNs);
     }
 
-    static class SleepWaitStrategy implements WaitStrategy {
+    private static class SleepWaitStrategy implements WaitStrategy {
 
         private final int retries;
         private final long sleepTimeNs;

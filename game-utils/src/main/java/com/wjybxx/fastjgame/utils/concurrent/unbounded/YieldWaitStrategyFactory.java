@@ -47,7 +47,7 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
         return new YieldWaitStrategy(spinTries, loopOnceSpinTries);
     }
 
-    static class YieldWaitStrategy implements WaitStrategy {
+    private static class YieldWaitStrategy implements WaitStrategy {
         private final int spinTries;
         private final int loopOnceSpinTries;
 

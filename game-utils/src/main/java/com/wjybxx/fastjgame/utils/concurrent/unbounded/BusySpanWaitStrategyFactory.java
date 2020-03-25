@@ -40,7 +40,7 @@ public class BusySpanWaitStrategyFactory implements WaitStrategyFactory {
         return new BusySpanWaitStrategy(loopOnceSpinTries);
     }
 
-    public static class BusySpanWaitStrategy implements WaitStrategy {
+    private static class BusySpanWaitStrategy implements WaitStrategy {
 
         private final int loopOnceSpinTries;
 

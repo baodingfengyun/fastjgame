@@ -70,7 +70,7 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
      * <p>
      * 注意：该策略将使用100%的cpu，但是当其它线程需要CPU资源时，比{@link BusySpinWaitStrategy}更容易让出CPU资源。
      */
-    static class YieldWaitStrategy implements WaitStrategy {
+    private static class YieldWaitStrategy implements WaitStrategy {
 
         private final DisruptorEventLoop eventLoop;
         private final int spinTries;

@@ -16,11 +16,14 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.disruptor;
 
-import com.lmax.disruptor.LiteTimeoutBlockingWaitStrategy;
-import com.lmax.disruptor.WaitStrategy;
+import com.lmax.disruptor.*;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 该策略下，当没有事件可消费时，阻塞一段时间，直到超时或有新事件到来。<b>
@@ -55,7 +58,67 @@ public class TimeoutBlockingWaitStrategyFactory implements WaitStrategyFactory {
     @Nonnull
     @Override
     public WaitStrategy newWaitStrategy(DisruptorEventLoop eventLoop) {
-        return new LiteTimeoutBlockingWaitStrategy(timeout, timeUnit);
+        return new TimeoutBlockingWaitStrategy(timeout, timeUnit);
     }
 
+    private static class TimeoutBlockingWaitStrategy implements WaitStrategy {
+        private final Lock lock = new ReentrantLock();
+        private final Condition processorNotifyCondition = lock.newCondition();
+        /**
+         * 是否需要通知，可以减少不必要是锁申请和通知
+         */
+        private final AtomicBoolean signalNeeded = new AtomicBoolean(false);
+        private final long timeoutInNanos;
+
+        TimeoutBlockingWaitStrategy(final long timeout, final TimeUnit units) {
+            timeoutInNanos = units.toNanos(timeout);
+        }
+
+        @Override
+        public long waitFor(long sequence, Sequence cursor, Sequence dependentSequence, SequenceBarrier barrier)
+                throws AlertException, InterruptedException, TimeoutException {
+            long nanos = timeoutInNanos;
+
+            // 阻塞式等待生产者消费
+            long availableSequence = cursor.get();
+            if (availableSequence < sequence) {
+                lock.lock();
+                try {
+                    while ((availableSequence = cursor.get()) < sequence) {
+                        barrier.checkAlert();
+
+                        signalNeeded.set(true);
+                        try {
+                            nanos = processorNotifyCondition.awaitNanos(nanos);
+                        } finally {
+                            // 单消费者模型，因此醒来即可标记为不需要通知，可以实现更精确的通知控制
+                            signalNeeded.set(false);
+                        }
+
+                        if (nanos <= 0) {
+                            throw TimeoutException.INSTANCE;
+                        }
+                    }
+                } finally {
+                    lock.unlock();
+                }
+            }
+
+            // 单消费者模型，cursor就是dependentSequence，因此不必再判断dependentSequence
+            return availableSequence;
+        }
+
+        @Override
+        public void signalAllWhenBlocking() {
+            if (signalNeeded.getAndSet(false)) {
+                lock.lock();
+                try {
+                    // 这里调用signal和signalAll是一样的，因为最多只有一个线程(消费者线程)在等待
+                    processorNotifyCondition.signalAll();
+                } finally {
+                    lock.unlock();
+                }
+            }
+        }
+    }
 }

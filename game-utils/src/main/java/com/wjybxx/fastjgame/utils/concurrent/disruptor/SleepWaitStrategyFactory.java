@@ -77,7 +77,7 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
      * 该策略使用<b>自旋 + yield + sleep</b>等待生产者生产数据。
      * 特征：延迟不稳定，但是CPU使用率较低。如果CPU资源紧张，使用该策略是不错的策略。
      */
-    static class SleepWaitStrategy implements WaitStrategy {
+    private static class SleepWaitStrategy implements WaitStrategy {
 
         private final DisruptorEventLoop eventLoop;
         private final int retries;

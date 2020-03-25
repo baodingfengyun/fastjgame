@@ -48,7 +48,7 @@ public class TimeoutBlockingWaitStrategyFactory implements WaitStrategyFactory {
         return new TimeoutBlockingWaitStrategy(timeout, timeUnit);
     }
 
-    static class TimeoutBlockingWaitStrategy implements WaitStrategyFactory.WaitStrategy {
+    private static class TimeoutBlockingWaitStrategy implements WaitStrategyFactory.WaitStrategy {
 
         private final Lock lock = new ReentrantLock();
         private final Condition processorNotifyCondition = lock.newCondition();
@@ -66,15 +66,20 @@ public class TimeoutBlockingWaitStrategyFactory implements WaitStrategyFactory {
         public void waitTask(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
             long nanos = timeoutInNanos;
 
+            // 阻塞式等待生产者消费
             if (eventLoop.isTaskQueueEmpty()) {
                 lock.lock();
                 try {
                     while (eventLoop.isTaskQueueEmpty()) {
                         eventLoop.checkShuttingDown();
 
-                        signalNeeded.getAndSet(true);
-
-                        nanos = processorNotifyCondition.awaitNanos(nanos);
+                        signalNeeded.set(true);
+                        try {
+                            nanos = processorNotifyCondition.awaitNanos(nanos);
+                        } finally {
+                            // 单消费者模型，因此醒来即可标记为不需要通知，可以实现更精确的通知控制
+                            signalNeeded.set(false);
+                        }
 
                         if (nanos <= 0) {
                             throw TimeoutException.INSTANCE;
