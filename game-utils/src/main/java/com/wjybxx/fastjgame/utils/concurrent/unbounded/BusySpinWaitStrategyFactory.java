@@ -21,35 +21,35 @@ package com.wjybxx.fastjgame.utils.concurrent.unbounded;
  * @version 1.0
  * date - 2020/3/23
  */
-public class BusySpanWaitStrategyFactory implements WaitStrategyFactory {
+public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
 
-    private static final int DEFAULT_LOOP_ONCE_SPIN_TRIES = 2048;
+    private static final int DEFAULT_LOOP_ONCE_SPIN_TRIES = com.wjybxx.fastjgame.utils.concurrent.disruptor.BusySpinWaitStrategyFactory.DEFAULT_LOOP_ONCE_SPIN_TRIES;
 
     private final int loopOnceSpinTries;
 
-    public BusySpanWaitStrategyFactory() {
+    public BusySpinWaitStrategyFactory() {
         this(DEFAULT_LOOP_ONCE_SPIN_TRIES);
     }
 
-    public BusySpanWaitStrategyFactory(int loopOnceSpinTries) {
+    public BusySpinWaitStrategyFactory(int loopOnceSpinTries) {
         this.loopOnceSpinTries = loopOnceSpinTries;
     }
 
     @Override
     public WaitStrategy newInstance() {
-        return new BusySpanWaitStrategy(loopOnceSpinTries);
+        return new BusySpinWaitStrategy(loopOnceSpinTries);
     }
 
-    private static class BusySpanWaitStrategy implements WaitStrategy {
+    private static class BusySpinWaitStrategy implements WaitStrategy {
 
         private final int loopOnceSpinTries;
 
-        BusySpanWaitStrategy(int loopOnceSpinTries) {
+        BusySpinWaitStrategy(int loopOnceSpinTries) {
             this.loopOnceSpinTries = loopOnceSpinTries;
         }
 
         @Override
-        public void waitTask(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
+        public void waitFor(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
             int spinTries = 0;
             while (eventLoop.isTaskQueueEmpty()) {
                 eventLoop.checkShuttingDown();

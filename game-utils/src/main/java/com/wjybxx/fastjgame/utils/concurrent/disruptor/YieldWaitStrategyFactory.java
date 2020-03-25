@@ -39,8 +39,8 @@ import javax.annotation.Nonnull;
  */
 public class YieldWaitStrategyFactory implements WaitStrategyFactory {
 
-    private static final int SPIN_TRIES = 100;
-    private static final int DEFAULT_LOOP_ONCE_SPIN_TRIES = 1024;
+    public static final int SPIN_TRIES = 100;
+    public static final int DEFAULT_LOOP_ONCE_SPIN_TRIES = 1024;
 
     private final int spinTries;
     private final int loopOnceSpinTries;
@@ -89,6 +89,7 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
             int counter = spinTries;
             int spinTries = 0;
 
+            // dependentSequence 该项目组织架构中，其实只是生产者的sequence，也就是cursor
             while ((availableSequence = dependentSequence.get()) < sequence) {
                 counter = applyWaitMethod(barrier, counter);
 

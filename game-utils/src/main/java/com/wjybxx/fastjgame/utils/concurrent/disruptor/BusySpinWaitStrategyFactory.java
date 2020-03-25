@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
  */
 public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
 
-    private static final int DEFAULT_LOOP_ONCE_SPIN_TRIES = 2048;
+    public static final int DEFAULT_LOOP_ONCE_SPIN_TRIES = 2048;
 
     private final int loopOnceSpinTries;
 
@@ -87,6 +87,7 @@ public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
             long availableSequence;
             int spinTries = 0;
 
+            // dependentSequence 该项目组织架构中，其实只是生产者的sequence，也就是cursor
             while ((availableSequence = dependentSequence.get()) < sequence) {
                 barrier.checkAlert();
                 Thread.onSpinWait();

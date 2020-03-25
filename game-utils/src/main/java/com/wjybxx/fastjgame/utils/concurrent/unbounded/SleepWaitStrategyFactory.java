@@ -26,8 +26,8 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class SleepWaitStrategyFactory implements WaitStrategyFactory {
 
-    private static final int DEFAULT_RETRIES = 200;
-    private static final long DEFAULT_SLEEP_NS = 100;
+    private static final int DEFAULT_RETRIES = com.wjybxx.fastjgame.utils.concurrent.disruptor.SleepWaitStrategyFactory.DEFAULT_RETRIES;
+    private static final long DEFAULT_SLEEP_NS = com.wjybxx.fastjgame.utils.concurrent.disruptor.SleepWaitStrategyFactory.DEFAULT_SLEEP_NS;
 
     private final int retries;
     private final long sleepTimeNs;
@@ -69,7 +69,7 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
         }
 
         @Override
-        public void waitTask(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
+        public void waitFor(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
             int counter = retries;
             while (eventLoop.isTaskQueueEmpty()) {
                 counter = applyWaitMethod(eventLoop, counter);

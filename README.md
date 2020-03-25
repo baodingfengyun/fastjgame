@@ -57,11 +57,10 @@ Guid生成器中定义了命名空间的概念，只要求同一个命名空间�
 > 2. 在game-parent下clean，再compile，可消除缺少类文件的报错。
 
 ***
-### 并发组件和Rpc组件优化 2020/3/8
-并发组件重新优化，**ListenableFuture**不再直接继承JDK的future，使得各种轻量级的future实现变成可能。  
-基于新的ListenableFuture重新实现了Rpc和Redis的部分组件，删除了旧的**MethodHandle**组件。  
-新实现的Rpc组件，更容易理解，更易扩展，更贴近应用本身。  
-PS: 需要重新安装注解处理器。
+### 并发组件优化 2020/3/25
+删除SingleThreadEventLoop，添加**UnboundedEventLoop**，并配套了和DisruptorEventLoop相同的等待策略。 
+UnboundedEventLoop和DisruptorEventLoop可覆盖方法使用相同的签名，这是故意的，为的就是应用可以方便在两者实现之间进行切换。  
+ps: SingleThreadEventLoop实在不是个好名字，EventLoop本就是单线程的，再添加single，感觉EventLoop会是多线程的一样。
 
 ### [历史重要更新](https://github.com/hl845740757/fastjgame/blob/master/%E5%8E%86%E5%8F%B2%E9%87%8D%E8%A6%81%E6%9B%B4%E6%96%B0.md)
 

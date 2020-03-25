@@ -23,8 +23,8 @@ package com.wjybxx.fastjgame.utils.concurrent.unbounded;
  */
 public class YieldWaitStrategyFactory implements WaitStrategyFactory {
 
-    private static final int SPIN_TRIES = 100;
-    private static final int DEFAULT_LOOP_ONCE_SPIN_TRIES = 1024;
+    private static final int SPIN_TRIES = com.wjybxx.fastjgame.utils.concurrent.disruptor.YieldWaitStrategyFactory.SPIN_TRIES;
+    private static final int DEFAULT_LOOP_ONCE_SPIN_TRIES = com.wjybxx.fastjgame.utils.concurrent.disruptor.YieldWaitStrategyFactory.DEFAULT_LOOP_ONCE_SPIN_TRIES;
 
     private final int spinTries;
     private final int loopOnceSpinTries;
@@ -57,7 +57,7 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
         }
 
         @Override
-        public void waitTask(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
+        public void waitFor(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
             int counter = spinTries;
             int spinTries = 0;
 

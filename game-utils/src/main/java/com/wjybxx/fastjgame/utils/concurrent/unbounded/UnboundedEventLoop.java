@@ -440,7 +440,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
         private void loop() {
             while (true) {
                 try {
-                    waitStrategy.waitTask(UnboundedEventLoop.this);
+                    waitStrategy.waitFor(UnboundedEventLoop.this);
 
                     runTasksBatch();
 

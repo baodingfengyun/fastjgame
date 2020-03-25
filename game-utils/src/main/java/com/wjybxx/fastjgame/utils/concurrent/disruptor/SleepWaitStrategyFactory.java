@@ -40,8 +40,8 @@ import java.util.concurrent.locks.LockSupport;
  */
 public class SleepWaitStrategyFactory implements WaitStrategyFactory {
 
-    private static final int DEFAULT_RETRIES = 200;
-    private static final long DEFAULT_SLEEP_NS = 100;
+    public static final int DEFAULT_RETRIES = 200;
+    public static final long DEFAULT_SLEEP_NS = 100;
 
     private final int retries;
     private final long sleepTimeNs;
@@ -95,7 +95,7 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
             long availableSequence;
             int counter = retries;
 
-            // dependentSequence 该项目组织架构中，其实只是生产者的sequence。
+            // dependentSequence 该项目组织架构中，其实只是生产者的sequence，也就是cursor
             while ((availableSequence = dependentSequence.get()) < sequence) {
                 counter = applyWaitMethod(barrier, counter);
 

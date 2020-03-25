@@ -30,15 +30,16 @@ public interface WaitStrategyFactory {
     interface WaitStrategy {
 
         /**
+         * 如果当前没有可执行的任务，则等待，直到有新的任务到达或超时，或被中断等。
          * 该方法由消费者自身调用。
          *
          * @param eventLoop 等待任务的消费者
          */
-        void waitTask(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException;
+        void waitFor(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException;
 
         /**
          * 唤醒阻塞的消费者，表示有新的任务到达。
-         * 如果有消费者在{@link #waitTask(UnboundedEventLoop)}中将自己挂起了，则需要唤醒。
+         * 如果有消费者在{@link #waitFor(UnboundedEventLoop)}中将自己挂起了，则需要唤醒。
          * 该方法由生产者调用。
          */
         void signalAllWhenBlocking();
