@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * date - 2020/3/6
  */
-class FutureUtils {
+public class FutureUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(FutureUtils.class);
 
@@ -46,7 +46,7 @@ class FutureUtils {
      * @throws CancellationException 如果任务被取消，则抛出该异常
      * @throws ExecutionException    其它原因导致失败
      */
-    static <T> T rethrowGet(Throwable cause) throws CancellationException, ExecutionException {
+    public static <T> T rethrowGet(Throwable cause) throws CancellationException, ExecutionException {
         if (cause instanceof CancellationException) {
             throw (CancellationException) cause;
         }
@@ -62,7 +62,7 @@ class FutureUtils {
      * @throws CancellationException 如果任务被取消，则抛出该异常
      * @throws CompletionException   其它原因导致失败
      */
-    static <T> T rethrowJoin(@Nonnull Throwable cause) throws CancellationException, CompletionException {
+    public static <T> T rethrowJoin(@Nonnull Throwable cause) throws CancellationException, CompletionException {
         if (cause instanceof CancellationException) {
             throw (CancellationException) cause;
         }
@@ -77,7 +77,7 @@ class FutureUtils {
      * @return 合并后的结果
      */
     @Nonnull
-    static Object aggregateListenerEntry(@Nullable Object listenerEntries, @Nonnull FutureListenerEntry<?> listenerEntry) {
+    public static Object aggregateListenerEntry(@Nullable Object listenerEntries, @Nonnull FutureListenerEntry<?> listenerEntry) {
         if (listenerEntries == null) {
             return listenerEntry;
         }
@@ -114,7 +114,7 @@ class FutureUtils {
      * <p>
      * {@link EventLoop#inEventLoop()}是把双刃剑，一旦使用错误，可能导致严重问题。
      */
-    static <V> void notifyAllListenerNowSafely(@Nonnull final ListenableFuture<V> future, @Nonnull final Object listenerEntries) {
+    public static <V> void notifyAllListenerNowSafely(@Nonnull final ListenableFuture<V> future, @Nonnull final Object listenerEntries) {
         assert future.defaultExecutor().inEventLoop() : "Notify listeners must call from default executor";
 
         if (listenerEntries instanceof FutureListenerEntry) {
@@ -150,6 +150,18 @@ class FutureUtils {
             listener.onComplete(future);
         } catch (Throwable e) {
             logger.warn("An exception was thrown by " + future.getClass().getName() + ".onComplete()", e);
+        }
+    }
+
+    /**
+     * 将future的结果传输到promise上
+     * 必须在future完成后调用，为减少开销，没做强制性检测。
+     */
+    public static <V> void transferTo(ListenableFuture<V> future, Promise<? super V> promise) {
+        if (future.isCompletedExceptionally()) {
+            promise.tryFailure(future.cause());
+        } else {
+            promise.trySuccess(future.getNow());
         }
     }
 }

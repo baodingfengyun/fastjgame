@@ -34,9 +34,9 @@ import java.util.Set;
  * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public class RedisMethodHandleFactory {
+public class RedisCommandFactory {
 
-    private RedisMethodHandleFactory() {
+    private RedisCommandFactory() {
 
     }
 

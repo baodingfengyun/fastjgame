@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.db.exception;
 
-import com.wjybxx.fastjgame.db.exception.BadDeclarationTypeException;
-
 /**
  * 出现这种情况时，如果对集合类型没有特殊需求，可以声明为{@link java.util.Collection} 或 {@link java.util.Map}。
  * 如果有特殊需求，请将集合放入一个实体对象中，并使用{@link com.wjybxx.fastjgame.db.annotation.Impl}注解提供安全的解析类型。

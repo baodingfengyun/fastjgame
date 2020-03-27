@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
-import com.wjybxx.fastjgame.utils.concurrent.EventLoopChooserFactory;
 import com.wjybxx.fastjgame.utils.concurrent.AbstractFixedEventLoopGroup;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoopChooserFactory;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 import redis.clients.jedis.JedisPoolAbstract;
 

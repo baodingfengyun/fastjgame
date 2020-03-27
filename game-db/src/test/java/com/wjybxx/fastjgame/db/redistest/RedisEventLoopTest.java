@@ -19,13 +19,12 @@ package com.wjybxx.fastjgame.db.redistest;
 import com.wjybxx.fastjgame.db.redis.DefaultRedisClient;
 import com.wjybxx.fastjgame.db.redis.RedisClient;
 import com.wjybxx.fastjgame.db.redis.RedisEventLoop;
-import com.wjybxx.fastjgame.db.redis.RedisMethodHandleFactory;
+import com.wjybxx.fastjgame.db.redis.RedisCommandFactory;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.unbounded.YieldWaitStrategyFactory;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -99,7 +98,7 @@ public class RedisEventLoopTest {
             }
 
             // 监听前面的redis命令完成
-            redisClient.call(RedisMethodHandleFactory.hset("test-monitor", "monitor", "1"))
+            redisClient.call(RedisCommandFactory.hset("test-monitor", "monitor", "1"))
                     .addListener(future -> onAllCommandsFinish(startTimeMS));
         }
 
@@ -109,10 +108,10 @@ public class RedisEventLoopTest {
         }
 
         private void sendRedisCommands(int loop) {
-            redisClient.call(RedisMethodHandleFactory.hset("name", String.valueOf(loop), String.valueOf(loop)))
+            redisClient.call(RedisCommandFactory.hset("name", String.valueOf(loop), String.valueOf(loop)))
                     .addListener(f -> System.out.println(f.getNow()));
 
-            redisClient.call(RedisMethodHandleFactory.hget("name", String.valueOf(loop)))
+            redisClient.call(RedisCommandFactory.hget("name", String.valueOf(loop)))
                     .addListener(f -> System.out.println(f.getNow()));
         }
 
