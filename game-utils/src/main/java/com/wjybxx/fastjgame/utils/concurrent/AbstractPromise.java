@@ -72,8 +72,8 @@ abstract class AbstractPromise<V> implements Promise<V> {
         return result != null && result != UNCANCELLABLE;
     }
 
-    private static boolean isSuccess0(Object result) {
-        return isDone0(result) && !(result instanceof CauseHolder);
+    private static boolean isCompletedExceptionally0(Object result) {
+        return result instanceof CauseHolder;
     }
 
     private static boolean isCancelled0(Object result) {
@@ -96,8 +96,8 @@ abstract class AbstractPromise<V> implements Promise<V> {
     }
 
     @Override
-    public final boolean isSuccess() {
-        return isSuccess0(resultHolder.get());
+    public final boolean isCompletedExceptionally() {
+        return isCompletedExceptionally0(resultHolder.get());
     }
 
     @Override

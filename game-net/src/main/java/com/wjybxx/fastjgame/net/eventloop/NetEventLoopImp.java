@@ -39,8 +39,6 @@ import com.wjybxx.fastjgame.utils.concurrent.event.EventLoopTerminalEvent;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
 import com.wjybxx.fastjgame.utils.eventbus.Subscribe;
 import io.netty.channel.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -62,8 +60,7 @@ import java.util.concurrent.ThreadFactory;
  */
 class NetEventLoopImp extends UnboundedEventLoop implements NetEventLoop {
 
-    private static final Logger logger = LoggerFactory.getLogger(NetEventLoopImp.class);
-    private static final int TASK_BATCH_SIZE = 8192;
+    private static final int TASK_BATCH_SIZE = 2048;
 
     private final VoidPromise voidPromise = new VoidPromise(this);
 
@@ -81,7 +78,7 @@ class NetEventLoopImp extends UnboundedEventLoop implements NetEventLoop {
                     @Nonnull ThreadFactory threadFactory,
                     @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                     @Nonnull Injector parentInjector) {
-        super(parent, threadFactory, rejectedExecutionHandler);
+        super(parent, threadFactory, rejectedExecutionHandler, TASK_BATCH_SIZE);
 
         Injector injector = parentInjector.createChildInjector(new NetEventLoopModule());
         NetManagerWrapper managerWrapper = injector.getInstance(NetManagerWrapper.class);

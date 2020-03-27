@@ -56,7 +56,7 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
     public ExampleRpcClientLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                 @Nullable LocalPort localPort) {
-        super(null, threadFactory, rejectedExecutionHandler, 1024 * 1024, 1024, new YieldWaitStrategyFactory());
+        super(null, threadFactory, rejectedExecutionHandler, 64 * 1024, 64, new YieldWaitStrategyFactory());
         this.localPort = localPort;
     }
 

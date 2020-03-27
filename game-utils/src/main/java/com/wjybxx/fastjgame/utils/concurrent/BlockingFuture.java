@@ -48,7 +48,7 @@ public interface BlockingFuture<V> extends Future<V>, ListenableFuture<V> {
      * <p>
      * 注意：
      * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
-     * 你可以使用{@link #isSuccess()},作为更好的选择。
+     * 你可以使用{@link #isCompletedExceptionally()},作为更好的选择。
      *
      * @return task的结果
      * @throws CancellationException 如果任务被取消了，则抛出该异常

@@ -208,13 +208,13 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
             final RpcErrorCode errorCode;
             final Object body;
-            if (future.isSuccess()) {
-                errorCode = RpcErrorCode.SUCCESS;
-                body = future.getNow();
-            } else {
+            if (future.isCompletedExceptionally()) {
                 errorCode = RpcErrorCode.SERVER_EXCEPTION;
                 // 不返回完整信息，意义不大
                 body = ExceptionUtils.getRootCauseMessage(future.cause());
+            } else {
+                errorCode = RpcErrorCode.SUCCESS;
+                body = future.getNow();
             }
             session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, sync, errorCode, body));
         }

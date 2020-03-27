@@ -43,8 +43,8 @@ public class SucceededFuture<V> extends CompleteFuture<V> {
     }
 
     @Override
-    public final boolean isSuccess() {
-        return true;
+    public final boolean isCompletedExceptionally() {
+        return false;
     }
 
     @Override

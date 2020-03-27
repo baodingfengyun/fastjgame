@@ -41,7 +41,7 @@ public interface FutureListener<V> {
      * 当监听的Future对应的操作完成时，该方法将会被调用。
      * 在回调代码中：
      * 如果有返回值，建议使用{@link BlockingFuture#getNow()}。
-     * 如果没有返回值，建议使用{@link BlockingFuture#isSuccess()}。
+     * 如果没有返回值，建议使用{@link BlockingFuture#isCompletedExceptionally()}。
      *
      * @param future 监听器监听的future。
      * @throws Exception error

@@ -73,12 +73,12 @@ public class FutureCombinerTest {
     }
 
     private static String getResultAsStringSafely(ListenableFuture<?> future) {
-        if (future.isSuccess()) {
-            return String.valueOf(future.getNow());
-        } else {
+        if (future.isCompletedExceptionally()) {
             final Throwable cause = future.cause();
             assert null != cause;
             return ExceptionUtils.getStackTrace(cause);
+        } else {
+            return String.valueOf(future.getNow());
         }
     }
 }

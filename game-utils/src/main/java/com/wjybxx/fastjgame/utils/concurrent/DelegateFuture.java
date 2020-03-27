@@ -44,8 +44,8 @@ public class DelegateFuture<V> implements ListenableFuture<V> {
     }
 
     @Override
-    public final boolean isSuccess() {
-        return delegate.isSuccess();
+    public final boolean isCompletedExceptionally() {
+        return delegate.isCompletedExceptionally();
     }
 
     @Override

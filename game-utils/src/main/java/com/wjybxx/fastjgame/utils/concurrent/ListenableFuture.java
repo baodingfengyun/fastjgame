@@ -55,7 +55,7 @@ import java.util.concurrent.Executor;
  * Q: 为什么删除了{@code onSuccess} {@code onFailure}方法？
  * A: 我在实践中发现这两个方法带来的问题胜过带来的好处，最主要的问题是：{@code onSuccess}和{@code onFailure}必须成对出现，否则可能导致异常信息丢失！
  * 异常信息非常重要，即使不处理，也不能随便丢弃！
- * 如果用户仅仅关心成功时候的逻辑，那么不必判断{@link #isSuccess()}，直接调用{@link #getNow()}即可，重新抛出异常也好过丢弃异常。
+ * 如果用户仅仅关心成功时候的逻辑，那么不必判断{@link #isCompletedExceptionally()}，直接调用{@link #getNow()}即可，重新抛出异常也好过丢弃异常。
  *
  * @author wjybxx
  * @version 1.0
@@ -74,11 +74,27 @@ public interface ListenableFuture<V> {
     boolean isDone();
 
     /**
-     * 查询future关联的操作是否顺利完成了。
-     *
-     * @return 当且仅当该future对应的task顺利完成时返回true。
+     * 如果future以任何形式的异常完成，则返回true。
+     * 包括被取消，以及显式调用{@link Promise#setFailure(Throwable)}和{@link Promise#tryFailure(Throwable)}操作。
+     * <p>
+     * Q: 它为什么好过{@code isSuccess()}方法？
+     * A: 实践中发现，当future返回类型的是{@link Boolean}时候，{@code isSuccess()}会造成极大的混乱。大概是这样的:
+     * <pre> {@code
+     *  if (!future.isSuccess()) {
+     *      onFailure(future.cause());
+     *  } else {
+     *      boolean success = future.getNow();
+     *      if(success) {
+     *          doSomethingA();
+     *      } else{
+     *          doSomethingB();
+     *      }
+     *  }
+     * }
+     * </pre>
+     * 出现了多个不同意义的success，这样的代码非常不好。此外{@code isSuccess()}方法使用取反表达式的情况较多。
      */
-    boolean isSuccess();
+    boolean isCompletedExceptionally();
 
     // ---------------------------------------- 取消相关 --------------------------------------
 
@@ -117,7 +133,7 @@ public interface ListenableFuture<V> {
      * <p>
      * 注意：
      * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
-     * 你可以使用{@link #isSuccess()},作为更好的选择。
+     * 你可以使用{@link #isCompletedExceptionally()},作为更好的选择。
      *
      * @return task执行结果
      * @throws CancellationException 如果任务被取消了，则抛出该异常

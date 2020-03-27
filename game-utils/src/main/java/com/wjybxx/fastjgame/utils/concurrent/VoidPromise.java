@@ -64,7 +64,7 @@ public class VoidPromise implements BlockingPromise<Object> {
     }
 
     @Override
-    public final boolean isSuccess() {
+    public final boolean isCompletedExceptionally() {
         return false;
     }
 

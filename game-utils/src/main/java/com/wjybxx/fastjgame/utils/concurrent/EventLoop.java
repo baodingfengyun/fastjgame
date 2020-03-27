@@ -110,7 +110,7 @@ public interface EventLoop extends FixedEventLoopGroup {
     <V> LocalPromise<V> newLocalPromise();
 
     /**
-     * 创建一个{@link BlockingFuture}，该future表示它关联的任务早已失败。因此{@link BlockingFuture#isSuccess()}总是返回false。
+     * 创建一个{@link BlockingFuture}，该future表示它关联的任务早已失败。因此{@link BlockingFuture#isCompletedExceptionally()}总是返回true。
      * 所有添加到该future上的{@link FutureListener}都会立即被通知。并且该future上的所有阻塞方法会立即返回而不会阻塞。
      *
      * @param <V>   the type of value
@@ -121,7 +121,7 @@ public interface EventLoop extends FixedEventLoopGroup {
     <V> BlockingFuture<V> newFailedFuture(@Nonnull Throwable cause);
 
     /**
-     * 创建一个{@link BlockingFuture}，该future表示它关联的任务早已正常完成。因此{@link BlockingFuture#isSuccess()}总是返回true。
+     * 创建一个{@link BlockingFuture}，该future表示它关联的任务早已正常完成。因此{@link BlockingFuture#isCompletedExceptionally()}总是返回false。
      * 所有添加到该future上的{@link FutureListener}都会立即被通知。并且该future上的所有阻塞方法会立即返回而不会阻塞。
      *
      * @param value 结果值
