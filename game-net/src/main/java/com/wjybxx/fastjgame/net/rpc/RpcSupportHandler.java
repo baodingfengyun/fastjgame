@@ -29,6 +29,7 @@ import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 
@@ -116,11 +117,6 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             }
 
             ctx.fireWrite(new RpcRequestMessage(requestGuid, writeTask.isSync(), writeTask.getRequest()));
-        } else if (msg instanceof RpcResponseWriteTask) {
-            // rpc调用结果
-            RpcResponseWriteTask writeTask = (RpcResponseWriteTask) msg;
-
-            ctx.fireWrite(writeTask.getRpcResponseMessage());
         } else {
             ctx.fireWrite(msg);
         }
@@ -131,12 +127,14 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         if (msg instanceof RpcRequestMessage) {
             // 读取到一个Rpc请求消息，提交给应用层
             final RpcRequestMessage requestMessage = (RpcRequestMessage) msg;
+            // 创建执行上下文
+            final DefaultRpcProcessContext context = new DefaultRpcProcessContext(ctx.session(), requestMessage.getRequestGuid(), requestMessage.isSync());
             // 这里网络层是监听器的用户，创建LocalPromise没错的
             final LocalPromise<?> promise = ctx.netEventLoop().newLocalPromise();
-            promise.addListener(new RpcResultListener(ctx.session(), requestMessage.getRequestGuid(), requestMessage.isSync()));
 
-            // 提交给用户执行
-            ctx.appEventLoop().execute(new RpcRequestCommitTask(ctx.session(), requestMessage.getBody(), promise));
+            ctx.appEventLoop().execute(new RpcRequestCommitTask(context, requestMessage.getBody(), promise));
+
+            promise.addListener(new RpcResultListener(context));
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             final RpcResponseMessage responseMessage = (RpcResponseMessage) msg;
@@ -180,8 +178,8 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     private static class RpcTimeoutInfo {
 
-        final Promise<?> rpcPromise;
-        final long deadline;
+        private final Promise<?> rpcPromise;
+        private final long deadline;
 
         RpcTimeoutInfo(Promise<?> rpcPromise, long deadline) {
             this.rpcPromise = rpcPromise;
@@ -189,20 +187,51 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
     }
 
-    private static class RpcResultListener implements FutureListener<Object> {
+    private static class DefaultRpcProcessContext implements RpcProcessContext {
+
         private final Session session;
         private final long requestGuid;
         private final boolean sync;
 
-        private RpcResultListener(Session session, long requestGuid, boolean sync) {
+        DefaultRpcProcessContext(Session session, long requestGuid, boolean sync) {
             this.session = session;
             this.requestGuid = requestGuid;
             this.sync = sync;
         }
 
+        @Nonnull
+        @Override
+        public Session session() {
+            return session;
+        }
+
+        @Override
+        public boolean isOneWay() {
+            return false;
+        }
+
+        @Override
+        public long requestGuid() {
+            return requestGuid;
+        }
+
+        @Override
+        public boolean isSync() {
+            return sync;
+        }
+    }
+
+    private static class RpcResultListener implements FutureListener<Object> {
+
+        private final DefaultRpcProcessContext context;
+
+        RpcResultListener(DefaultRpcProcessContext context) {
+            this.context = context;
+        }
+
         @Override
         public void onComplete(ListenableFuture<Object> future) throws Exception {
-            if (session.isClosed()) {
+            if (context.session.isClosed()) {
                 return;
             }
 
@@ -216,7 +245,10 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
                 errorCode = RpcErrorCode.SUCCESS;
                 body = future.getNow();
             }
-            session.netEventLoop().execute(new RpcResponseWriteTask(session, requestGuid, sync, errorCode, body));
+
+            // 此时已经在网络线程，直接write,但还是需要流经整个管道
+            final RpcResponseMessage responseMessage = new RpcResponseMessage(context.requestGuid, context.sync, errorCode, body);
+            context.session.fireWrite(responseMessage);
         }
     }
 

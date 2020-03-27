@@ -65,7 +65,7 @@ public class TimeoutBlockingWaitStrategyFactory implements WaitStrategyFactory {
         private final Lock lock = new ReentrantLock();
         private final Condition processorNotifyCondition = lock.newCondition();
         /**
-         * 是否需要通知，可以减少不必要是锁申请和通知
+         * 是否需要通知，可以减少不必要的锁申请和通知
          */
         private final AtomicBoolean signalNeeded = new AtomicBoolean(false);
         private final long timeoutInNanos;

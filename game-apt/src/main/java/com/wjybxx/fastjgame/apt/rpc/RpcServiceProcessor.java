@@ -61,7 +61,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
     private static final String METHOD_REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodProxyRegistry";
     private static final String PROMISE_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.concurrent.Promise";
-    private static final String SESSION_CANONICAL_NAME = "com.wjybxx.fastjgame.net.session.Session";
+    private static final String CONTEXT_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcProcessContext";
 
     private static final String SERVICE_ID_METHOD_NAME = "serviceId";
     private static final String METHOD_ID_METHOD_NAME = "methodId";
@@ -69,7 +69,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     WildcardType wildcardType;
 
     private DeclaredType promiseDeclaredType;
-    private DeclaredType sessionDeclaredType;
+    private DeclaredType contextDeclaredType;
 
     TypeElement methodSpecElement;
     TypeName defaultMethodSpecRawTypeName;
@@ -107,7 +107,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         rpcMethodDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(RPC_METHOD_CANONICAL_NAME));
 
         methodRegistryTypeName = ClassName.get(elementUtils.getTypeElement(METHOD_REGISTRY_CANONICAL_NAME));
-        sessionDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SESSION_CANONICAL_NAME));
+        contextDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CONTEXT_CANONICAL_NAME));
         promiseDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PROMISE_CANONICAL_NAME));
 
         methodSpecElement = elementUtils.getTypeElement(METHOD_SPEC_CANONICAL_NAME);
@@ -318,8 +318,8 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, promiseDeclaredType, variableElement.asType());
     }
 
-    boolean isSession(VariableElement variableElement) {
-        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), sessionDeclaredType);
+    boolean isContext(VariableElement variableElement) {
+        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), contextDeclaredType);
     }
 
 }

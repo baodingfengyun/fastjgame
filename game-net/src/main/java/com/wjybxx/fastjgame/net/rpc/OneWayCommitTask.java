@@ -17,6 +17,8 @@ package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.session.Session;
 
+import javax.annotation.Nonnull;
+
 /**
  * 单向消息提交任务
  *
@@ -25,7 +27,7 @@ import com.wjybxx.fastjgame.net.session.Session;
  * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public class OneWayCommitTask implements CommitTask {
+public class OneWayCommitTask implements RpcProcessContext, CommitTask {
 
     /**
      * session - 包含协议分发器
@@ -36,7 +38,7 @@ public class OneWayCommitTask implements CommitTask {
      */
     private final Object message;
 
-    OneWayCommitTask(Session session, Object message) {
+    public OneWayCommitTask(Session session, Object message) {
         this.session = session;
         this.message = message;
     }
@@ -45,6 +47,27 @@ public class OneWayCommitTask implements CommitTask {
     @Override
     public void run() {
         // 使用voidPromise是实现单项通知(无返回值调用)的关键
-        session.config().dispatcher().post(session, (RpcMethodSpec) message, session.netEventLoop().voidPromise());
+        session.config().dispatcher().post(this, (RpcMethodSpec) message, session.netEventLoop().voidPromise());
+    }
+
+    @Nonnull
+    @Override
+    public Session session() {
+        return session;
+    }
+
+    @Override
+    public boolean isOneWay() {
+        return true;
+    }
+
+    @Override
+    public long requestGuid() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isSync() {
+        return false;
     }
 }

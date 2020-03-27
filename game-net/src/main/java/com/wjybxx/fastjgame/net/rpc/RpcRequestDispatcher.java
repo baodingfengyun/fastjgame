@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import javax.annotation.Nonnull;
@@ -39,11 +38,11 @@ public interface RpcRequestDispatcher {
     /**
      * 处理该会话发来的Rpc请求
      *
-     * @param session 会话信息
+     * @param context rpc执行的上下文，用于获取方法参数之外的一些信息
      * @param request rpc请求，如果编解码异常，则可能为null。
      *                此外：这里之所以没有声明为{@link DefaultRpcMethodSpec}对象，是为了兼容不同的结构体，比如protoBuffer对象。
      * @param promise 用于返回结果
      */
-    <V> void post(Session session, @Nullable RpcMethodSpec<V> request, @Nonnull Promise<V> promise);
+    <V> void post(RpcProcessContext context, @Nullable RpcMethodSpec<V> request, @Nonnull Promise<V> promise);
 
 }

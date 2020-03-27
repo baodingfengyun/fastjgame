@@ -78,7 +78,7 @@ public interface ListenableFuture<V> {
      * 包括被取消，以及显式调用{@link Promise#setFailure(Throwable)}和{@link Promise#tryFailure(Throwable)}操作。
      * <p>
      * Q: 它为什么好过{@code isSuccess()}方法？
-     * A: 实践中发现，当future返回类型的是{@link Boolean}时候，{@code isSuccess()}会造成极大的混乱。大概是这样的:
+     * A: 实践中发现，当future返回类型的是{@link Boolean}时候，{@code isSuccess()}会造成极大的混乱。代码大概是这样的:
      * <pre> {@code
      *  if (!future.isSuccess()) {
      *      onFailure(future.cause());
@@ -92,7 +92,7 @@ public interface ListenableFuture<V> {
      *  }
      * }
      * </pre>
-     * 出现了多个不同意义的success，这样的代码非常不好。此外{@code isSuccess()}方法使用取反表达式的情况较多。
+     * 出现了多个不同意义的success，这样的代码非常不好。此外，{@code isSuccess()}方法使用取反表达式的情况较多。
      */
     boolean isCompletedExceptionally();
 
@@ -158,13 +158,13 @@ public interface ListenableFuture<V> {
      * 它声明为{@link EventLoop}，表示强调它是单线程的，也就是说所有未指定{@link Executor}的监听器会按照添加顺序执行。
      * <p>
      * 将其限制为单线程的，可能会导致一定的性能损失，但是可以降低编程难度。
-     * 而且如果该{@link EventLoop}就是我们的业务逻辑线程，且只有业务逻辑线程添加回调的话，那么将没有性能损失，这种情况也很常见。
+     * 而且如果该{@link EventLoop}就是我们的业务逻辑线程，且只有业务逻辑线程添加回调的话，那么将没有性能损失，甚至可能获得性能提升，这种情况也很常见。
      */
     EventLoop defaultExecutor();
 
     /**
-     * 添加一个监听器。Listener将会在Future计算完成时{@link #isDone() true}被通知。
-     * 如果当前Future已经计算完成，那么将立即被通知（不一定立即执行）。
+     * 添加一个监听器。Listener将会在Future计算完成时{@link #isDone() true}被通知，且最终运行在{@link #defaultExecutor()}下。
+     * 如果当前Future已经计算完成，那么将立即被通知（但不一定立即执行）。
      *
      * @param listener 要添加的监听器。
      * @return this
@@ -172,7 +172,8 @@ public interface ListenableFuture<V> {
     ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     /**
-     * 添加一个监听器。Listener将会在Future计算完成时{@link #isDone() true}被通知，并最终运行在指定{@link Executor}下。
+     * 添加一个监听器。Listener将会在Future计算完成时{@link #isDone() true}被通知，并最终运行在指定的{@link Executor}下。
+     * 如果当前Future已经计算完成，那么将立即被通知（但不一定立即执行）。
      *
      * @param listener     要添加的监听器
      * @param bindExecutor 监听器的最终执行线程

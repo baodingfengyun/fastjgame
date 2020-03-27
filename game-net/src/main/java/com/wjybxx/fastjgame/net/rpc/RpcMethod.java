@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import java.lang.annotation.ElementType;
@@ -33,7 +32,7 @@ import java.lang.annotation.Target;
  * 3. 当返回值为void时，表明方法没有返回值，代理方法的返回值类型为通配符。
  *
  * <h3>限制</h3>
- * 1. {{@link Session}和{@link Promise}不会出现在客户端的代理方法的中，因此必须避免出现相同签名的代理方法。
+ * 1. {{@link RpcProcessContext}和{@link Promise}不会出现在客户端的代理方法的中，因此必须避免出现相同签名的代理方法。
  * 2. 方法不能是private - 至少是包级访问权限。
  * 3. methodId必须在[0,9999]区间段。
  *

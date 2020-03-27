@@ -16,11 +16,7 @@
 
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.net.rpc.LazySerializable;
-import com.wjybxx.fastjgame.net.rpc.PreDeserializable;
-import com.wjybxx.fastjgame.net.rpc.RpcMethod;
-import com.wjybxx.fastjgame.net.rpc.RpcService;
-import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 /**
@@ -55,13 +51,10 @@ public class ExampleRpcService {
     }
 
     /**
-     * @param number  待加的数
-     * @param session 会话信息。
-     *                该参数不会出现在客户端的代理中，Session参数可以出现在任意位置，注解处理器会处理，不要求在特定位置
      * @return 增加后的值
      */
     @RpcMethod(methodId = 4)
-    public int incWithSession(final int number, Session session) {
+    public int incWithContext(RpcProcessContext context, final int number) {
         return number + 2;
     }
 
@@ -76,7 +69,7 @@ public class ExampleRpcService {
     }
 
     @RpcMethod(methodId = 6)
-    public void incWithSessionAndPromise(Session session, final int number, Promise<Integer> promise) {
+    public void incWithContextAndPromise(RpcProcessContext context, final int number, Promise<Integer> promise) {
         promise.trySuccess(number + 4);
     }
 

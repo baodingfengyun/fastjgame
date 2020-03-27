@@ -19,7 +19,8 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 线程模型从Netty借鉴了许多，但也有稍许区别：
 1. ListenableFuture不继承JDK的Future，只提供非阻塞的api，该设计使得实现一些特定场景的**轻量级的Future**成为可能。
 2. 删除EventExecutor概念，只保留EventLoop概念，EventLoop就是单线程的。如果不需要单线程带来的一些保证，那么使用Executor概念即可。
-3. 提供了基于Disruptor的高性能事件循环**DisruptorEventLoop**。
+3. EventLoop是**多生产者单消费者**模型。
+4. 提供了基于Disruptor的高性能事件循环**DisruptorEventLoop**。
 
 ### RPC
 这里的rpc设计并未追求所谓的标准，而更追求实用性，主要特点如下：
@@ -32,7 +33,9 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 2. 允许参数不一致，可以延迟某些参数的序列化或提前某些参数的反序列化，可以消除请求方和执行方的序列化反序列化工作。该实现依赖**LazySerializable**和**PreDeserializable**注解。
 3. proxy仅仅是辅助类，通过rpcClient发送请求。用户可以选择是**单项通知**、**异步调用**还是**同步调用**。这非常像ExecutorService中的**execute**和**submit**，
 用户可以自由选择是否监听执行结果。放弃**透明性**，其实是提醒用户rpc和普通方法调用存在明显的性能差异，鼓励用户少使用同步调用。
-4. 通过short类型的serviceId和methodId定位被调用方法，可以大大减少数据传输量，而且定位方法更快。
+4. 通过short类型的serviceId和methodId定位被调用方法，可以大大减少数据传输量，而且定位方法更快。  
+
+总的来说: Rpc设计更像多线程编程，以异步为主。
 
 ### 日志搜集
 日志搜集组件是**插件式**的，类似SLF和Log4J。应用基于log-api发布和消费日志，在启动时指定具体的实现和对应的适配组件。

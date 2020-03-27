@@ -47,7 +47,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
     private static final String registry = "registry";
     private static final String instance = "instance";
 
-    private static final String session = "session";
+    private static final String context = "context";
     private static final String methodParams = "methodParams";
     private static final String promise = "promise";
 
@@ -122,7 +122,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * <pre>
      * {@code
      * 		private static void registerGetMethod1(RpcFunctionRegistry registry, T instance) {
-     * 		    registry.register(10001, (session, methodParams, promise) -> {
+     * 		    registry.register(10001, (context, methodParams, promise) -> {
      * 		       instance.method1(methodParams.get(0), methodParams.get(1), promise);
      *            });
      *        }
@@ -133,7 +133,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * <pre>
      * {@code
      * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
-     * 		    registry.register(10002, (session, methodParams, promise) -> {
+     * 		    registry.register(10002, (context, methodParams, promise) -> {
      * 		       try {
      * 		     		V result = instance.method2(methodParams.get(0), methodParams.get(1));
      * 		     	    promise.trySuccess(result);
@@ -149,7 +149,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * <pre>
      * {@code
      * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
-     * 		    registry.register(10002, (session, methodParams, promise) -> {
+     * 		    registry.register(10002, (context, methodParams, promise) -> {
      * 		       try {
      * 		       		instance.method1(methodParams.get(0), methodParams.get(1), promise);
      * 		       	    promise.trySuccess(null);
@@ -176,7 +176,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
         builder.addCode("$L.register((short)$L, (short)$L, ($L, $L, $L) -> {\n",
                 registry,
                 serviceId, methodId,
-                session, methodParams, promise);
+                context, methodParams, promise);
 
         final InvokeStatement invokeStatement = genInvokeStatement(method);
         if (invokeStatement.hasPromise) {
@@ -243,8 +243,8 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
                 needDelimiter = true;
             }
 
-            if (processor.isSession(variableElement)) {
-                format.append(session);
+            if (processor.isContext(variableElement)) {
+                format.append(context);
             } else if (processor.isPromise(variableElement)) {
                 format.append(promise);
                 hasPromise = true;

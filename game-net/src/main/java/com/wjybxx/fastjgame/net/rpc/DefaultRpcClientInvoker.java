@@ -31,9 +31,9 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * date - 2020/3/9
  */
-class DefaultRpcClientInvoker implements RpcClientInvoker {
+public class DefaultRpcClientInvoker implements RpcClientInvoker {
 
-    DefaultRpcClientInvoker() {
+    public DefaultRpcClientInvoker() {
     }
 
     @Override

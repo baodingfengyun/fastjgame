@@ -120,13 +120,13 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
         rpcClient.call(session, ExampleRpcServiceRpcProxy.inc(index))
                 .addListener(future -> System.out.println("inc - " + index + " - " + future.getNow()));
 
-        rpcClient.call(session, ExampleRpcServiceRpcProxy.incWithSession(index))
+        rpcClient.call(session, ExampleRpcServiceRpcProxy.incWithContext(index))
                 .addListener(future -> System.out.println("incWithSession - " + index + " - " + future.getNow()));
 
         rpcClient.call(session, ExampleRpcServiceRpcProxy.incWithPromise(index))
                 .addListener(future -> System.out.println("incWithPromise - " + index + " - " + future.getNow()));
 
-        rpcClient.call(session, ExampleRpcServiceRpcProxy.incWithSessionAndPromise(index))
+        rpcClient.call(session, ExampleRpcServiceRpcProxy.incWithContextAndPromise(index))
                 .addListener(future -> System.out.println("incWithSessionAndPromise - " + index + " - " + future.getNow()));
 
         // 模拟场景服务器通过网关发送给玩家 - 注意：序列化方式必须一致。

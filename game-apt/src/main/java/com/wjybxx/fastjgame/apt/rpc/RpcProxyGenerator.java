@@ -143,8 +143,8 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
         // 筛选参数
         for (VariableElement variableElement : originParameters) {
-            // session和promise需要从参数列表删除
-            if (processor.isPromise(variableElement) || processor.isSession(variableElement)) {
+            // context和promise需要从参数列表删除
+            if (processor.isContext(variableElement) || processor.isPromise(variableElement)) {
                 continue;
             }
 

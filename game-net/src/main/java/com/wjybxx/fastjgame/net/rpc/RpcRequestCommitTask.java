@@ -15,7 +15,6 @@
  */
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 /**
@@ -29,9 +28,9 @@ import com.wjybxx.fastjgame.utils.concurrent.Promise;
 public class RpcRequestCommitTask implements CommitTask {
 
     /**
-     * session - 包含协议分发器
+     * 执行上下文
      */
-    private final Session session;
+    private final RpcProcessContext context;
     /**
      * 请求内容
      */
@@ -41,8 +40,8 @@ public class RpcRequestCommitTask implements CommitTask {
      */
     private final Promise<?> promise;
 
-    RpcRequestCommitTask(Session session, Object request, Promise<?> promise) {
-        this.session = session;
+    public RpcRequestCommitTask(RpcProcessContext context, Object request, Promise<?> promise) {
+        this.context = context;
         this.promise = promise;
         this.request = request;
     }
@@ -50,6 +49,6 @@ public class RpcRequestCommitTask implements CommitTask {
     @SuppressWarnings("unchecked")
     @Override
     public void run() {
-        session.config().dispatcher().post(session, (RpcMethodSpec) request, promise);
+        context.session().config().dispatcher().post(context, (RpcMethodSpec) request, promise);
     }
 }

@@ -37,11 +37,11 @@ public interface RpcMethodProxy<T> {
     /**
      * 执行调用
      *
-     * @param session      请求方对应的session
+     * @param context      rpc执行时的一些上下文
      * @param methodParams 对应的方法参数，发过来的参数不包含{@link Session} 和 {@link Promise}。
      *                     如果原始方法需要的话，代理方法需要自动传入。
      * @param promise      用于返回结果
      */
-    void invoke(Session session, List<Object> methodParams, Promise<T> promise) throws Exception;
+    void invoke(RpcProcessContext context, List<Object> methodParams, Promise<T> promise) throws Exception;
 
 }
