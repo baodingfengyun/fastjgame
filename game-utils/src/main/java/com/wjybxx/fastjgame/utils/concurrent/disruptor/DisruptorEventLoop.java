@@ -449,6 +449,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             } finally {
                 // 如果是非正常退出，需要切换到正在关闭状态 - 告知其它线程，已经开始关闭
                 advanceRunState(ST_SHUTTING_DOWN);
+
                 try {
                     // 从网关sequence中删除自己
                     removeFromGatingSequence();
@@ -456,6 +457,9 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                     // 清理ringBuffer中的数据
                     cleanRingBuffer();
                 } finally {
+                    // 标记为已进入最终清理阶段
+                    advanceRunState(ST_SHUTDOWN);
+
                     // 退出前进行必要的清理，释放系统资源
                     try {
                         clean();
@@ -551,8 +555,6 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             } finally {
                 ringBuffer.publish(initialSequence, finalSequence);
                 logger.info("cleanRingBuffer success! cost timeMillis = {}", System.currentTimeMillis() - startTimeMillis);
-                // 标记为已进入最终清理阶段
-                advanceRunState(ST_SHUTDOWN);
             }
         }
     }

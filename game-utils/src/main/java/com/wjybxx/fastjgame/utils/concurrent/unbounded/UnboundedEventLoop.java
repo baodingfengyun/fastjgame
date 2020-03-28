@@ -419,10 +419,14 @@ public class UnboundedEventLoop extends AbstractEventLoop {
             } finally {
                 // 如果是非正常退出，需要切换到正在关闭状态 - 告知其它线程正在关闭
                 advanceRunState(ST_SHUTTING_DOWN);
+
                 try {
                     // 清理任务队列中的数据
                     cleanTaskQueue();
                 } finally {
+                    // 标记为已进入最终清理阶段
+                    advanceRunState(ST_SHUTDOWN);
+
                     // 退出前进行必要的清理，释放系统资源
                     try {
                         clean();
