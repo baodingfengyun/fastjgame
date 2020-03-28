@@ -20,10 +20,11 @@ import com.wjybxx.fastjgame.utils.concurrent.LocalFuture;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CompletionException;
+import java.util.function.Function;
 
 /**
  * redis客户端。
- * 使用{@link RedisCommand}有许多好处。
+ * 使用{@code Command}有许多好处。
  * 1. 扩展更为方便。
  * 2. api更加简洁。
  * 3. service的核心工作清清楚楚。
@@ -42,39 +43,40 @@ public interface RedisClient {
      *
      * @param command 待执行的命令
      */
-    void execute(@Nonnull RedisCommand<?> command);
+    void execute(@Nonnull PipelineCommand<?> command);
 
     /**
      * 异步执行一个命令，同时刷新命令队列，并不监听结果。
      *
      * @param command 待执行的命令
      */
-    void executeAndFlush(@Nonnull RedisCommand<?> command);
+    void executeAndFlush(@Nonnull PipelineCommand<?> command);
 
     /**
      * 异步执行一个redis命令，并在完成时通知指定的监听器。
      *
-     * @param <V>     the type of result
      * @param command 待执行的命令
+     * @param decoder 解码器，不建议直接使用redis的存储结构作为返回值。如果需要，请使用{@link Function#identity()}函数。
      * @return future
      */
-    <V> LocalFuture<V> call(@Nonnull RedisCommand<V> command);
+    <T, U> LocalFuture<U> call(@Nonnull PipelineCommand<T> command, Function<T, U> decoder);
 
     /**
      * 异步执行一个redis命令，同时刷新命令队列，并在完成时通知指定的监听器。
      *
-     * @param <V>     the type of result
      * @param command 待执行的命令
+     * @param decoder 解码器
      * @return future
      */
-    <V> LocalFuture<V> callAndFlush(@Nonnull RedisCommand<V> command);
+    <T, U> LocalFuture<U> callAndFlush(@Nonnull PipelineCommand<T> command, Function<T, U> decoder);
 
     /**
-     * 执行一个redis命令，同时刷新缓冲区，并阻塞到命令完成。
+     * 执行一个redis命令，并阻塞到命令完成。
      *
-     * @param <V>     the type of result
      * @param command 待执行的命令
+     * @param decoder 解码器
+     * @return 解码后的结果
      */
-    <V> V syncCall(@Nonnull RedisCommand<V> command) throws CompletionException;
+    <T, U> U syncCall(@Nonnull RedisCommand<T> command, Function<T, U> decoder) throws CompletionException;
 
 }

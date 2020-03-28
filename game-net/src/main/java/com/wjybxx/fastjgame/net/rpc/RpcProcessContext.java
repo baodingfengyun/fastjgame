@@ -38,14 +38,14 @@ public interface RpcProcessContext {
     Session session();
 
     /**
-     * 是否是单项调用。
-     * 如果是单项调用的话，表示不关心调用结果。
+     * 是否是单项通知。
+     * 如果是单项通知的话，表示不关心调用结果。
      */
     boolean isOneWay();
 
     /**
      * 如果是rpc调用时，返回该调用的唯一标识(该session下唯一)。
-     * 如果不是rpc调用，则抛出异常。
+     * 如果不是rpc调用，则该返回值不确定，且没有意义。
      */
     long requestGuid();
 

@@ -16,17 +16,21 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
-import redis.clients.jedis.Jedis;
+import com.wjybxx.fastjgame.utils.misc.MethodSpec;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
 
 /**
- * 基于{@link Jedis}的命令，它的指令集是完整的。
+ * 基于管道的命令，它支持大部分命令。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/3/28
+ * date - 2019/12/12
+ * github - https://github.com/hl845740757
  */
-public interface RedisCommand<V> {
+@FunctionalInterface
+public interface PipelineCommand<V> extends MethodSpec<V> {
 
-    V execute(Jedis jedis);
+    Response<V> execute(Pipeline pipeline);
 
 }

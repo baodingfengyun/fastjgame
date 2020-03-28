@@ -19,16 +19,17 @@ package com.wjybxx.fastjgame.db.redistest;
 import com.wjybxx.fastjgame.db.redis.DefaultRedisClient;
 import com.wjybxx.fastjgame.db.redis.RedisClient;
 import com.wjybxx.fastjgame.db.redis.RedisEventLoop;
-import com.wjybxx.fastjgame.db.redis.RedisCommandFactory;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.YieldWaitStrategyFactory;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 
 /**
  * redis事件循环示例
@@ -83,7 +84,7 @@ public class RedisEventLoopTest {
         private RedisClient redisClient;
 
         ClientEventLoop(RedisEventLoop redisEventLoop) {
-            super(null, new DefaultThreadFactory("REDIS-CLIENT"), RejectedExecutionHandlers.log());
+            super(null, new DefaultThreadFactory("REDIS-CLIENT"), RejectedExecutionHandlers.log(), new YieldWaitStrategyFactory());
             this.redisEventLoop = redisEventLoop;
         }
 
@@ -98,7 +99,7 @@ public class RedisEventLoopTest {
             }
 
             // 监听前面的redis命令完成
-            redisClient.call(RedisCommandFactory.hset("test-monitor", "monitor", "1"))
+            redisClient.call(pipeline -> pipeline.hset("test-monitor", "monitor", "1"), Function.identity())
                     .addListener(future -> onAllCommandsFinish(startTimeMS));
         }
 
@@ -108,10 +109,10 @@ public class RedisEventLoopTest {
         }
 
         private void sendRedisCommands(int loop) {
-            redisClient.call(RedisCommandFactory.hset("name", String.valueOf(loop), String.valueOf(loop)))
+            redisClient.call(pipeline -> pipeline.hset("name", String.valueOf(loop), String.valueOf(loop)), Function.identity())
                     .addListener(f -> System.out.println(f.getNow()));
 
-            redisClient.call(RedisCommandFactory.hget("name", String.valueOf(loop)))
+            redisClient.call(pipeline -> pipeline.hget("name", String.valueOf(loop)), Function.identity())
                     .addListener(f -> System.out.println(f.getNow()));
         }
 

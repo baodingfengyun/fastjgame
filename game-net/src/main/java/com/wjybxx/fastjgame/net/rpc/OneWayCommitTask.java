@@ -63,7 +63,7 @@ public class OneWayCommitTask implements RpcProcessContext, CommitTask {
 
     @Override
     public long requestGuid() {
-        throw new UnsupportedOperationException();
+        return 0;
     }
 
     @Override

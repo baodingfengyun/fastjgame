@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ThreadFactory;
+import java.util.function.Function;
 
 import static com.wjybxx.fastjgame.utils.CloseableUtils.closeQuietly;
 import static com.wjybxx.fastjgame.utils.ThreadUtils.sleepQuietly;
@@ -70,7 +71,7 @@ public class RedisEventLoop extends UnboundedEventLoop {
      * 不宜太小，太小时，无法充分利用网络。
      */
     private static final int MAX_WAIT_RESPONSE_TASK = 512;
-    private final ArrayDeque<JedisPipelineTask<?>> waitResponseTasks = new ArrayDeque<>(MAX_WAIT_RESPONSE_TASK);
+    private final ArrayDeque<PipelineTask<?, ?>> waitResponseTasks = new ArrayDeque<>(MAX_WAIT_RESPONSE_TASK);
 
     private final JedisPoolAbstract jedisPool;
     /**
@@ -192,7 +193,7 @@ public class RedisEventLoop extends UnboundedEventLoop {
      * 为未获得结果的redis请求生成结果
      */
     private void generateResponses() {
-        JedisPipelineTask<?> task;
+        PipelineTask<?, ?> task;
         while ((task = waitResponseTasks.pollFirst()) != null) {
             setData(task);
         }
@@ -201,25 +202,22 @@ public class RedisEventLoop extends UnboundedEventLoop {
     /**
      * 为任务赋值结果
      */
-    private static <V> void setData(JedisPipelineTask<V> task) {
+    private static <T, U> void setData(PipelineTask<T, U> task) {
         if (task.promise == null) {
             return;
         }
-        setData(task.promise, task.dependency, task.cause);
-    }
 
-    /**
-     * 安全的为promise赋值
-     */
-    private static <V> void setData(Promise<V> redisPromise, Response<V> dependency, Throwable cause) {
-        if (cause != null) {
-            redisPromise.tryFailure(cause);
+        if (task.cause != null) {
+            task.promise.tryFailure(task.cause);
             return;
         }
+
         try {
-            redisPromise.trySuccess(dependency.get());
+            final T origin = task.dependency.get();
+            final U result = task.decoder.apply(origin);
+            task.promise.trySuccess(result);
         } catch (Throwable t) {
-            redisPromise.tryFailure(t);
+            task.promise.tryFailure(t);
         }
     }
 
@@ -229,8 +227,8 @@ public class RedisEventLoop extends UnboundedEventLoop {
      * @param command 待执行的命令
      * @param flush   是否刷新管道
      */
-    void execute(RedisCommand<?> command, boolean flush) {
-        execute(new JedisPipelineTask<>(command, flush, null));
+    void execute(PipelineCommand<?> command, boolean flush) {
+        execute(new PipelineTask<>(command, null, flush, null));
     }
 
     /**
@@ -240,9 +238,9 @@ public class RedisEventLoop extends UnboundedEventLoop {
      * @param appEventLoop 用户线程 - 执行回调的线程
      * @param flush        是否刷新管道
      */
-    <V> LocalFuture<V> call(RedisCommand<V> command, boolean flush, EventLoop appEventLoop) {
-        final LocalPromise<V> promise = appEventLoop.newLocalPromise();
-        execute(new JedisPipelineTask<>(command, flush, promise));
+    <T, U> LocalFuture<U> call(PipelineCommand<T> command, Function<T, U> decoder, boolean flush, EventLoop appEventLoop) {
+        final LocalPromise<U> promise = appEventLoop.newLocalPromise();
+        execute(new PipelineTask<>(command, decoder, flush, promise));
         return promise;
     }
 
@@ -252,29 +250,32 @@ public class RedisEventLoop extends UnboundedEventLoop {
      *
      * @param command 待执行的命令
      */
-    <V> V syncCall(RedisCommand<V> command) throws CompletionException {
-        final BlockingPromise<V> promise = newBlockingPromise();
-        execute(new JedisPipelineTask<>(command, true, promise));
+    <T, U> U syncCall(RedisCommand<T> command, Function<T, U> decoder) throws CompletionException {
+        final BlockingPromise<U> promise = newBlockingPromise();
+        execute(new RedisTask<>(command, decoder, promise));
         return promise.join();
     }
 
     /**
      * 普通的管道任务
      *
-     * @param <V>
+     * @param <T>
      */
-    private class JedisPipelineTask<V> implements Runnable {
-        private final RedisCommand<V> pipelineCmd;
-        private final boolean flush;
-        private final Promise<V> promise;
+    private class PipelineTask<T, U> implements Runnable {
 
-        private Response<V> dependency;
+        private final PipelineCommand<T> pipelineCmd;
+        private final Function<T, U> decoder;
+        private final boolean flush;
+        private final Promise<U> promise;
+
+        private Response<T> dependency;
         private Throwable cause;
 
-        JedisPipelineTask(RedisCommand<V> pipelineCmd, boolean flush, Promise<V> promise) {
+        PipelineTask(PipelineCommand<T> pipelineCmd, Function<T, U> decoder, boolean flush, Promise<U> promise) {
             this.pipelineCmd = pipelineCmd;
-            this.promise = promise;
+            this.decoder = decoder;
             this.flush = flush;
+            this.promise = promise;
         }
 
         @Override
@@ -326,6 +327,51 @@ public class RedisEventLoop extends UnboundedEventLoop {
                 connectSafely();
             } else {
                 checkSync();
+            }
+        }
+    }
+
+    private class RedisTask<T, U> implements Runnable {
+
+        final RedisCommand<T> command;
+        final Function<T, U> decoder;
+        final Promise<U> promise;
+
+        RedisTask(RedisCommand<T> command, Function<T, U> decoder, Promise<U> promise) {
+            this.command = command;
+            this.decoder = decoder;
+            this.promise = promise;
+        }
+
+        @Override
+        public void run() {
+            // 刷新管道，保证时序
+            pipelineSync();
+
+            if (null == jedis) {
+                // 连接不可用，快速失败
+                promise.tryFailure(RedisConnectionException.INSTANCE);
+                return;
+            }
+
+            try {
+                final T origin = command.execute(jedis);
+                final U result = decoder.apply(origin);
+                promise.trySuccess(result);
+            } catch (Throwable e) {
+                promise.tryFailure(e);
+
+                handleException(e);
+            }
+        }
+
+        private void handleException(Throwable e) {
+            if (e instanceof JedisConnectionException) {
+                // 关闭当前连接
+                closeConnection();
+
+                // 尝试一次恢复连接
+                connectSafely();
             }
         }
     }

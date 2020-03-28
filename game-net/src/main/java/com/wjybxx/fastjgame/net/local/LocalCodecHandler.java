@@ -44,7 +44,7 @@ public class LocalCodecHandler extends SessionOutboundHandlerAdapter {
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        // msg 是根据writeTask创建的对象，不是共享的，但它持有的内容是共享的
+        // msg不是共享的，但它持有的body可能是共享的
         if (msg instanceof NetLogicMessage) {
             final NetLogicMessage logicMessage = (NetLogicMessage) msg;
             final Object newBody = serializer.cloneObject(logicMessage.getBody());
