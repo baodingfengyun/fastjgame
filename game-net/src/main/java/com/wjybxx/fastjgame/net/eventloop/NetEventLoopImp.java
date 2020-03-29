@@ -30,9 +30,7 @@ import com.wjybxx.fastjgame.net.rpc.RpcPromise;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.utils.concurrent.VoidPromise;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.event.EventDispatchTask;
 import com.wjybxx.fastjgame.utils.concurrent.event.EventLoopTerminalEvent;
@@ -61,8 +59,6 @@ import java.util.concurrent.ThreadFactory;
 class NetEventLoopImp extends UnboundedEventLoop implements NetEventLoop {
 
     private static final int TASK_BATCH_SIZE = 2048;
-
-    private final VoidPromise voidPromise = new VoidPromise(this);
 
     private final Set<EventLoop> appEventLoopSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final NetEventLoopManager netEventLoopManager;
@@ -144,12 +140,6 @@ class NetEventLoopImp extends UnboundedEventLoop implements NetEventLoop {
     @Override
     public <V> RpcFuture<V> newFailedRpcFuture(@Nonnull EventLoop appEventLoop, @Nonnull Throwable cause) {
         return new FailedRpcFuture<>(appEventLoop, cause);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <V> Promise<V> voidPromise() {
-        return (Promise<V>) voidPromise;
     }
 
     @Override

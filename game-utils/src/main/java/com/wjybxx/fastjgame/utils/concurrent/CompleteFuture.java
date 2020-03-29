@@ -48,11 +48,6 @@ public abstract class CompleteFuture<V> implements BlockingFuture<V> {
     }
 
     @Override
-    public final boolean isVoid() {
-        return false;
-    }
-
-    @Override
     public final boolean isDone() {
         return true;
     }

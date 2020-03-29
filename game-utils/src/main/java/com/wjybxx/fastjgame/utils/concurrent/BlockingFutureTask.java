@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import com.wjybxx.fastjgame.utils.concurrent.delegate.DelegateBlockingFuture;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.RunnableFuture;
 

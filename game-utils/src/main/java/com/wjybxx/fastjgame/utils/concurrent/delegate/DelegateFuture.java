@@ -14,27 +14,24 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.concurrent;
+package com.wjybxx.fastjgame.utils.concurrent.delegate;
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
-
-import javax.annotation.Nonnull;
-import java.util.concurrent.Executor;
+import com.wjybxx.fastjgame.utils.concurrent.IFuture;
 
 /**
  * @author wjybxx
  * @version 1.0
- * date - 2020/3/10
+ * date - 2020/3/29
  */
-public class DelegateFuture<V> implements ListenableFuture<V> {
+public class DelegateFuture<V> implements IFuture<V> {
 
-    private final ListenableFuture<V> delegate;
+    private final IFuture<V> delegate;
 
-    public DelegateFuture(ListenableFuture<V> delegate) {
+    public DelegateFuture(IFuture<V> delegate) {
         this.delegate = delegate;
     }
 
-    protected ListenableFuture<V> getDelegate() {
+    protected IFuture<V> getDelegate() {
         return delegate;
     }
 
@@ -71,32 +68,6 @@ public class DelegateFuture<V> implements ListenableFuture<V> {
     @Override
     public final Throwable cause() {
         return delegate.cause();
-    }
-
-    @Override
-    public final EventLoop defaultExecutor() {
-        return delegate.defaultExecutor();
-    }
-
-    @Override
-    @UnstableApi
-    public final boolean isVoid() {
-        return delegate.isVoid();
-    }
-
-    /**
-     * @return 必须返回this，声明为{@link DelegateFuture}可以避免错误的返回值
-     */
-    @Override
-    public DelegateFuture<V> addListener(@Nonnull FutureListener<? super V> listener) {
-        delegate.addListener(listener);
-        return this;
-    }
-
-    @Override
-    public DelegateFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor) {
-        delegate.addListener(listener, bindExecutor);
-        return this;
     }
 
 }

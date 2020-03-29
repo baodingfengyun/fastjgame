@@ -16,19 +16,17 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
-
 import javax.annotation.Nonnull;
-import java.util.concurrent.Executor;
 
 /**
- * promise用于为关联的{@link ListenableFuture}赋值结果。
+ * promise用于为关联的future赋值结果。
+ * 我们希望业务的执行者专注于计算，暴露最少的api。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/3/6
  */
-public interface Promise<V> extends ListenableFuture<V> {
+public interface Promise<V> extends IFuture<V> {
 
     /**
      * 将future标记为成功完成。
@@ -66,21 +64,5 @@ public interface Promise<V> extends ListenableFuture<V> {
      * 否则返回false（其实也就是被取消返回false）。
      */
     boolean setUncancellable();
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * 如果该方法返回true，表示用户并不关心结果，任何赋值操作都将不会造成任何影响。
-     */
-    @UnstableApi
-    @Override
-    boolean isVoid();
-
-    // 仅用于语法支持
-    @Override
-    Promise<V> addListener(@Nonnull FutureListener<? super V> listener);
-
-    @Override
-    Promise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
 }

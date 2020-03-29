@@ -77,13 +77,20 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
 
     @Nonnull
     @Override
-    public <V> BlockingPromise<V> newBlockingPromise() {
-        return new DefaultBlockingPromise<>(this, true);
+    public <V> Promise<V> newPromise() {
+        return new DefaultPromise<>();
     }
 
+    @Nonnull
     @Override
     public <V> LocalPromise<V> newLocalPromise() {
         return new DefaultLocalPromise<>(this);
+    }
+
+    @Nonnull
+    @Override
+    public <V> BlockingPromise<V> newBlockingPromise() {
+        return new DefaultBlockingPromise<>(this, true);
     }
 
     @Nonnull

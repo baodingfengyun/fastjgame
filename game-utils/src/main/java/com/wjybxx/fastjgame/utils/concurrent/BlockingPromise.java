@@ -28,7 +28,7 @@ import java.util.concurrent.Executor;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public interface BlockingPromise<V> extends Promise<V>, BlockingFuture<V> {
+public interface BlockingPromise<V> extends ListenablePromise<V>, BlockingFuture<V> {
 
     // 仅用于语法支持
     @Override

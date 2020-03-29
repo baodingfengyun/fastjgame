@@ -56,11 +56,6 @@ abstract class AbstractPromise<V> implements Promise<V> {
      */
     final AtomicReference<Object> resultHolder = new AtomicReference<>();
 
-    @Override
-    public final boolean isVoid() {
-        return false;
-    }
-
     // --------------------------------------------- 查询 --------------------------------------------------
 
     /**

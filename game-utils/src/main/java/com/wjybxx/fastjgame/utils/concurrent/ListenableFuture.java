@@ -16,12 +16,8 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
-
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
 /**
@@ -30,7 +26,6 @@ import java.util.concurrent.Executor;
  *
  * <h3>{@link ListenableFuture}优先</h3>
  * 如果不是必须需要阻塞式的API，应当优先选择{@link ListenableFuture}。
- * 由于jdk的future一开始就提供了阻塞式的api，因此这里不能继承jdk的future。
  *
  * <h3>监听器执行时序</h3>
  * 执行环境相同的监听器，执行顺序和添加顺序相同，也就是说：<br>
@@ -51,105 +46,13 @@ import java.util.concurrent.Executor;
  * <h3>实现要求</h3>
  * 1. 必须满足监听器的执行时序要求。
  * 2. 要么是线程安全的，可以多线程使用的；要么能检测到冲突并防止数据被破坏。
- * <p>
- * Q: 为什么删除了{@code onSuccess} {@code onFailure}方法？
- * A: 我在实践中发现这两个方法带来的问题胜过带来的好处，最主要的问题是：{@code onSuccess}和{@code onFailure}必须成对出现，否则可能导致异常信息丢失！
- * 异常信息非常重要，即使不处理，也不能随便丢弃！
- * 如果用户仅仅关心成功时候的逻辑，那么不必判断{@link #isCompletedExceptionally()}，直接调用{@link #getNow()}即可，重新抛出异常也好过丢弃异常。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/3/6
  */
 @ThreadSafe
-public interface ListenableFuture<V> {
-
-    /**
-     * 查询任务是否已完成。
-     * <h3>完成状态</h3>
-     * <b>正常完成</b>、<b>被取消结束</b>、<b>执行异常而结束</b>都表示完成状态。
-     *
-     * @return 任务已进入完成状态则返回true。
-     */
-    boolean isDone();
-
-    /**
-     * 如果future以任何形式的异常完成，则返回true。
-     * 包括被取消，以及显式调用{@link Promise#setFailure(Throwable)}和{@link Promise#tryFailure(Throwable)}操作。
-     * <p>
-     * Q: 它为什么好过{@code isSuccess()}方法？
-     * A: 实践中发现，当future返回类型的是{@link Boolean}时候，{@code isSuccess()}会造成极大的混乱。代码大概是这样的:
-     * <pre> {@code
-     *  if (!future.isSuccess()) {
-     *      onFailure(future.cause());
-     *  } else {
-     *      boolean success = future.getNow();
-     *      if(success) {
-     *          doSomethingA();
-     *      } else{
-     *          doSomethingB();
-     *      }
-     *  }
-     * }
-     * </pre>
-     * 出现了多个不同意义的success，这样的代码非常不好。此外，{@code isSuccess()}方法使用取反表达式的情况较多。
-     */
-    boolean isCompletedExceptionally();
-
-    // ---------------------------------------- 取消相关 --------------------------------------
-
-    /**
-     * 查询任务是否被取消。
-     *
-     * @return 当且仅当该future关联的task由于取消进入完成状态时返回true。
-     */
-    boolean isCancelled();
-
-    /**
-     * 查询future关联的任务是否可以被取消。
-     *
-     * @return true/false 当且仅当future关联的任务可以通过{@link #cancel(boolean)}被取消时返回true。
-     */
-    boolean isCancellable();
-
-    /**
-     * 尝试取消future关联的任务，如果取消成功，会使得Future进入完成状态，并且{@link #cause()}将返回{@link CancellationException}。
-     * 1. 如果取消成功，则返回true。
-     * 2. 如果任务已经被取消，则返回true。
-     * 3. 如果future关联的任务已完成，则返回false。
-     *
-     * @param mayInterruptIfRunning 是否允许中断工作者线程
-     * @return 是否取消成功
-     */
-    boolean cancel(boolean mayInterruptIfRunning);
-
-    // ------------------------------------- 非阻塞式获取计算结果 --------------------------------------
-
-    /**
-     * 非阻塞的获取当前结果：
-     * 1. 如果future关联的task还未完成{@link #isDone() false}，则返回null。
-     * 2. 如果任务执行成功，则返回对应的结果。
-     * 2. 如果任务被取消或失败，则抛出对应的异常。
-     * <p>
-     * 注意：
-     * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
-     * 你可以使用{@link #isCompletedExceptionally()},作为更好的选择。
-     *
-     * @return task执行结果
-     * @throws CancellationException 如果任务被取消了，则抛出该异常
-     * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
-     */
-    V getNow();
-
-    /**
-     * 非阻塞获取导致任务失败的原因。
-     * 1. 如果future关联的task还未进入完成状态{@link #isDone() false}，则返回null。
-     * 2. 当future关联的任务被取消或由于异常进入完成状态后，该方法将返回操作失败的原因。
-     * 3. 如果future关联的task已正常完成，则返回null。
-     *
-     * @return 失败的原因
-     */
-    Throwable cause();
+public interface ListenableFuture<V> extends IFuture<V> {
 
     // ------------------------------------- 监听 --------------------------------------
 
@@ -182,16 +85,4 @@ public interface ListenableFuture<V> {
      */
     ListenableFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
-    // ------------------------------------- 用于支持占位的voidFuture --------------------------------------
-
-    /**
-     * 如果该方法返回true，表示该对象仅仅用于占位，表示用户并不关心结果。
-     * 任何<b>阻塞式调用</b>和<b>添加监听器</b>都将抛出异常。
-     * <p>
-     * Q: 它的主要目的？
-     * A: 减少开销。其实任何使用VoidFuture的地方，都可以使用正常的future，
-     * 只是会有额外的开销。在某些场景使用VoidFuture将节省很多开销。
-     */
-    @UnstableApi
-    boolean isVoid();
 }

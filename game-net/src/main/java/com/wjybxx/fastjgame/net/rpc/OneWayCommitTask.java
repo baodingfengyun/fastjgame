@@ -47,7 +47,7 @@ public class OneWayCommitTask implements RpcProcessContext, CommitTask {
     @Override
     public void run() {
         // 使用voidPromise是实现单项通知(无返回值调用)的关键
-        session.config().dispatcher().post(this, (RpcMethodSpec) message, session.netEventLoop().voidPromise());
+        session.config().dispatcher().post(this, (RpcMethodSpec) message, session.netEventLoop().newPromise());
     }
 
     @Nonnull

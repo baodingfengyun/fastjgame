@@ -16,11 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
-
-import javax.annotation.Nonnull;
-import java.util.concurrent.Executor;
+import com.wjybxx.fastjgame.utils.concurrent.IFuture;
 
 /**
  * 具有时效性的future，在限定时间内必定必须进入完成状态(实际上存在一定的误差)。
@@ -31,19 +27,12 @@ import java.util.concurrent.Executor;
  * date - 2020/1/6
  * github - https://github.com/hl845740757
  */
-public interface TimeoutFuture<V> extends ListenableFuture<V> {
+public interface TimeoutFuture<V> extends IFuture<V> {
 
     /**
      * 是否已超时。
      * 注意：超时的异常不一定是{@link java.util.concurrent.TimeoutException}，因此不要使用 instanceof 来判断。
      */
     boolean isTimeout();
-
-    // 仅用于流式语法支持
-    @Override
-    TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
-
-    @Override
-    TimeoutFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
 }

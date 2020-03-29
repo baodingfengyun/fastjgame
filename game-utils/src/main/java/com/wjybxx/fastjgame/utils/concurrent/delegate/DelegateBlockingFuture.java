@@ -14,7 +14,10 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.concurrent;
+package com.wjybxx.fastjgame.utils.concurrent.delegate;
+
+import com.wjybxx.fastjgame.utils.concurrent.BlockingFuture;
+import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.*;
@@ -24,7 +27,7 @@ import java.util.concurrent.*;
  * @version 1.0
  * date - 2020/3/10
  */
-public class DelegateBlockingFuture<V> extends DelegateFuture<V> implements BlockingFuture<V> {
+public class DelegateBlockingFuture<V> extends DelegateListenableFuture<V> implements BlockingFuture<V> {
 
     public DelegateBlockingFuture(BlockingFuture<V> delegate) {
         super(delegate);

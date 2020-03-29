@@ -16,11 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.concurrent.timeout;
 
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
-
-import javax.annotation.Nonnull;
-import java.util.concurrent.Executor;
 
 /**
  * 具有时效性的Promise
@@ -31,12 +27,5 @@ import java.util.concurrent.Executor;
  * github - https://github.com/hl845740757
  */
 public interface TimeoutPromise<V> extends Promise<V>, TimeoutFuture<V> {
-
-    // 仅用于语法支持
-    @Override
-    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
-
-    @Override
-    TimeoutPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
 }

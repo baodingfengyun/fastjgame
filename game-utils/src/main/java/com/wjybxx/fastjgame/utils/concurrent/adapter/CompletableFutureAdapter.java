@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.utils.concurrent.adapter;
 
 import com.wjybxx.fastjgame.utils.concurrent.BlockingPromise;
-import com.wjybxx.fastjgame.utils.concurrent.DelegateBlockingFuture;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.utils.concurrent.delegate.DelegateBlockingFuture;
 
 import java.util.concurrent.CompletableFuture;
 

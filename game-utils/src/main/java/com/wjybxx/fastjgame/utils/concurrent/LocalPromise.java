@@ -25,7 +25,7 @@ import java.util.concurrent.Executor;
  * date - 2020/3/8
  * github - https://github.com/hl845740757
  */
-public interface LocalPromise<V> extends Promise<V>, LocalFuture<V> {
+public interface LocalPromise<V> extends ListenablePromise<V>, LocalFuture<V> {
 
     // 用于语法支持
     @Override

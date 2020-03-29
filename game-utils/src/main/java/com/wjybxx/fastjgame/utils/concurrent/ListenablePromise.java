@@ -14,11 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.http;
-
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutFuture;
+package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -26,21 +22,14 @@ import java.util.concurrent.Executor;
 /**
  * @author wjybxx
  * @version 1.0
- * date - 2020/1/10
- * github - https://github.com/hl845740757
+ * date - 2020/3/29
  */
-public interface HttpFuture<V> extends TimeoutFuture<V>, ListenableFuture<V> {
+public interface ListenablePromise<V> extends Promise<V>, ListenableFuture<V> {
 
-    /**
-     * 当cause为{@link java.net.http.HttpTimeoutException}时表示超时
-     */
-    boolean isTimeout();
-
-    // 仅仅用于语法支持
+    // 语法支持
     @Override
-    HttpFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
+    ListenablePromise<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    HttpFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
-
+    ListenablePromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }
