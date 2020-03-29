@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.Nonnull;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -39,7 +42,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * @version 1.0
  * date - 2020/3/6
  */
-abstract class AbstractPromise<V> implements Promise<V> {
+public abstract class AbstractPromise<V> implements Promise<V> {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractPromise.class);
 
     /**
      * 如果一个任务成功时没有结果{@link #setSuccess(Object) null}，使用该对象代替。
@@ -170,7 +175,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
     private boolean tryCompleteCancellation() {
         // 取消只能由初始状态(null)切换为完成状态
         if (resultHolder.compareAndSet(null, new CauseHolder(new CancellationException()))) {
-            postComplete();
+            postCompleteSafely();
             return true;
         } else {
             return false;
@@ -178,9 +183,19 @@ abstract class AbstractPromise<V> implements Promise<V> {
     }
 
     /**
-     * 推送future进入完成状态事件
+     * 安全的推送future进入完成状态事件，由于推送由子类实现，无法保证所有实现都足够安全，因此需要补货异常。
+     */
+    private void postCompleteSafely() {
+        try {
+            postComplete();
+        } catch (Throwable e) {
+            logger.error("PostComplete caught exception, bad promise implementation {}", this.getClass(), e);
+        }
+    }
+
+    /**
+     * 推送future进入完成状态事件。
      * 主要用于唤醒等待的线程和通知监听器们。
-     * 实现类不可以抛出任何异常。
      */
     protected abstract void postComplete();
 
@@ -207,7 +222,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
         // 正常完成可以由初始状态或不可取消状态进入完成状态
         if (resultHolder.compareAndSet(null, value)
                 || resultHolder.compareAndSet(UNCANCELLABLE, value)) {
-            postComplete();
+            postCompleteSafely();
             return true;
         } else {
             return false;
