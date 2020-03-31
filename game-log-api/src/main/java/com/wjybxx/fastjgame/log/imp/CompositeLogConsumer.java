@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.log.imp;
 
+import com.wjybxx.fastjgame.log.core.GameLog;
 import com.wjybxx.fastjgame.log.core.LogConsumer;
 import com.wjybxx.fastjgame.log.utils.LogConsumerUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
@@ -35,7 +36,7 @@ import java.util.Set;
  * date - 2019/12/29
  * github - https://github.com/hl845740757
  */
-public final class CompositeLogConsumer<T> implements LogConsumer<T> {
+public final class CompositeLogConsumer<T extends GameLog> implements LogConsumer<T> {
 
     /**
      * 订阅的共同的topic
@@ -68,9 +69,9 @@ public final class CompositeLogConsumer<T> implements LogConsumer<T> {
     }
 
     @Override
-    public void consume(T record) throws Exception {
+    public void consume(T gameLog) throws Exception {
         for (LogConsumer<T> child : children) {
-            LogConsumerUtils.consumeSafely(child, record);
+            LogConsumerUtils.consumeSafely(child, gameLog);
         }
     }
 

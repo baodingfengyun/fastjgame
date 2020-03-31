@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.kafka.logtest;
 
 import com.wjybxx.fastjgame.kafka.log.KafkaLogPuller;
+import com.wjybxx.fastjgame.log.core.GameLog;
 import com.wjybxx.fastjgame.log.core.LogConsumer;
 import com.wjybxx.fastjgame.log.core.LogPuller;
-import com.wjybxx.fastjgame.log.imp.DefaultLogParser;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
  * date - 2019/11/28
  * github - https://github.com/hl845740757
  */
-public class KafkaLogPullerTest {
+class KafkaLogPullerTest {
 
     public static void main(String[] args) {
         final LogPuller puller = newKafkaLogPuller();
@@ -66,11 +66,11 @@ public class KafkaLogPullerTest {
                 RejectedExecutionHandlers.abort(),
                 "localhost:9092",
                 "GROUP-TEST",
-                new DefaultLogParser(),
+                new LogDecoderTest(),
                 Collections.singleton(new TestLogConsumer<>()));
     }
 
-    private static class TestLogConsumer<T> implements LogConsumer<T> {
+    private static class TestLogConsumer<T extends GameLog> implements LogConsumer<T> {
 
         @Nullable
         @Override
@@ -84,8 +84,8 @@ public class KafkaLogPullerTest {
         }
 
         @Override
-        public void consume(T record) throws Exception {
-            System.out.println("Thread: " + Thread.currentThread().getName() + ", record: " + record);
+        public void consume(T gameLog) throws Exception {
+            System.out.println("Thread: " + Thread.currentThread().getName() + ", record: " + gameLog);
         }
     }
 }

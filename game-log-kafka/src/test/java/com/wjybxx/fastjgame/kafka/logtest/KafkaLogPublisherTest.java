@@ -18,8 +18,6 @@ package com.wjybxx.fastjgame.kafka.logtest;
 
 import com.wjybxx.fastjgame.kafka.log.KafkaLogPublisher;
 import com.wjybxx.fastjgame.log.core.LogPublisher;
-import com.wjybxx.fastjgame.log.imp.DefaultLogBuilder;
-import com.wjybxx.fastjgame.log.imp.DefaultLogDirector;
 import com.wjybxx.fastjgame.utils.TimeUtils;
 import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
@@ -36,10 +34,10 @@ import java.util.concurrent.locks.LockSupport;
  * date - 2019/11/28
  * github - https://github.com/hl845740757
  */
-public class KafkaLogPublisherTest {
+class KafkaLogPublisherTest {
 
     public static void main(String[] args) {
-        final LogPublisher<DefaultLogBuilder> publisher = newProducerEventLoop();
+        final LogPublisher<GameLogTest> publisher = newProducerEventLoop();
         try {
             doProduce(publisher);
 
@@ -49,7 +47,7 @@ public class KafkaLogPublisherTest {
         }
     }
 
-    private static void doProduce(LogPublisher<DefaultLogBuilder> publisher) {
+    private static void doProduce(LogPublisher<GameLogTest> publisher) {
         final long endTime = System.currentTimeMillis() + TimeUtils.MIN * 5;
         for (int playerGuid = 1; System.currentTimeMillis() < endTime; playerGuid++) {
             publisher.publish(newLog(playerGuid));
@@ -62,18 +60,19 @@ public class KafkaLogPublisherTest {
     }
 
     @Nonnull
-    private static LogPublisher<DefaultLogBuilder> newProducerEventLoop() {
+    private static LogPublisher<GameLogTest> newProducerEventLoop() {
         return new KafkaLogPublisher<>(
                 new DefaultThreadFactory("PUBLISHER"),
                 RejectedExecutionHandlers.abort(),
                 "localhost:9092",
-                new DefaultLogDirector());
+                new LogEncoderTest());
     }
 
-    private static DefaultLogBuilder newLog(long playerGuid) {
-        return new DefaultLogBuilder("TEST")
+    private static GameLogTest newLog(long playerGuid) {
+        return new GameLogTest("TEST")
                 .append("playerGuid", playerGuid)
                 .append("playerName", "wjybxx")
                 .append("chatContent", "\r\n\t\f\\这是一句没什么用的胡话&=，\r\n\t\f\\只不过带了点特殊字符=&");
     }
+
 }

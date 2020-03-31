@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.log.utils;
 
+import com.wjybxx.fastjgame.log.core.GameLog;
 import com.wjybxx.fastjgame.log.core.LogConsumer;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -34,7 +35,7 @@ public class LogConsumerUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(LogConsumerUtils.class);
 
-    public static <T> void consumeSafely(LogConsumer<T> consumer, T record) {
+    public static <T extends GameLog> void consumeSafely(LogConsumer<T> consumer, T record) {
         try {
             final EventLoop appEventLoop = consumer.appEventLoop();
             if (appEventLoop == null || appEventLoop.inEventLoop()) {

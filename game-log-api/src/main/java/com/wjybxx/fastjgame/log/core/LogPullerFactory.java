@@ -28,11 +28,11 @@ import java.util.Collection;
  * date - 2020/2/11
  * github - https://github.com/hl845740757
  */
-public interface LogPullerFactory<T> {
+public interface LogPullerFactory<T extends GameLog> {
 
     /**
      * 应用层只关心消费逻辑，不关心解析逻辑，
-     * 因此{@link LogConsumer}是业务逻辑指定的，而{@link LogParser}是启动类指定的。
+     * 因此{@link LogConsumer}是业务逻辑指定的，而{@link LogDecoder}是启动类指定的。
      */
     LogPuller newPuller(@Nonnull Collection<LogConsumer<T>> logConsumers);
 

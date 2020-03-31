@@ -16,11 +16,11 @@
 
 /**
  * 对于逻辑用户而言：
- * 发布一条日志，使用{@link com.wjybxx.fastjgame.log.core.LogBuilder} 和 {@link com.wjybxx.fastjgame.log.core.LogPublisher}。
- * 消费一条日志，使用{@link com.wjybxx.fastjgame.log.core.LogConsumer}。
+ * 发布一条日志，使用{@link com.wjybxx.fastjgame.log.core.GameLog} 和 {@link com.wjybxx.fastjgame.log.core.LogPublisher}。
+ * 消费一条日志，使用{@link com.wjybxx.fastjgame.log.core.GameLog} 和 {@link com.wjybxx.fastjgame.log.core.LogConsumer}。
  * <p>
  * 对于架构程序员：
- * 需要设计应用私有的日志格式，并通过{@link com.wjybxx.fastjgame.log.core.LogParser} 和 {@link com.wjybxx.fastjgame.log.core.LogDirector}进行转换，
+ * 需要设计应用私有的日志格式，并通过{@link com.wjybxx.fastjgame.log.core.LogEncoder} 和 {@link com.wjybxx.fastjgame.log.core.LogDecoder}进行转换，
  * 以使得逻辑程序员脱离对具体日志组件的依赖。
  *
  * @author wjybxx

@@ -29,10 +29,10 @@ import java.util.Set;
  * date - 2020/2/10
  * github - https://github.com/hl845740757
  */
-public interface LogConsumer<T> {
+public interface LogConsumer<T extends GameLog> {
 
     /**
-     * 日志消费者的运行环境 - {@link #consume(Object)}的执行环境。
+     * 日志消费者的运行环境 - {@link #consume(GameLog)}的执行环境。
      * 如果返回null，表示直接在{@link LogPuller}线程消费。
      */
     @Nullable
@@ -48,8 +48,8 @@ public interface LogConsumer<T> {
     /**
      * 消费一条日志。
      *
-     * @param record 日志数据
+     * @param gameLog 日志数据
      */
-    void consume(T record) throws Exception;
+    void consume(T gameLog) throws Exception;
 
 }

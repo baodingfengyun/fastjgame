@@ -17,15 +17,16 @@
 package com.wjybxx.fastjgame.log.core;
 
 /**
- * 日志视图对象(标记接口)。
- * Q: 为什么要有视图对象？
- * A: 应用的业务逻辑不可以依赖存储细节(record)，必须完成解析过程。
+ * 日志解码器，将日志从仓库存储的格式解码为程序需要的数据格式。
+ * 运行在{@link LogPublisher}线程
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/13
+ * date - 2020/3/31
  * github - https://github.com/hl845740757
  */
-public interface LogVO {
+public interface LogDecoder<T, R extends GameLog> {
+
+    R decode(T record);
 
 }

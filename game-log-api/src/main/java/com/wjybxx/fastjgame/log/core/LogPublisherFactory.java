@@ -25,11 +25,11 @@ package com.wjybxx.fastjgame.log.core;
  * date - 2020/2/11
  * github - https://github.com/hl845740757
  */
-public interface LogPublisherFactory<T extends LogBuilder> {
+public interface LogPublisherFactory<T extends GameLog> {
 
     /**
      * 应用层只关心发布逻辑，不关心构建相关逻辑。
-     * 因此{@link LogDirector}是启动类指定的。
+     * 因此{@link LogEncoder}是启动类指定的。
      */
     LogPublisher<T> newPublisher();
 

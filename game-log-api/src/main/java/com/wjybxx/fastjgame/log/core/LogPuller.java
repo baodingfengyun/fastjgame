@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
  * Q: 为什么继承{@link EventLoop}？
  * A: 主要原因：我们需要能管理它的生命周期。
  * <p>
- * 构造方法应包含{@link LogParser} 和 {@link LogConsumer}集合。
+ * 构造方法应包含{@link LogDecoder} 和 {@link LogConsumer}集合。
  *
  * @author wjybxx
  * @version 1.0

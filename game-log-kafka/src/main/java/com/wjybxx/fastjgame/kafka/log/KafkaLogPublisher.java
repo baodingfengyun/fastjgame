@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.kafka.log;
 
-import com.wjybxx.fastjgame.log.core.LogBuilder;
-import com.wjybxx.fastjgame.log.core.LogDirector;
+import com.wjybxx.fastjgame.log.core.GameLog;
+import com.wjybxx.fastjgame.log.core.LogEncoder;
 import com.wjybxx.fastjgame.log.core.LogPublisher;
 import com.wjybxx.fastjgame.log.imp.DefaultLogRecord;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
@@ -43,7 +43,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/11/27
  * github - https://github.com/hl845740757
  */
-public class KafkaLogPublisher<T extends LogBuilder> extends DisruptorEventLoop implements LogPublisher<T> {
+public class KafkaLogPublisher<T extends GameLog> extends DisruptorEventLoop implements LogPublisher<T> {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaLogPublisher.class);
 
@@ -63,15 +63,18 @@ public class KafkaLogPublisher<T extends LogBuilder> extends DisruptorEventLoop 
      */
     private final KafkaProducer<String, String> producer;
 
-    private final LogDirector<T, DefaultLogRecord> logDirector;
+    /**
+     * 日志编码器，目前使用字符串存储
+     */
+    private final LogEncoder<T, DefaultLogRecord> encoder;
 
     public KafkaLogPublisher(@Nonnull ThreadFactory threadFactory,
                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                              @Nonnull String brokerList,
-                             @Nonnull LogDirector<T, DefaultLogRecord> logDirector) {
+                             @Nonnull LogEncoder<T, DefaultLogRecord> encoder) {
         super(null, threadFactory, rejectedExecutionHandler, PRODUCER_RING_BUFFER_SIZE, PRODUCER_TASK_BATCH_SIZE, new SleepWaitStrategyFactory());
         this.producer = new KafkaProducer<>(newConfig(brokerList), new StringSerializer(), new StringSerializer());
-        this.logDirector = logDirector;
+        this.encoder = encoder;
     }
 
     private static Properties newConfig(String brokerList) {
@@ -99,27 +102,27 @@ public class KafkaLogPublisher<T extends LogBuilder> extends DisruptorEventLoop 
     }
 
     @Override
-    public void publish(T logBuilder) {
-        execute(new KafkaLogTask(logBuilder));
+    public void publish(T gameLog) {
+        execute(new KafkaLogTask(gameLog));
     }
 
     private class KafkaLogTask implements Runnable {
 
-        private final T builder;
+        private final T gameLog;
 
-        KafkaLogTask(T builder) {
-            this.builder = builder;
+        KafkaLogTask(T gameLog) {
+            this.gameLog = gameLog;
         }
 
         @Override
         public void run() {
             try {
-                final DefaultLogRecord logRecordDTO = logDirector.build(builder);
+                final DefaultLogRecord logRecordDTO = encoder.encode(gameLog);
                 final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(logRecordDTO.topic(), PARTITION_ID,
                         null, logRecordDTO.data());
                 producer.send(producerRecord);
             } catch (Throwable e) {
-                logger.warn("publish caught exception, builder {}", builder, e);
+                logger.warn("publish caught exception, builder {}", gameLog, e);
             }
         }
     }
