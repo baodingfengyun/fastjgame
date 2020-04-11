@@ -25,8 +25,8 @@ package com.wjybxx.fastjgame.log.core;
  * date - 2020/3/31
  * github - https://github.com/hl845740757
  */
-public interface LogDecoder<T, R extends GameLog> {
+public interface LogDecoder<R, T extends GameLog> {
 
-    R decode(T record);
+    T decode(R record);
 
 }

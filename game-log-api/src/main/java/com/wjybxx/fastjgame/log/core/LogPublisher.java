@@ -37,7 +37,7 @@ public interface LogPublisher<T extends GameLog> extends EventLoop {
     /**
      * 发布一条日志
      *
-     * @param gameLog 含有日志内容的builder
+     * @param gameLog 日志内容
      */
     void publish(T gameLog);
 

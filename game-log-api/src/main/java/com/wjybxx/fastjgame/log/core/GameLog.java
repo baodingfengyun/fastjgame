@@ -23,6 +23,7 @@ package com.wjybxx.fastjgame.log.core;
  * Q: 为什么使用该接口代替了之前的Builder接口？
  * A: Builder搜集日志确实很方便，但缺乏表达力，会增加维护难度，不如每一种类型的日志定义一个具体的类清晰。
  * 此外，该接口实际并未限制你使用Builder模式，如果你需要，仍可以使用Builder模式。
+ * （其实builder模式多数情况下工作的很好）
  *
  * @author wjybxx
  * @version 1.0
