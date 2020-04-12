@@ -20,7 +20,7 @@ package com.wjybxx.fastjgame.test;
  * 非boolean变量：
  * 只要前两个字母有一个大写，则 get/set + 参数名
  * <p>
- * boolean变量：
+ * boolean变量(只堆基本类型的boolean适用)：
  * 1. 如果以is开头，则get方法就是参数名，set方法去掉is
  * 2. get方法： is + 参数名首字母大写, set方法： set + 参数名首字母大写
  *
@@ -42,6 +42,8 @@ public class BeanFieldNameTest {
     private String isA;
 
     private boolean is;
+
+    private Boolean b;
 
     public String getaName() {
         return aName;
@@ -113,5 +115,13 @@ public class BeanFieldNameTest {
 
     public void setIs(boolean is) {
         this.is = is;
+    }
+
+    public Boolean getB() {
+        return b;
+    }
+
+    public void setB(Boolean b) {
+        this.b = b;
     }
 }

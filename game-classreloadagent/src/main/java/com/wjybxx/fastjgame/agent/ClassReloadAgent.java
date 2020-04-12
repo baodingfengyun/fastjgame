@@ -48,7 +48,7 @@ public class ClassReloadAgent {
     }
 
     /**
-     * 这是instrument开发规范规定的固定格式的方法，当java程序启动时，如果指定了javaagent参数，则会自动调用到这个方法。
+     * 这是instrument开发规范规定的固定格式的方法，当java程序启动时，如果指定了javaagent参数(classpath下的jar包名字)，则会自动调用到这个方法。
      * 注意：
      * 1. 需要在启动参数中指定 javaagent参数。eg:
      * -javaagent:game-classreloadagent-1.0.jar=test

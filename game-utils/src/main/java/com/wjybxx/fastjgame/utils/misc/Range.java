@@ -14,19 +14,39 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.db.redis;
-
-import redis.clients.jedis.Jedis;
+package com.wjybxx.fastjgame.utils.misc;
 
 /**
- * 基于{@link Jedis}的命令，它的指令集是完整的。
- *
  * @author wjybxx
  * @version 1.0
- * date - 2020/3/28
+ * date - 2020/4/12
  */
-public interface RedisCommand<V> {
+public class Range {
 
-    V execute(Jedis jedis);
+    /**
+     * inclusive
+     */
+    public final int start;
+    /**
+     * inclusive
+     */
+    public final int end;
 
+    public Range(int start, int end) {
+        this.start = start;
+        this.end = end;
+    }
+
+    public boolean isEmpty() {
+        return start > end;
+    }
+
+    public int length() {
+        return end - start + 1;
+    }
+
+    @Override
+    public String toString() {
+        return "Range[" + start + "," + end + "]";
+    }
 }

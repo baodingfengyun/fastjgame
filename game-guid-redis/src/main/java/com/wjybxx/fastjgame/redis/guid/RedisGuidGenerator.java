@@ -62,7 +62,7 @@ public class RedisGuidGenerator implements GuidGenerator {
     }
 
     @Override
-    public String name() {
+    public String nameSpace() {
         return name;
     }
 

@@ -19,7 +19,6 @@
     <modules>
         <module>game-utils</module>
         <module>game-net</module>
-        <module>game-db</module>
         <module>game-log-api</module>
         <module>game-log-kafka</module>
         <module>game-guid-api</module>

@@ -26,7 +26,7 @@ package com.wjybxx.fastjgame.db.exception;
  */
 public class BadCollectionDeclarationTypeException extends BadDeclarationTypeException {
 
-    private static final String MSG = "If you new a special collection or map, you need to declare a entity class, " +
+    private static final String MSG = "If you need a special collection or map, you need to declare a entity class, " +
             "and provide enough information to your demand.";
 
     public BadCollectionDeclarationTypeException() {

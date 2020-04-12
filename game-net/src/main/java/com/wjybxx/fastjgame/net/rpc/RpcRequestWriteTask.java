@@ -69,7 +69,7 @@ public class RpcRequestWriteTask implements WriteTask {
 
     @Override
     public void run() {
-        if (sync || flush) {
+        if (flush || sync) {
             session.fireWriteAndFlush(this);
         } else {
             session.fireWrite(this);

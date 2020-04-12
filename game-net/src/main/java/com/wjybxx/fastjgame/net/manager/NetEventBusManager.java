@@ -18,7 +18,10 @@ package com.wjybxx.fastjgame.net.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoopUtils;
-import com.wjybxx.fastjgame.utils.eventbus.*;
+import com.wjybxx.fastjgame.utils.eventbus.EventBus;
+import com.wjybxx.fastjgame.utils.eventbus.EventHandler;
+import com.wjybxx.fastjgame.utils.eventbus.GenericEvent;
+import com.wjybxx.fastjgame.utils.eventbus.IdentityEventBus;
 
 import javax.annotation.Nonnull;
 
@@ -28,7 +31,7 @@ import javax.annotation.Nonnull;
  * date - 2019/10/26
  * github - https://github.com/hl845740757
  */
-public class NetEventBusManager implements EventHandlerRegistry, EventDispatcher {
+public class NetEventBusManager implements EventBus {
 
     private final EventBus eventBus = new IdentityEventBus(10);
     private final NetEventLoopManager eventLoopManager;

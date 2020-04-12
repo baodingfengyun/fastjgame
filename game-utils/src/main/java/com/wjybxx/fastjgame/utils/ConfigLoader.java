@@ -105,8 +105,7 @@ public final class ConfigLoader {
             logger.info("load {} from gameConfigDir success!", fileName);
             return cfgFromGameConfigDir;
         } catch (IOException e) {
-            // ignore e
-            logger.info("load {} from gameConfigDir failed", fileName);
+            logger.info("load {} from gameConfigDir failed", fileName, e);
             return null;
         }
     }
@@ -143,7 +142,7 @@ public final class ConfigLoader {
             logger.info("load {} from jarResources success!", fileName);
             return cfgFromJarResources;
         } catch (IOException e) {
-            logger.info("load {} from jarResources failed", fileName);
+            logger.info("load {} from jarResources failed", fileName, e);
             return null;
         }
     }

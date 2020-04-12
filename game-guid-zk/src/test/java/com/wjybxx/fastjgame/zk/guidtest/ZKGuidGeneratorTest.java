@@ -53,7 +53,7 @@ public class ZKGuidGeneratorTest {
         final ZKGuidGenerator guidGenerator = new ZKGuidGenerator(curatorClientMgr, name, cacheSize);
         try {
             for (int index = 0; index < cacheSize * 3; index++) {
-                System.out.println("name: " + name + ", guid: " + guidGenerator.next());
+                System.out.println("nameSpace: " + name + ", guid: " + guidGenerator.next());
             }
         } finally {
             guidGenerator.close();

@@ -160,16 +160,21 @@ public class EnumUtils {
 
         // 保护性拷贝，避免出现并发问题 - 不确定values()是否会被修改
         final T[] copiedValues = Arrays.copyOf(values, values.length);
-
-        if (fastQuery && !ArrayBasedEnumMapper.forceAvailable(minNumber, maxNumber, copiedValues.length)) {
-            throw new IllegalArgumentException("Bad resource utilization!");
-        }
-
-        if (fastQuery || ArrayBasedEnumMapper.available(minNumber, maxNumber, copiedValues.length)) {
+        if (isArrayAvailable(minNumber, maxNumber, values.length, fastQuery)) {
             return new ArrayBasedEnumMapper<>(copiedValues, minNumber, maxNumber);
         } else {
             return new MapBasedMapper<>(copiedValues, result);
         }
+    }
+
+    private static <T extends NumericalEntity> boolean isArrayAvailable(int minNumber, int maxNumber, int length, boolean fastQuery) {
+        if (ArrayBasedEnumMapper.matchDefaultFactor(minNumber, maxNumber, length)) {
+            return true;
+        }
+        if (fastQuery && ArrayBasedEnumMapper.matchMinFactor(minNumber, maxNumber, length)) {
+            return true;
+        }
+        return false;
     }
 
     private static class EmptyMapper<T extends NumericalEntity> implements NumericalEntityMapper<T> {
@@ -247,11 +252,11 @@ public class EnumUtils {
             return number - minNumber;
         }
 
-        private static boolean available(int minNumber, int maxNumber, int length) {
+        private static boolean matchDefaultFactor(int minNumber, int maxNumber, int length) {
             return length >= Math.ceil(capacity(minNumber, maxNumber) * DEFAULT_FACTOR);
         }
 
-        private static boolean forceAvailable(int minNumber, int maxNumber, int length) {
+        private static boolean matchMinFactor(int minNumber, int maxNumber, int length) {
             return length >= Math.ceil(capacity(minNumber, maxNumber) * MIN_FACTOR);
         }
 

@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.wjybxx.fastjgame.net.binaryextend.ClassCodec;
 import com.wjybxx.fastjgame.utils.misc.IntPair;
+import com.wjybxx.fastjgame.utils.misc.Range;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -37,7 +38,7 @@ public class PojoCodecProviders {
      * 内部使用的providerId区间
      * 自定义provider应该在这之外，并且大于0，小于127
      */
-    public static final IntPair INTERNAL_PROVIDER_ID_RANGE = new IntPair(1, 10);
+    public static final Range INTERNAL_PROVIDER_ID_RANGE = new Range(1, 10);
 
     private static final List<PojoCodecProvider> JDK_POJO_CODEC_PROVIDER = fromCodecsInternal(Arrays.asList(
             new ClassCodec((byte) 1, 1)
@@ -66,11 +67,11 @@ public class PojoCodecProviders {
     }
 
     private static void checkMin(PojoCodec<?> pojoCodec) {
-        if (pojoCodec.getProviderId() <= INTERNAL_PROVIDER_ID_RANGE.getFirst()) {
+        if (pojoCodec.getProviderId() <= INTERNAL_PROVIDER_ID_RANGE.start) {
             throw new IllegalArgumentException(String.format("%s's providerId %s must greater than %s",
                     pojoCodec.getEncoderClass().getSimpleName(),
                     pojoCodec.getProviderId(),
-                    INTERNAL_PROVIDER_ID_RANGE.getFirst()
+                    INTERNAL_PROVIDER_ID_RANGE.start
             ));
         }
     }

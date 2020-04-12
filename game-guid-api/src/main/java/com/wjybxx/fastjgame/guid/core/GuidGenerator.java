@@ -47,9 +47,9 @@ import java.io.Closeable;
 public interface GuidGenerator extends Closeable {
 
     /**
-     * 该生成器的名字(或者说命名空间)
+     * 该生成器所属的命名空间
      */
-    String name();
+    String nameSpace();
 
     /**
      * 分配一个该生成器所属命名空间下唯一的id。
