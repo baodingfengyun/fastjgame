@@ -109,10 +109,10 @@ public class RedisEventLoopTest {
         }
 
         private void sendRedisCommands(int loop) {
-            redisClient.call(pipeline -> pipeline.hset("name", String.valueOf(loop), String.valueOf(loop)), Function.identity())
+            redisClient.call(pipeline -> pipeline.hset("test-name", String.valueOf(loop), String.valueOf(loop)), Function.identity())
                     .addListener(f -> System.out.println(f.getNow()));
 
-            redisClient.call(pipeline -> pipeline.hget("name", String.valueOf(loop)), Function.identity())
+            redisClient.call(pipeline -> pipeline.hget("test-name", String.valueOf(loop)), Function.identity())
                     .addListener(f -> System.out.println(f.getNow()));
         }
 

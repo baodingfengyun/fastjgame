@@ -28,6 +28,7 @@ public class DebugUtils {
 
     /**
      * 是否开启了debug - 存为volatile而非final是为了方便运行期间开启和关闭
+     * (但是会增加开销)
      */
     private static volatile boolean debug = SystemUtils.getProperties().getAsBool("fastjgame.debug", false);
 

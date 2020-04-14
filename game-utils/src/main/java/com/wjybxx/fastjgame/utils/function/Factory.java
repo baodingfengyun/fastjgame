@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
 public interface Factory<T> {
 
     /**
-     * 创建一个‘新的'对象实例
+     * 创建一个新的实例
      *
      * @return newInstance
      */

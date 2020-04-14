@@ -22,11 +22,15 @@ import java.util.Collection;
 import java.util.Objects;
 
 /**
- * {@link ListenableFuture}聚合器，它可以监听多个{@link ListenableFuture}的结果，并当所有监听的future进入完成状态时，
- * 通知{@link #finish(Promise)}方法指定的{@link Promise}，如果设置了的话。
+ * {@link ListenableFuture}聚合器。
+ * FutureCombiner会将{@link #add(ListenableFuture)} {@link #addAll(ListenableFuture[])}方法添加的所有future的完成事件聚合为一个完成事件，
+ * 并传递给{@link #finish(Promise)}方法指定的promise。
+ * 即：当finish方法指定的promise进入完成状态时，在这前面添加的所有future都已进入了完成状态(如果外部没有赋值的话)。
+ *
  * <p>
  * 在调用{@link #finish(Promise)}之前，用户可以通过{@link #add(ListenableFuture)}和{@link #addAll(ListenableFuture[])}方法添加任意数量的{@link ListenableFuture}，
- * 当所有的future添加完毕之后，调用者需要调用{@link #finish(Promise)}方法监听最终的结果，如果需要的话。
+ * 当所有的future添加完毕之后，使用者需要调用{@link #finish(Promise)}方法指定接收所有future完成事件的promise。
+ *
  * <h3>失败处理</h3>
  * 注意：当且仅当所有的future关联的操作都<b>成功完成</b>时{@link ListenableFuture#isCompletedExceptionally() false}，{@link #aggregatePromise}才会表现为成功。
  * 一旦某一个future执行失败，则{@link #aggregatePromise}表现为失败。此外，如果多个future执行失败，

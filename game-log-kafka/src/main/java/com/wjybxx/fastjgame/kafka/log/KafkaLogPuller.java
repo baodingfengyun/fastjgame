@@ -126,7 +126,7 @@ public class KafkaLogPuller<T extends GameLog> extends DisruptorEventLoop implem
         Properties properties = new Properties();
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 512);
+        properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1024);
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         return properties;

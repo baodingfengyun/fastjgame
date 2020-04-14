@@ -85,6 +85,9 @@ public class KafkaLogPublisher<T extends GameLog> extends DisruptorEventLoop imp
         properties.put(ProducerConfig.BATCH_SIZE_CONFIG, 64 * 1024);
         properties.put(ProducerConfig.LINGER_MS_CONFIG, 100);
         properties.put(ProducerConfig.RETRIES_CONFIG, 3);
+        // 调整使用的最大内存
+        properties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 64 * 1024 * 1024);
+        properties.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 30 * 1000);
         return properties;
     }
 
@@ -117,9 +120,9 @@ public class KafkaLogPublisher<T extends GameLog> extends DisruptorEventLoop imp
         @Override
         public void run() {
             try {
-                final DefaultLogRecord logRecordDTO = encoder.encode(gameLog);
-                final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(logRecordDTO.topic(), PARTITION_ID,
-                        null, logRecordDTO.data());
+                final DefaultLogRecord logRecord = encoder.encode(gameLog);
+                final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(logRecord.topic(), PARTITION_ID,
+                        null, logRecord.data());
                 producer.send(producerRecord);
             } catch (Throwable e) {
                 logger.warn("publish caught exception, builder {}", gameLog, e);
