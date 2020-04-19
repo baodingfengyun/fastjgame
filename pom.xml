@@ -19,13 +19,19 @@
     <modules>
         <module>game-utils</module>
         <module>game-net</module>
+
         <module>game-log-api</module>
         <module>game-log-kafka</module>
-        <module>game-guid-api</module>
+
         <module>game-zookeeper</module>
+
+        <module>game-guid-api</module>
         <module>game-guid-redis</module>
         <module>game-guid-zk</module>
+
         <module>game-db-api</module>
+        <module>game-db-redis</module>
+
     </modules>
 
     <build>
