@@ -34,7 +34,7 @@ class LogEncoderTest implements LogEncoder<GameLogTest, DefaultLogRecord> {
     @Override
     public DefaultLogRecord encode(GameLogTest gameLog) {
         final String data = JsonUtils.writeAsJson(gameLog);
-        return new DefaultLogRecord(gameLog.getTopic(), data);
+        return new DefaultLogRecord(gameLog.topic(), data);
     }
 
 }

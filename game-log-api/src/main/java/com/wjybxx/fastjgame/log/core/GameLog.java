@@ -32,4 +32,9 @@ package com.wjybxx.fastjgame.log.core;
  */
 public interface GameLog {
 
+    /**
+     * 日志对应的主题。
+     * {@link LogConsumer}会根据主题进行订阅
+     */
+    String topic();
 }

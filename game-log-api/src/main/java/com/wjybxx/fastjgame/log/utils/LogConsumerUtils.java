@@ -41,16 +41,30 @@ public class LogConsumerUtils {
             if (appEventLoop == null || appEventLoop.inEventLoop()) {
                 consumer.consume(record);
             } else {
-                appEventLoop.execute(() -> {
-                    try {
-                        consumer.consume(record);
-                    } catch (Throwable e) {
-                        ExceptionUtils.rethrow(e);
-                    }
-                });
+                appEventLoop.execute(new ConsumeTask<>(consumer, record));
             }
         } catch (Throwable e) {
             logger.warn("consumer.consume caught exception", e);
+        }
+    }
+
+    private static class ConsumeTask<T extends GameLog> implements Runnable {
+
+        final LogConsumer<T> consumer;
+        final T record;
+
+        ConsumeTask(LogConsumer<T> consumer, T record) {
+            this.consumer = consumer;
+            this.record = record;
+        }
+
+        @Override
+        public void run() {
+            try {
+                consumer.consume(record);
+            } catch (Throwable e) {
+                ExceptionUtils.rethrow(e);
+            }
         }
     }
 }

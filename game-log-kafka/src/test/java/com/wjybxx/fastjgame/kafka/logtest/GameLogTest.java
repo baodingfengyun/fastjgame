@@ -93,7 +93,8 @@ class GameLogTest implements GameLog {
         return this;
     }
 
-    public String getTopic() {
+    @Override
+    public String topic() {
         return topic;
     }
 
