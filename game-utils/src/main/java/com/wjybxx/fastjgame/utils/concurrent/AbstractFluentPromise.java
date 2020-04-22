@@ -72,6 +72,13 @@ public abstract class AbstractFluentPromise<V> extends AbstractPromise<V> implem
         return promise;
     }
 
+    @Override
+    public FluentFuture<V> exceptionally(Function<Throwable, ? extends V> fn) {
+        final FluentPromise<V> promise = newIncompletePromise();
+        addListener(new UniExceptionally<>(this, promise, fn));
+        return promise;
+    }
+
     /**
      * 创建一个具体的子类型对象，用于作为各个方法的返回值。
      */
@@ -284,6 +291,30 @@ public abstract class AbstractFluentPromise<V> extends AbstractPromise<V> implem
                 output.trySuccess(fn.apply(value, cause));
             } catch (Throwable ex) {
                 output.tryFailure(ex);
+            }
+        }
+    }
+
+    static class UniExceptionally<V> extends UniCompletion<V, V> {
+
+        final Function<Throwable, ? extends V> fn;
+
+        UniExceptionally(ListenableFuture<V> input, Promise<V> output,
+                         Function<Throwable, ? extends V> fn) {
+            super(input, output);
+            this.fn = fn;
+        }
+
+        @Override
+        public void onComplete(ListenableFuture<V> future) {
+            if (future.isCompletedExceptionally()) {
+                try {
+                    output.trySuccess(fn.apply(future.cause()));
+                } catch (Throwable ex) {
+                    output.tryFailure(ex);
+                }
+            } else {
+                output.trySuccess(future.getNow());
             }
         }
     }

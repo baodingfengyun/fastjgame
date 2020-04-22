@@ -162,6 +162,14 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      */
     <U> FluentFuture<U> thenHandle(BiFunction<? super V, ? super Throwable, ? extends U> fn);
 
+    /**
+     * 该方法返回一个新的{@code Future}，它的结果由当前{@code Future}驱动。
+     * 如果当前{@code Future}正常完成，则给定的动作不会执行，且返回的{@code Future}使用相同的结果值进入完成状态。
+     * 如果当前{@code Future}执行失败，则其异常信息将作为指定操作的执行参数，返回的{@code Future}的结果取决于指定操作的执行结果。
+     */
+    FluentFuture<V> exceptionally(Function<Throwable, ? extends V> fn);
+
+
     // 普通流式语法支持
     @Override
     FluentFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
