@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.concurrent.BlockingPromise;
 import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.utils.concurrent.GlobalEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
 
 /**
@@ -32,7 +32,7 @@ import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
 public class LocalSessionExample {
 
     public static void main(String[] args) {
-        final BlockingPromise<LocalPort> promise = GlobalEventLoop.INSTANCE.newBlockingPromise();
+        final Promise<LocalPort> promise = GlobalEventLoop.INSTANCE.newPromise();
         {
             ExampleRpcServerLoop exampleRpcServerLoop = new ExampleRpcServerLoop(new DefaultThreadFactory("SERVER"),
                     RejectedExecutionHandlers.discard(),

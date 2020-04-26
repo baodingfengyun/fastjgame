@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.concurrent.delegate.DelegateBlockingFuture;
-
+import javax.annotation.Nonnull;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
 import java.util.concurrent.RunnableFuture;
 
 /**
@@ -29,25 +29,30 @@ import java.util.concurrent.RunnableFuture;
  * date - 2019/7/14 20:32
  * github - https://github.com/hl845740757
  */
-public class BlockingFutureTask<V> extends DelegateBlockingFuture<V> implements RunnableFuture<V> {
+public class FluentFutureTask<V> extends DefaultPromise<V> implements RunnableFuture<V> {
 
     private final Callable<V> callable;
 
-    BlockingFutureTask(EventLoop executor, Callable<V> callable) {
-        super(executor.newBlockingPromise());
+    FluentFutureTask(EventLoop executor, Callable<V> callable) {
+        super(executor);
         this.callable = callable;
+    }
+
+    FluentFutureTask(@Nonnull EventLoop defaultExecutor, Runnable runnable, V value) {
+        super(defaultExecutor);
+        this.callable = Executors.callable(runnable, value);
     }
 
     @Override
     public void run() {
-        final BlockingPromise<V> promise = (BlockingPromise<V>) getDelegate();
         try {
-            if (promise.setUncancellable()) {
+            if (setUncancellable()) {
                 V result = callable.call();
-                promise.setSuccess(result);
+                // 使用set，如果抛出异常，证明有用户错误的进行了赋值
+                setSuccess(result);
             }
         } catch (Throwable e) {
-            promise.setFailure(e);
+            setFailure(e);
         }
     }
 

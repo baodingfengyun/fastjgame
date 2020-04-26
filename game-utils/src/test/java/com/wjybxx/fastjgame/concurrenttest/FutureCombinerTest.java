@@ -33,18 +33,18 @@ public class FutureCombinerTest {
         final DefaultEventLoop eventLoopA = new DefaultEventLoop(null, new DefaultThreadFactory("AAAAA"), RejectedExecutionHandlers.abort());
         final DefaultEventLoop eventLoopB = new DefaultEventLoop(null, new DefaultThreadFactory("BBBBBB"), RejectedExecutionHandlers.abort());
 
-        final BlockingFuture<String> aFuture = eventLoopA.submit(() -> "success");
-        aFuture.addListener(future -> {
+        final FluentFuture<String> aFuture = eventLoopA.submit(() -> "success");
+        aFuture.whenComplete((result, cause) -> {
             System.out.println("CallbackA, Thread : " + Thread.currentThread().getName());
-            System.out.println("CallbackA, result " + getResultAsStringSafely(future));
+            System.out.println("CallbackA, result " + getResultAsStringSafely(result, cause));
         });
 
-        final BlockingFuture<String> bFuture = eventLoopB.submit(() -> {
+        final FluentFuture<String> bFuture = eventLoopB.submit(() -> {
             throw new Exception("failure");
         });
-        bFuture.addListener(future -> {
+        bFuture.whenComplete((result, cause) -> {
             System.out.println("CallbackB, Thread : " + Thread.currentThread().getName());
-            System.out.println("CallbackB, result " + getResultAsStringSafely(future));
+            System.out.println("CallbackB, result " + getResultAsStringSafely(result, cause));
         });
 
         final DefaultEventLoop appEventLoop = new DefaultEventLoop(null, new DefaultThreadFactory("APP"), RejectedExecutionHandlers.abort());
@@ -61,24 +61,22 @@ public class FutureCombinerTest {
         }
     }
 
-    private static void doCombine(BlockingFuture<String> aFuture, BlockingFuture<String> bFuture, DefaultEventLoop appEventLoop) {
+    private static void doCombine(FluentFuture<String> aFuture, FluentFuture<String> bFuture, DefaultEventLoop appEventLoop) {
         new FutureCombiner(appEventLoop)
                 .add(aFuture)
                 .add(bFuture)
-                .finish(appEventLoop.newBlockingPromise())
-                .addListener(future -> {
+                .finish(appEventLoop.newPromise())
+                .whenComplete((result, cause) -> {
                     System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
-                    System.out.println("Callback Combine, result " + getResultAsStringSafely(future));
+                    System.out.println("Callback Combine, result " + getResultAsStringSafely(result, cause));
                 });
     }
 
-    private static String getResultAsStringSafely(ListenableFuture<?> future) {
-        if (future.isCompletedExceptionally()) {
-            final Throwable cause = future.cause();
-            assert null != cause;
+    private static <V> String getResultAsStringSafely(V result, Throwable cause) {
+        if (cause != null) {
             return ExceptionUtils.getStackTrace(cause);
         } else {
-            return String.valueOf(future.getNow());
+            return String.valueOf(result);
         }
     }
 }

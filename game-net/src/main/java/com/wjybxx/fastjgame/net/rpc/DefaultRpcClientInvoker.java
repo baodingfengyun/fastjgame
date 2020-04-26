@@ -19,7 +19,8 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.net.exception.RpcSessionClosedException;
 import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.utils.concurrent.BlockingPromise;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,13 +47,13 @@ public class DefaultRpcClientInvoker implements RpcClientInvoker {
     }
 
     @Override
-    public <V> RpcFuture<V> call(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request, boolean flush) {
+    public <V> FluentFuture<V> call(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request, boolean flush) {
         if (session.isClosed()) {
             // session关闭状态下直接返回
-            return session.netEventLoop().newFailedRpcFuture(session.appEventLoop(), RpcSessionClosedException.INSTANCE);
+            return session.appEventLoop().newFailedFuture(RpcSessionClosedException.INSTANCE);
         }
         // 会话活动的状态下才会发送
-        final RpcPromise<V> promise = session.netEventLoop().newRpcPromise(session.appEventLoop());
+        final Promise<V> promise = session.netEventLoop().newPromise();
         session.netEventLoop().execute(new RpcRequestWriteTask(session, request, false, session.config().getAsyncRpcTimeoutMs(), promise, flush));
         return promise;
     }
@@ -62,19 +63,19 @@ public class DefaultRpcClientInvoker implements RpcClientInvoker {
     public <V> V syncCall(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request) throws CompletionException {
         if (session.isClosed()) {
             // session关闭状态下直接返回
-            return session.netEventLoop().<V>newFailedRpcFuture(session.appEventLoop(), RpcSessionClosedException.INSTANCE)
+            return session.netEventLoop().<V>newFailedFuture(RpcSessionClosedException.INSTANCE)
                     .getNow();
         }
 
-        final BlockingPromise<V> blockingPromise = session.netEventLoop().newBlockingPromise();
+        final Promise<V> promise = session.netEventLoop().newPromise();
         final long syncRpcTimeoutMs = session.config().getSyncRpcTimeoutMs();
 
-        session.netEventLoop().execute(new RpcRequestWriteTask(session, request, true, syncRpcTimeoutMs, blockingPromise, true));
+        session.netEventLoop().execute(new RpcRequestWriteTask(session, request, true, syncRpcTimeoutMs, promise, true));
 
-        if (!blockingPromise.awaitUninterruptibly(syncRpcTimeoutMs, TimeUnit.MILLISECONDS)) {
-            blockingPromise.tryFailure(RpcTimeoutException.INSTANCE);
+        if (!promise.awaitUninterruptibly(syncRpcTimeoutMs, TimeUnit.MILLISECONDS)) {
+            promise.tryFailure(RpcTimeoutException.INSTANCE);
         }
-        return blockingPromise.getNow();
+        return promise.getNow();
     }
 
 }

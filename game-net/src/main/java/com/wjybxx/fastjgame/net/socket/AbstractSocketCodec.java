@@ -18,16 +18,17 @@ package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.net.serialization.Serializer;
-import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.CodecUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.socket.DefaultSocketChannelConfig;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
@@ -201,7 +202,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         boolean close = msg.readByte() == 1;
 
         // sessionId
-        byte[] sessionIdBytes = NetUtils.readRemainBytes(msg);
+        byte[] sessionIdBytes = readRemainBytes(msg);
         String sessionId = CodecUtils.newStringUTF8(sessionIdBytes);
 
         SocketConnectRequest socketConnectRequest = new SocketConnectRequest(verifyingTimes, verifiedTimes);
@@ -362,7 +363,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         if (errorCode.isSuccess()) {
             body = tryDecodeBody(msg);
         } else {
-            body = CodecUtils.newStringUTF8(NetUtils.readRemainBytes(msg));
+            body = CodecUtils.newStringUTF8(readRemainBytes(msg));
         }
 
         RpcResponseMessage rpcResponseMessage = new RpcResponseMessage(requestGuid, sync, errorCode, body);
@@ -488,4 +489,19 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         ctx.write(byteBuf, promise);
     }
 
+    /**
+     * 将byteBuf中剩余的字节读取到一个字节数组中。
+     *
+     * @param byteBuf 方法返回之后 readableBytes == 0
+     * @return new instance
+     */
+    @Nonnull
+    private static byte[] readRemainBytes(ByteBuf byteBuf) {
+        if (byteBuf.readableBytes() == 0) {
+            return ArrayUtils.EMPTY_BYTE_ARRAY;
+        }
+        byte[] result = new byte[byteBuf.readableBytes()];
+        byteBuf.readBytes(result);
+        return result;
+    }
 }

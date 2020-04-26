@@ -20,19 +20,20 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 
 /**
- * {@link ListenableFuture}聚合器。
- * FutureCombiner会将{@link #add(ListenableFuture)} {@link #addAll(ListenableFuture[])}方法添加的所有future的完成事件聚合为一个完成事件，
+ * {@link FluentFuture}聚合器。
+ * FutureCombiner会将{@link #add(FluentFuture)} {@link #addAll(FluentFuture[])}方法添加的所有future的完成事件聚合为一个完成事件，
  * 并传递给{@link #finish(Promise)}方法指定的promise。
  * 即：当finish方法指定的promise进入完成状态时，在这前面添加的所有future都已进入了完成状态(如果外部没有赋值的话)。
  *
  * <p>
- * 在调用{@link #finish(Promise)}之前，用户可以通过{@link #add(ListenableFuture)}和{@link #addAll(ListenableFuture[])}方法添加任意数量的{@link ListenableFuture}，
+ * 在调用{@link #finish(Promise)}之前，用户可以通过{@link #add(FluentFuture)}和{@link #addAll(FluentFuture[])}方法添加任意数量的{@link FluentFuture}，
  * 当所有的future添加完毕之后，使用者需要调用{@link #finish(Promise)}方法指定接收所有future完成事件的promise。
  *
  * <h3>失败处理</h3>
- * 注意：当且仅当所有的future关联的操作都<b>成功完成</b>时{@link ListenableFuture#isCompletedExceptionally() false}，{@link #aggregatePromise}才会表现为成功。
+ * 注意：当且仅当所有的future关联的操作都<b>成功完成</b>时{@link FluentFuture#isCompletedExceptionally() false}，{@link #aggregatePromise}才会表现为成功。
  * 一旦某一个future执行失败，则{@link #aggregatePromise}表现为失败。此外，如果多个future执行失败，
  * 那么{@link #aggregatePromise}最终接收到的{@link #cause}将是不确定的，并且不保证拥有所有的错误信息。
  *
@@ -43,7 +44,7 @@ import java.util.Objects;
  *      new FutureCombiner(eventLoop)
  *      .add(aFuture)
  *      .add(bFuture)
- *      .finish(eventLoop.newBlockingPromise())
+ *      .finish(eventLoop.newPromise())
  *      .addListener(f -> doSomething(f));
  * }</pre>
  *
@@ -65,7 +66,7 @@ import java.util.Objects;
 @NotThreadSafe
 public class FutureCombiner {
 
-    private final FutureListener<?> childrenListener = new ChildListener();
+    private final BiConsumer<Object, Throwable> childrenListener = new ChildListener();
     private final EventLoop appEventLoop;
 
     private int expectedCount;
@@ -78,28 +79,27 @@ public class FutureCombiner {
         this.appEventLoop = appEventLoop;
     }
 
-    public FutureCombiner addAll(@Nonnull ListenableFuture<?>... futures) {
-        for (ListenableFuture<?> future : futures) {
+    public FutureCombiner addAll(@Nonnull FluentFuture<?>... futures) {
+        for (FluentFuture<?> future : futures) {
             this.add(future);
         }
         return this;
     }
 
-    public FutureCombiner addAll(@Nonnull Collection<? extends ListenableFuture<?>> futures) {
-        for (ListenableFuture<?> future : futures) {
+    public FutureCombiner addAll(@Nonnull Collection<? extends FluentFuture<?>> futures) {
+        for (FluentFuture<?> future : futures) {
             this.add(future);
         }
         return this;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public FutureCombiner add(@Nonnull ListenableFuture future) {
+    public FutureCombiner add(@Nonnull FluentFuture<?> future) {
         Objects.requireNonNull(future, "future");
         checkInEventLoop("Adding future must be called from EventLoop thread");
         checkAddFutureAllowed();
 
         ++expectedCount;
-        future.addListener(childrenListener, appEventLoop);
+        future.whenCompleteAsync(childrenListener, appEventLoop);
         return this;
     }
 
@@ -138,14 +138,14 @@ public class FutureCombiner {
         }
     }
 
-    private class ChildListener implements FutureListener<Object> {
+    private class ChildListener implements BiConsumer<Object, Throwable> {
 
         @Override
-        public void onComplete(ListenableFuture<Object> future) throws Exception {
+        public void accept(Object o, Throwable throwable) {
             assert appEventLoop.inEventLoop();
 
-            if (future.isCompletedExceptionally()) {
-                cause = future.cause();
+            if (throwable != null) {
+                cause = throwable;
             }
 
             doneCount++;
@@ -154,6 +154,7 @@ public class FutureCombiner {
                 tryPromise();
             }
         }
+
     }
 
     private boolean tryPromise() {

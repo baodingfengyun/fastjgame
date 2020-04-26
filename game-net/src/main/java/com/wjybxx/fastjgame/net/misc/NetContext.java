@@ -25,8 +25,8 @@ import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
-import com.wjybxx.fastjgame.utils.concurrent.BlockingFuture;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 import com.wjybxx.fastjgame.utils.concurrent.GlobalEventLoop;
 
 import javax.annotation.Nonnull;
@@ -92,7 +92,7 @@ public interface NetContext {
      * @param config        session配置信息
      * @return future
      */
-    BlockingFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config);
+    FluentFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config);
 
     /**
      * 在指定端口监听WebSocket连接
@@ -126,7 +126,7 @@ public interface NetContext {
      * @param config        session配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    BlockingFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config);
+    FluentFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config);
 
 
     // -------------------------------------- 用于支持JVM内部通信 -------------------------------
@@ -153,7 +153,7 @@ public interface NetContext {
      * @param config    配置信息
      * @return future 如果想消除同步，添加监听器时请绑定EventLoop
      */
-    BlockingFuture<Session> connectLocal(String sessionId, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config);
+    FluentFuture<Session> connectLocal(String sessionId, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config);
 
     //  --------------------------------------- http支持 -----------------------------------------
 

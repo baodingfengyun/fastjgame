@@ -22,9 +22,8 @@ import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.utils.concurrent.LocalPromise;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -129,8 +128,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             final RpcRequestMessage requestMessage = (RpcRequestMessage) msg;
             // 创建执行上下文
             final DefaultRpcProcessContext context = new DefaultRpcProcessContext(ctx.session(), requestMessage.getRequestGuid(), requestMessage.isSync());
-            // 这里网络层是监听器的用户，创建LocalPromise没错的
-            final LocalPromise<?> promise = ctx.netEventLoop().newLocalPromise();
+            final Promise<?> promise = ctx.netEventLoop().newPromise();
 
             ctx.appEventLoop().execute(new RpcRequestCommitTask(context, requestMessage.getBody(), promise));
 
@@ -230,7 +228,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
 
         @Override
-        public void onComplete(ListenableFuture<Object> future) throws Exception {
+        public void onComplete(FluentFuture<Object> future) throws Exception {
             if (context.session.isClosed()) {
                 return;
             }

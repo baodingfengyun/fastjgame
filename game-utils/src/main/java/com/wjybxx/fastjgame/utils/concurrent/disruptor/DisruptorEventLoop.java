@@ -119,7 +119,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 线程终止future
      */
-    private final BlockingPromise<?> terminationFuture = new DefaultBlockingPromise(GlobalEventLoop.INSTANCE);
+    private final Promise<?> terminationFuture = new DefaultPromise(GlobalEventLoop.INSTANCE);
 
     /**
      * @param parent                   容器节点
@@ -230,7 +230,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     }
 
     @Override
-    public final BlockingFuture<?> terminationFuture() {
+    public final FluentFuture<?> terminationFuture() {
         return terminationFuture;
     }
 

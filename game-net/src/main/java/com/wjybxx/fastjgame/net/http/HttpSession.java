@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.http;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpResponse;
 
@@ -59,7 +59,7 @@ public interface HttpSession {
      * 关闭session。
      * 子类实现必须线程安全。
      */
-    ListenableFuture<?> close();
+    FluentFuture<?> close();
 
     /**
      * 发送一个响应
@@ -67,7 +67,7 @@ public interface HttpSession {
      * @param response 响应内容
      * @return future，该future的回调执行环境为用户线程。
      */
-    ListenableFuture<?> writeAndFlush(HttpResponse response);
+    FluentFuture<?> writeAndFlush(HttpResponse response);
 
     /**
      * 发送一个http结果对象
@@ -76,5 +76,5 @@ public interface HttpSession {
      * @param builder 建造者
      * @return future，该future的回调执行环境为用户线程。
      */
-    <T extends HttpResponseBuilder<T>> ListenableFuture<?> writeAndFlush(HttpResponseBuilder<T> builder);
+    <T extends HttpResponseBuilder<T>> FluentFuture<?> writeAndFlush(HttpResponseBuilder<T> builder);
 }

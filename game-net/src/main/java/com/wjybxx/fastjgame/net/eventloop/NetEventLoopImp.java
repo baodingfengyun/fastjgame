@@ -23,10 +23,6 @@ import com.wjybxx.fastjgame.net.manager.*;
 import com.wjybxx.fastjgame.net.misc.DefaultNetContext;
 import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.module.NetEventLoopModule;
-import com.wjybxx.fastjgame.net.rpc.DefaultLocalRpcPromise;
-import com.wjybxx.fastjgame.net.rpc.FailedRpcFuture;
-import com.wjybxx.fastjgame.net.rpc.RpcFuture;
-import com.wjybxx.fastjgame.net.rpc.RpcPromise;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
@@ -128,18 +124,6 @@ class NetEventLoopImp extends UnboundedEventLoop implements NetEventLoop {
     @Override
     public NetEventLoop select(@Nonnull Channel channel) {
         return this;
-    }
-
-    @Nonnull
-    @Override
-    public <V> RpcPromise<V> newRpcPromise(@Nonnull EventLoop appEventLoop) {
-        return new DefaultLocalRpcPromise<>(appEventLoop);
-    }
-
-    @Nonnull
-    @Override
-    public <V> RpcFuture<V> newFailedRpcFuture(@Nonnull EventLoop appEventLoop, @Nonnull Throwable cause) {
-        return new FailedRpcFuture<>(appEventLoop, cause);
     }
 
     @Override

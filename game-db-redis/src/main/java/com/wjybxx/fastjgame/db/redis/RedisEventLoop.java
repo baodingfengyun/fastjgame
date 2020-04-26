@@ -16,7 +16,10 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
-import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
 import org.slf4j.Logger;
@@ -238,8 +241,8 @@ public class RedisEventLoop extends UnboundedEventLoop {
      * @param appEventLoop 用户线程 - 执行回调的线程
      * @param flush        是否刷新管道
      */
-    <T, U> LocalFuture<U> call(PipelineCommand<T> command, Function<T, U> decoder, boolean flush, EventLoop appEventLoop) {
-        final LocalPromise<U> promise = appEventLoop.newLocalPromise();
+    <T, U> FluentFuture<U> call(PipelineCommand<T> command, Function<T, U> decoder, boolean flush, EventLoop appEventLoop) {
+        final Promise<U> promise = appEventLoop.newPromise();
         execute(new PipelineTask<>(command, decoder, flush, promise));
         return promise;
     }
@@ -251,7 +254,7 @@ public class RedisEventLoop extends UnboundedEventLoop {
      * @param command 待执行的命令
      */
     <T, U> U syncCall(RedisCommand<T> command, Function<T, U> decoder) throws CompletionException {
-        final BlockingPromise<U> promise = newBlockingPromise();
+        final Promise<U> promise = newPromise();
         execute(new RedisTask<>(command, decoder, promise));
         return promise.join();
     }

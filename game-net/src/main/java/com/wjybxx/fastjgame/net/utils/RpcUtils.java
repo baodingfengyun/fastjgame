@@ -14,22 +14,19 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.concurrent;
+package com.wjybxx.fastjgame.net.utils;
 
-import javax.annotation.Nonnull;
-import java.util.concurrent.Executor;
+import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 
 /**
  * @author wjybxx
  * @version 1.0
- * date - 2020/3/29
+ * date - 2020/4/24
  */
-public interface ListenablePromise<V> extends Promise<V>, ListenableFuture<V> {
+public class RpcUtils {
 
-    // 语法支持
-    @Override
-    ListenablePromise<V> addListener(@Nonnull FutureListener<? super V> listener);
+    public static boolean isRpcTimeout(Throwable cause) {
+        return cause == RpcTimeoutException.INSTANCE;
+    }
 
-    @Override
-    ListenablePromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 }

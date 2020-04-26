@@ -16,9 +16,12 @@
 
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.net.rpc.*;
+import com.wjybxx.fastjgame.net.rpc.AbstractRpcClient;
+import com.wjybxx.fastjgame.net.rpc.RpcMethodSpec;
+import com.wjybxx.fastjgame.net.rpc.RpcServerSpec;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,7 +54,7 @@ public class ExampleRpcClient extends AbstractRpcClient {
     }
 
     @Override
-    public <V> RpcFuture<V> call(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request) {
+    public <V> FluentFuture<V> call(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request) {
         if (serverSpec instanceof Session) {
             return invoker.call((Session) serverSpec, request, false);
         }
@@ -59,7 +62,7 @@ public class ExampleRpcClient extends AbstractRpcClient {
     }
 
     @Override
-    public <V> RpcFuture<V> callAndFlush(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request) {
+    public <V> FluentFuture<V> callAndFlush(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request) {
         if (serverSpec instanceof Session) {
             return invoker.call((Session) serverSpec, request, true);
         }
@@ -72,7 +75,7 @@ public class ExampleRpcClient extends AbstractRpcClient {
         if (serverSpec instanceof Session) {
             return invoker.syncCall((Session) serverSpec, request);
         }
-        final FailedRpcFuture<V> failedRpcFuture = newSessionNotFoundFuture(serverSpec);
+        final FluentFuture<V> failedRpcFuture = newSessionNotFoundFuture(serverSpec);
         return failedRpcFuture.join();
     }
 }

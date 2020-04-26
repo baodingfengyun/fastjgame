@@ -30,9 +30,9 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
 import com.wjybxx.fastjgame.net.ws.WsServerChannelInitializer;
-import com.wjybxx.fastjgame.utils.concurrent.BlockingFuture;
-import com.wjybxx.fastjgame.utils.concurrent.BlockingPromise;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
@@ -85,11 +85,11 @@ public class DefaultNetContext implements NetContext {
     }
 
     @Override
-    public BlockingFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config) {
+    public FluentFuture<Session> connectTcp(String sessionId, HostAndPort remoteAddress, @Nonnull SocketSessionConfig config) {
         final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
         final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, config, netEventLoop);
 
-        final BlockingPromise<Session> connectPromise = netEventLoop.newBlockingPromise();
+        final Promise<Session> connectPromise = netEventLoop.newPromise();
         netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteAddress, config, initializer, this, connectPromise));
         return connectPromise;
     }
@@ -102,11 +102,11 @@ public class DefaultNetContext implements NetContext {
     }
 
     @Override
-    public BlockingFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config) {
+    public FluentFuture<Session> connectWS(String sessionId, HostAndPort remoteAddress, String websocketUrl, @Nonnull SocketSessionConfig config) {
         final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
         final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, websocketUrl, config, netEventLoop);
 
-        final BlockingPromise<Session> connectPromise = netEventLoop.newBlockingPromise();
+        final Promise<Session> connectPromise = netEventLoop.newPromise();
         netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteAddress, config, initializer, this, connectPromise));
         return connectPromise;
     }
@@ -119,13 +119,13 @@ public class DefaultNetContext implements NetContext {
     }
 
     @Override
-    public BlockingFuture<Session> connectLocal(String sessionId, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config) {
+    public FluentFuture<Session> connectLocal(String sessionId, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config) {
         final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
         if (!(localPort instanceof DefaultLocalPort)) {
             throw new UnsupportedOperationException();
         }
 
-        final BlockingPromise<Session> connectPromise = netEventLoop.newBlockingPromise();
+        final Promise<Session> connectPromise = netEventLoop.newPromise();
         netEventLoop.post(new ConnectLocalRequest(sessionId, (DefaultLocalPort) localPort, config, this, connectPromise));
         return connectPromise;
     }

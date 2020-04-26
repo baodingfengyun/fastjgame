@@ -115,7 +115,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
     /**
      * 线程终止future
      */
-    private final BlockingPromise<?> terminationFuture = new DefaultBlockingPromise<>(GlobalEventLoop.INSTANCE);
+    private final Promise<?> terminationFuture = new DefaultPromise<>(GlobalEventLoop.INSTANCE);
 
     protected UnboundedEventLoop(@Nullable EventLoopGroup parent,
                                  @Nonnull ThreadFactory threadFactory,
@@ -214,7 +214,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
     }
 
     @Override
-    public final BlockingFuture<?> terminationFuture() {
+    public final FluentFuture<?> terminationFuture() {
         return terminationFuture;
     }
 

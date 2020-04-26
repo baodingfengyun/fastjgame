@@ -16,22 +16,12 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import javax.annotation.Nonnull;
-import java.util.concurrent.Executor;
-
 /**
  * @author wjybxx
  * @version 1.0
  * date - 2020/3/8
  * github - https://github.com/hl845740757
  */
-public interface LocalPromise<V> extends ListenablePromise<V>, LocalFuture<V> {
-
-    // 用于语法支持
-    @Override
-    LocalPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
-
-    @Override
-    LocalPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+public interface LocalPromise<V> extends LocalFuture<V>, Promise<V> {
 
 }

@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.utils.concurrent.JdkFutureAdapters;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -95,8 +97,8 @@ public class DefaultTimeoutHttpClient implements TimeoutHttpClient {
      * @return Future - 注意：该future回调的执行环境为{@link #appEventLoop}
      */
     @Override
-    public <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) {
-        return new DefaultHttpFuture<>(appEventLoop, httpClient.sendAsync(setTimeoutAndBuild(builder), responseBodyHandler));
+    public <T> FluentFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) {
+        return JdkFutureAdapters.delegateFuture(httpClient.sendAsync(setTimeoutAndBuild(builder), responseBodyHandler));
     }
 
     /**
@@ -132,9 +134,9 @@ public class DefaultTimeoutHttpClient implements TimeoutHttpClient {
      * @throws IllegalArgumentException if timeout is empty
      */
     @Override
-    public <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
+    public <T> FluentFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
         ensureTimeoutPresent(request);
-        return new DefaultHttpFuture<>(appEventLoop, httpClient.sendAsync(request, responseBodyHandler));
+        return JdkFutureAdapters.delegateFuture(httpClient.sendAsync(request, responseBodyHandler));
     }
 
     /**

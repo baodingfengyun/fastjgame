@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.exception.RpcSessionNotFoundException;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -36,7 +37,7 @@ import java.util.concurrent.CompletionException;
  * 用户需要自己实现。
  *
  * <h3>实现约定</h3>
- * 除单向消息外，如果找不到对应的session，应该返回{@link FailedRpcFuture}，且其异常应该为{@link RpcSessionNotFoundException}。
+ * 除单向消息外，如果找不到对应的session，应该返回一个已失败的{@code Future}，且其异常应该为{@link RpcSessionNotFoundException}。
  *
  * <p>
  * 最新的发现让我有点丧气，我发现{@link RpcClient}和我之前项目的{@code sendMgr}其本质是一样的。
@@ -71,7 +72,7 @@ public interface RpcClient {
      * @param serverSpec 服务器描述信息
      * @param request    rpc请求对象
      */
-    <V> RpcFuture<V> call(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request);
+    <V> FluentFuture<V> call(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request);
 
     /**
      * 发送一个rpc请求给对方，并立即刷新缓冲区。
@@ -79,7 +80,7 @@ public interface RpcClient {
      * @param serverSpec 服务器描述信息
      * @param request    rpc请求对象
      */
-    <V> RpcFuture<V> callAndFlush(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request);
+    <V> FluentFuture<V> callAndFlush(@Nonnull RpcServerSpec serverSpec, @Nonnull RpcMethodSpec<V> request);
 
     /**
      * 发送一个rpc请求给对方，会立即刷新缓冲区，并阻塞到结果返回或超时。

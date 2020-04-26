@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net.http;
 
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+
 import java.io.IOException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -47,7 +49,7 @@ public interface TimeoutHttpClient {
      * @param <T>                 响应内容的类型
      * @return future
      */
-    <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler);
+    <T> FluentFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler);
 
     /**
      * @param request             http请求内容
@@ -66,5 +68,5 @@ public interface TimeoutHttpClient {
      * @param <T>                 响应内容的类型
      * @throws IllegalArgumentException if timeout does not set
      */
-    <T> HttpFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler);
+    <T> FluentFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler);
 }

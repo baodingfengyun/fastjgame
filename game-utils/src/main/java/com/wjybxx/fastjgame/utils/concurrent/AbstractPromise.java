@@ -21,7 +21,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 
 /**
  * {@link Promise}的模板实现，它只负责结果管理（状态迁移），这部分逻辑完全无锁。
@@ -42,7 +44,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @version 1.0
  * date - 2020/3/6
  */
-public abstract class AbstractPromise<V> implements Promise<V> {
+public abstract class AbstractPromise<V> extends BasePromise<V> {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractPromise.class);
 
@@ -60,6 +62,10 @@ public abstract class AbstractPromise<V> implements Promise<V> {
      * {@link AtomicReference}用于保证原子性和可见性。
      */
     final AtomicReference<Object> resultHolder = new AtomicReference<>();
+
+    protected AbstractPromise() {
+
+    }
 
     // --------------------------------------------- 查询 --------------------------------------------------
 
@@ -122,7 +128,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     }
 
     /**
-     * {@link ListenableFuture#getNow()}和{@link BlockingFuture#join()}方法上报结果。
+     * {@link FluentFuture#getNow()}和{@link FluentFuture#join()}方法上报结果。
      * 不命名为{@code reportGetNow}是为了放大不同之处。
      */
     @SuppressWarnings("unchecked")
@@ -132,7 +138,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
         }
 
         if (r instanceof CauseHolder) {
-            return FutureUtils.rethrowJoin(((CauseHolder) r).cause);
+            return rethrowJoin(((CauseHolder) r).cause);
         }
 
         return (T) r;
@@ -141,6 +147,22 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     @Override
     public final Throwable cause() {
         return getCause0(resultHolder.get());
+    }
+
+    /**
+     * 用于{@link FluentFuture#getNow()}和{@link FluentFuture#join()}抛出失败异常。
+     * <p>
+     * 不命名为{@code rethrowGetNow}是为了放大不同之处。
+     *
+     * @param cause 任务失败的原因
+     * @throws CancellationException 如果任务被取消，则抛出该异常
+     * @throws CompletionException   其它原因导致失败
+     */
+    static <T> T rethrowJoin(@Nonnull Throwable cause) throws CancellationException, CompletionException {
+        if (cause instanceof CancellationException) {
+            throw (CancellationException) cause;
+        }
+        throw new CompletionException(cause);
     }
 
     // ------------------------------------------------- 状态迁移 --------------------------------------------
@@ -159,7 +181,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
      * @param mayInterruptIfRunning 该参数在这里的实现中没有意义，任务开始执行前可以取消，开始执行后无法取消。
      */
     @Override
-    public final boolean cancel(boolean mayInterruptIfRunning) {
+    public boolean cancel(boolean mayInterruptIfRunning) {
         final Object result = resultHolder.get();
         if (isCancelled0(result)) {
             return true;
@@ -183,7 +205,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     }
 
     /**
-     * 安全的推送future进入完成状态事件，由于推送由子类实现，无法保证所有实现都足够安全，因此需要补货异常。
+     * 安全的推送future进入完成状态事件，由于推送由子类实现，无法保证所有实现都足够安全，因此需要捕获异常。
      */
     private void postCompleteSafely() {
         try {
@@ -250,6 +272,26 @@ public abstract class AbstractPromise<V> implements Promise<V> {
 
         private CauseHolder(Throwable cause) {
             this.cause = cause;
+        }
+    }
+
+    @Override
+    public final void acceptNow(@Nonnull BiConsumer<? super V, ? super Throwable> action) {
+        final Object result = resultHolder.get();
+        if (!isDone0(result)) {
+            return;
+        }
+
+        if (result == SUCCESS) {
+            action.accept(null, null);
+            return;
+        }
+
+        if (result instanceof CauseHolder) {
+            action.accept(null, ((CauseHolder) result).cause);
+        } else {
+            @SuppressWarnings("unchecked") final V value = (V) result;
+            action.accept(value, null);
         }
     }
 }

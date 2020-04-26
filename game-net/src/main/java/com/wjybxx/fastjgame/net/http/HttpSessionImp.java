@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.utils.NettyAdapters;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoopUtils;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpResponse;
 
@@ -68,16 +68,16 @@ public final class HttpSessionImp implements HttpSession {
         return channel.isActive();
     }
 
-    public ListenableFuture<?> writeAndFlush(HttpResponse response) {
-        return NettyAdapters.delegateFuture(appEventLoop(), channel.writeAndFlush(response));
+    public FluentFuture<?> writeAndFlush(HttpResponse response) {
+        return NettyAdapters.delegateFuture(channel.writeAndFlush(response));
     }
 
-    public <T extends HttpResponseBuilder<T>> ListenableFuture<?> writeAndFlush(HttpResponseBuilder<T> builder) {
+    public <T extends HttpResponseBuilder<T>> FluentFuture<?> writeAndFlush(HttpResponseBuilder<T> builder) {
         return writeAndFlush(builder.build());
     }
 
     @Override
-    public ListenableFuture<?> close() {
+    public FluentFuture<?> close() {
         return EventLoopUtils.submitOrRun(netEventLoop(), () -> {
             httpSessionManager.removeSession(channel);
         });

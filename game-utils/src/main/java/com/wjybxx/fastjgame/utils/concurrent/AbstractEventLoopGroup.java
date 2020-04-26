@@ -46,19 +46,19 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 
     @Nonnull
     @Override
-    public final BlockingFuture<?> submit(@Nonnull Runnable task) {
+    public final FluentFuture<?> submit(@Nonnull Runnable task) {
         return next().submit(task);
     }
 
     @Nonnull
     @Override
-    public final <T> BlockingFuture<T> submit(@Nonnull Runnable task, T result) {
+    public final <T> FluentFuture<T> submit(@Nonnull Runnable task, T result) {
         return next().submit(task, result);
     }
 
     @Nonnull
     @Override
-    public final <T> BlockingFuture<T> submit(@Nonnull Callable<T> task) {
+    public final <T> FluentFuture<T> submit(@Nonnull Callable<T> task) {
         return next().submit(task);
     }
 

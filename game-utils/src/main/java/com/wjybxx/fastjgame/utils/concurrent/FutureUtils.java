@@ -16,16 +16,8 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 
 /**
  * @author wjybxx
@@ -34,134 +26,36 @@ import java.util.concurrent.TimeUnit;
  */
 public class FutureUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(FutureUtils.class);
-
     private FutureUtils() {
     }
 
     /**
-     * 用于{@link BlockingFuture#get()} 和{@link BlockingFuture#get(long, TimeUnit)}抛出失败异常。
-     *
-     * @param cause 任务失败的原因
-     * @throws CancellationException 如果任务被取消，则抛出该异常
-     * @throws ExecutionException    其它原因导致失败
+     * 将future的结果传输到promise上
      */
-    public static <T> T rethrowGet(Throwable cause) throws CancellationException, ExecutionException {
-        if (cause instanceof CancellationException) {
-            throw (CancellationException) cause;
-        }
-        throw new ExecutionException(cause);
-    }
-
-    /**
-     * 用于{@link ListenableFuture#getNow()}和{@link BlockingFuture#join()}抛出失败异常。
-     * <p>
-     * 不命名为{@code rethrowGetNow}是为了放大不同之处。
-     *
-     * @param cause 任务失败的原因
-     * @throws CancellationException 如果任务被取消，则抛出该异常
-     * @throws CompletionException   其它原因导致失败
-     */
-    public static <T> T rethrowJoin(@Nonnull Throwable cause) throws CancellationException, CompletionException {
-        if (cause instanceof CancellationException) {
-            throw (CancellationException) cause;
-        }
-        throw new CompletionException(cause);
-    }
-
-    /**
-     * 聚合{@link FutureListenerEntry}
-     *
-     * @param listenerEntries 当前的所有监听器们
-     * @param listenerEntry   新增的监听器
-     * @return 合并后的结果
-     */
-    @Nonnull
-    public static Object aggregateListenerEntry(@Nullable Object listenerEntries, @Nonnull FutureListenerEntry<?> listenerEntry) {
-        if (listenerEntries == null) {
-            return listenerEntry;
-        }
-        if (listenerEntries instanceof FutureListenerEntry) {
-            return new FutureListenerEntries((FutureListenerEntry<?>) listenerEntries, listenerEntry);
+    public static <V> void setFuture(FluentFuture<V> future, Promise<? super V> promise) {
+        if (future.isDone()) {
+            future.acceptNow(new UniRelay<>(promise));
         } else {
-            ((FutureListenerEntries) listenerEntries).addChild(listenerEntry);
-            return listenerEntries;
+            future.whenComplete(new UniRelay<>(promise));
         }
     }
 
-    // ------------------------------------------------ 通知监听器 ----------------------------------------
+    static class UniRelay<V> implements BiConsumer<V, Throwable> {
 
-    /**
-     * 通知持有的监听器,必须在{@link ListenableFuture#defaultExecutor()}线程下。
-     * <p>
-     * 如果在通知监听器时，使用{@link EventLoop#inEventLoop()}，将可能造成时序问题，例子如下：
-     * 1.线程A添加了监听器A，需要在线程B执行。
-     * 2. 线程C将future置为完成状态，线程C进行通知，在通知监听器A时{@link EventLoop#inEventLoop()}判断false，
-     * 于是提交了任务到线程B，通知结束。
-     * 3. 线程B添加了一个监听器B,需要在线程B执行。由于此时future已经是完成状态了，如果B也可以通知，在通知监听器B时，{@link EventLoop#inEventLoop()}判断为true，
-     * 监听器B将立即执行。
-     * 4. 线程B执行线程C提交的通知任务，执行监听器A。
-     * 在这个例子中：执行环境相同的监听器A和B，先添加的监听器A没有先执行，而后添加的监听器B却先执行了。
-     * <p>
-     * 要解决这个问题，有两种方案:
-     * 1. 去掉{@link EventLoop#inEventLoop()}检测，总是以任务的形式提交，那么A就会先执行。这也是常见架构的方式。
-     * 2. 使用指定线程进行通知。这是{@link EventLoop}架构下特定的通知方式。
-     * <p>
-     * Q: 为什么选择指定线程通知的方式？
-     * A: 这里存在一些假设：我们认为{@link ListenableFuture#defaultExecutor()}下执行的回调是最多的。
-     * 那么使用{@link ListenableFuture#defaultExecutor()}进行通知，将具有最小的任务提交数，最小的开销！
-     * ps:创建future指定合适的eventLoop很有用哦。
-     * <p>
-     * {@link EventLoop#inEventLoop()}是把双刃剑，一旦使用错误，可能导致严重问题。
-     */
-    public static <V> void notifyAllListenerNowSafely(@Nonnull final ListenableFuture<V> future, @Nonnull final Object listenerEntries) {
-        assert future.defaultExecutor().inEventLoop() : "Notify listeners must call from default executor";
+        final Promise<V> promise;
 
-        if (listenerEntries instanceof FutureListenerEntry) {
-            notifyListenerNowSafely(future, (FutureListenerEntry) listenerEntries);
-        } else {
-            final FutureListenerEntries futureListenerEntries = (FutureListenerEntries) listenerEntries;
-            final FutureListenerEntry<?>[] children = futureListenerEntries.getChildren();
-            final int size = futureListenerEntries.getSize();
-            for (int index = 0; index < size; index++) {
-                notifyListenerNowSafely(future, children[index]);
+        UniRelay(Promise<V> promise) {
+            this.promise = promise;
+        }
+
+        @Override
+        public void accept(V v, Throwable throwable) {
+            if (throwable != null) {
+                promise.tryFailure(throwable);
+            } else {
+                promise.trySuccess(v);
             }
         }
     }
 
-    /**
-     * 通知持有的监听器,必须在{@link ListenableFuture#defaultExecutor()}线程下。
-     */
-    private static void notifyListenerNowSafely(@Nonnull ListenableFuture<?> future, @Nonnull FutureListenerEntry<?> listenerEntry) {
-        if (EventLoopUtils.inEventLoop(listenerEntry.executor)) {
-            notifyListenerNowSafely(future, listenerEntry.listener);
-        } else {
-            final FutureListener listener = listenerEntry.listener;
-            ConcurrentUtils.safeExecute(listenerEntry.executor, () -> notifyListenerNowSafely(future, listener));
-        }
-    }
-
-    /**
-     * 一定不要开放该方法，只允许{@link #notifyListenerNowSafely(ListenableFuture, FutureListenerEntry)}调用。
-     */
-    @SuppressWarnings({"unchecked"})
-    private static <V> void notifyListenerNowSafely(@Nonnull ListenableFuture<V> future, @Nonnull FutureListener listener) {
-        try {
-            listener.onComplete(future);
-        } catch (Throwable e) {
-            logger.warn("An exception was thrown by " + future.getClass().getName() + ".onComplete()", e);
-        }
-    }
-
-    /**
-     * 将future的结果传输到promise上
-     * 必须在future完成后调用，为减少开销，没做强制性检测。
-     */
-    public static <V> void transferTo(ListenableFuture<V> future, Promise<? super V> promise) {
-        if (future.isCompletedExceptionally()) {
-            promise.tryFailure(future.cause());
-        } else {
-            promise.trySuccess(future.getNow());
-        }
-    }
 }

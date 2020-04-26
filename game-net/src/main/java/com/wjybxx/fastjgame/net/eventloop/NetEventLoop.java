@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.eventloop;
 
-import com.wjybxx.fastjgame.net.rpc.RpcFuture;
-import com.wjybxx.fastjgame.net.rpc.RpcPromise;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.eventbus.EventDispatcher;
 
@@ -34,25 +32,6 @@ import javax.annotation.Nonnull;
  * github - https://github.com/hl845740757
  */
 public interface NetEventLoop extends EventLoop, NetEventLoopGroup, EventDispatcher {
-
-    /**
-     * 创建一个RpcPromise
-     *
-     * @param appEventLoop 用户所在的EventLoop
-     * @return promise
-     */
-    @Nonnull
-    <V> RpcPromise<V> newRpcPromise(@Nonnull EventLoop appEventLoop);
-
-    /**
-     * 创建rpcFuture，它关联的rpc操作早已完成。在它上面的监听会立即执行。
-     *
-     * @param appEventLoop 用户所在的EventLoop
-     * @param cause        造成失败的原因
-     * @return rpcFuture
-     */
-    @Nonnull
-    <V> RpcFuture<V> newFailedRpcFuture(@Nonnull EventLoop appEventLoop, @Nonnull Throwable cause);
 
     /**
      * {@inheritDoc}

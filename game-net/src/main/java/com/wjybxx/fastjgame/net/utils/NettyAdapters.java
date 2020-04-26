@@ -16,11 +16,9 @@
 
 package com.wjybxx.fastjgame.net.utils;
 
-import com.wjybxx.fastjgame.utils.concurrent.BlockingPromise;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.DefaultPromise;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import io.netty.util.concurrent.Future;
-
-import javax.annotation.Nonnull;
 
 /**
  * 关于netty的一些适配实现
@@ -36,18 +34,13 @@ public class NettyAdapters {
     }
 
     /**
-     * 代理netty的future实现
+     * 代理netty的future实现 - 双向监听。
      *
-     * @param defaultExecutor 默认的通知器执行环境
-     * @param future          需要被代理的netty的future
+     * @param future 需要被代理的netty的future
      */
-    public static <V> BlockingPromise<V> delegateFuture(EventLoop defaultExecutor, Future<V> future) {
-        final BlockingPromise<V> promise = defaultExecutor.newBlockingPromise();
-        listen(future, promise);
-        return promise;
-    }
+    public static <V> Promise<V> delegateFuture(Future<V> future) {
+        final Promise<V> promise = new NettyPromise<>(future);
 
-    private static <V> void listen(@Nonnull Future<V> future, @Nonnull BlockingPromise<V> promise) {
         future.addListener(f -> {
             if (f.isSuccess()) {
                 @SuppressWarnings("unchecked") final V result = (V) f.getNow();
@@ -56,6 +49,22 @@ public class NettyAdapters {
                 promise.tryFailure(f.cause());
             }
         });
+
+        return promise;
     }
 
+    private static class NettyPromise<V> extends DefaultPromise<V> {
+
+        final Future<V> future;
+
+        private NettyPromise(Future<V> future) {
+            this.future = future;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return future.cancel(mayInterruptIfRunning) && super.cancel(mayInterruptIfRunning);
+        }
+
+    }
 }

@@ -30,13 +30,13 @@ public class DefaultEventLoopTest {
 
     public static void main(String[] args) {
 
-        final BlockingFuture<String> future = eventLoopGroup.submit(() -> {
+        final FluentFuture<String> future = eventLoopGroup.submit(() -> {
             System.out.println("before task1 return.");
             Thread.sleep(200);
             return "-hello world.";
         });
 
-        final BlockingFuture<String> future2 = eventLoopGroup.submit(() -> {
+        final FluentFuture<String> future2 = eventLoopGroup.submit(() -> {
             System.out.println("before task2  return.");
             Thread.sleep(200);
             return "-java";
@@ -49,24 +49,24 @@ public class DefaultEventLoopTest {
         System.out.println(future.getNow());
         System.out.println(future2.getNow());
 
-        final BlockingFuture<String> future3 = eventLoopGroup.submit(() -> {
+        final FluentFuture<String> future3 = eventLoopGroup.submit(() -> {
             Thread.sleep(500);
             return "500";
         });
 
         future3.addListener(f -> {
-            System.out.println("1 onComplete, thread " + Thread.currentThread().getName() + ",result = " + f.getNow());
+            System.out.println("1 whenComplete, thread " + Thread.currentThread().getName() + ",result = " + f.getNow());
         }, GlobalEventLoop.INSTANCE);
 
         future3.addListener(f -> {
-            System.out.println("2 onComplete, thread " + Thread.currentThread().getName() + ",result = " + f.getNow());
+            System.out.println("2 whenComplete, thread " + Thread.currentThread().getName() + ",result = " + f.getNow());
         });
 
         future3.addListener(f -> {
-            System.out.println("3 onComplete, thread " + Thread.currentThread().getName() + ",result = " + f.getNow());
+            System.out.println("3 whenComplete, thread " + Thread.currentThread().getName() + ",result = " + f.getNow());
             // 已完成的时候添加监听
             future3.addListener(f2 -> {
-                System.out.println("4 onComplete, thread " + Thread.currentThread().getName() + ",result = " + f2.getNow());
+                System.out.println("4 whenComplete, thread " + Thread.currentThread().getName() + ",result = " + f2.getNow());
             }, GlobalEventLoop.INSTANCE);
         });
 

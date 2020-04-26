@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -84,7 +85,7 @@ public class EventLoopUtils {
      * @param task      任务
      * @return future
      */
-    public static BlockingFuture<?> submitOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
+    public static FluentFuture<?> submitOrRun(@Nonnull EventLoop eventLoop, Runnable task) {
         return submitOrRun(eventLoop, Executors.callable(task, null));
     }
 
@@ -95,16 +96,30 @@ public class EventLoopUtils {
      * @param task      任务
      * @return future
      */
-    public static <V> BlockingFuture<V> submitOrRun(@Nonnull EventLoop eventLoop, Callable<V> task) {
+    public static <V> FluentFuture<V> submitOrRun(@Nonnull EventLoop eventLoop, Callable<V> task) {
         if (eventLoop.inEventLoop()) {
             try {
-                V result = task.call();
-                return new SucceededFuture<>(eventLoop, result);
+                return eventLoop.newSucceededFuture(task.call());
             } catch (Throwable e) {
-                return new FailedFuture<>(eventLoop, e);
+                return eventLoop.newFailedFuture(e);
             }
         } else {
             return eventLoop.submit(task);
         }
     }
+
+    @Nonnull
+    public static <V> FluentFuture<V> newSucceededFuture(@Nonnull EventLoop eventLoop, @Nullable V result) {
+        final Promise<V> promise = eventLoop.newPromise();
+        promise.trySuccess(result);
+        return promise;
+    }
+
+    @Nonnull
+    public static <V> FluentFuture<V> newFailedFuture(EventLoop eventLoop, @Nonnull Throwable cause) {
+        final Promise<V> promise = eventLoop.newPromise();
+        promise.tryFailure(cause);
+        return promise;
+    }
+
 }

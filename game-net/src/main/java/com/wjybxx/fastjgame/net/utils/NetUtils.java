@@ -16,13 +16,12 @@
 
 package com.wjybxx.fastjgame.net.utils;
 
+import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +29,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.net.*;
+import java.net.http.HttpTimeoutException;
 import java.util.Enumeration;
 
 /**
@@ -248,23 +248,6 @@ public class NetUtils {
         logger.info("can't find outerIp, will use localIp instead.");
         return findLocalIp();
     }
-
-    /**
-     * 将byteBuf中剩余的字节读取到一个字节数组中。
-     *
-     * @param byteBuf 方法返回之后 readableBytes == 0
-     * @return new instance
-     */
-    @Nonnull
-    public static byte[] readRemainBytes(ByteBuf byteBuf) {
-        if (byteBuf.readableBytes() == 0) {
-            return ArrayUtils.EMPTY_BYTE_ARRAY;
-        }
-        byte[] result = new byte[byteBuf.readableBytes()];
-        byteBuf.readBytes(result);
-        return result;
-    }
-
 
     public static void main(String[] args) {
         System.out.println("localIp " + localIp);

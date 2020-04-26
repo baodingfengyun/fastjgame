@@ -63,7 +63,7 @@ public class InnerConnectorHandler extends SessionDuplexHandlerAdapter {
                 + config.connectTimeoutMs() + config.verifyTimeoutMs();
 
         // 监听操作完成
-        NettyAdapters.delegateFuture(ctx.netEventLoop(), channelFuture)
+        NettyAdapters.delegateFuture(channelFuture)
                 .addListener(future -> onConnectDone(ctx));
     }
 

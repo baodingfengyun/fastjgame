@@ -17,6 +17,11 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.Callable;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * promise用于为关联的future赋值结果。
@@ -26,7 +31,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/3/6
  */
-public interface Promise<V> extends IFuture<V> {
+public interface Promise<V> extends FluentFuture<V> {
 
     /**
      * 将future标记为成功完成。
@@ -64,5 +69,43 @@ public interface Promise<V> extends IFuture<V> {
      * 否则返回false（其实也就是被取消返回false）。
      */
     boolean setUncancellable();
+
+    // 语法支持
+    @Override
+    Promise<V> await() throws InterruptedException;
+
+    @Override
+    Promise<V> awaitUninterruptibly();
+
+    @Override
+    <U> Promise<U> thenCompose(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn);
+
+    @Override
+    <U> Promise<U> thenCompose(@Nonnull Callable<? extends FluentFuture<U>> fn);
+
+    @Override
+    Promise<Void> thenRun(@Nonnull Runnable action);
+
+    @Override
+    <U> Promise<U> thenCall(@Nonnull Callable<U> fn);
+
+    @Override
+    Promise<Void> thenAccept(@Nonnull Consumer<? super V> action);
+
+    @Override
+    <U> Promise<U> thenApply(@Nonnull Function<? super V, ? extends U> fn);
+
+    @Override
+    <X extends Throwable>
+    Promise<V> catching(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback);
+
+    @Override
+    <U> Promise<U> thenHandle(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn);
+
+    @Override
+    Promise<V> whenComplete(@Nonnull BiConsumer<? super V, ? super Throwable> action);
+
+    @Override
+    Promise<V> whenExceptionally(@Nonnull Consumer<? super Throwable> action);
 
 }

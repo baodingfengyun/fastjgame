@@ -17,102 +17,166 @@
 package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.Executor;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.concurrent.*;
+import java.util.function.*;
 
 /**
- * 虽然{@code FluentFuture}的名字借鉴了Guava中的名字，但是采用和{@link CompletionStage}相同的api。
- * 其实是为了和{@link CompletionStage}达成相同的目的，由于{@link CompletionStage}太重量级，容易消化不良，因此我们不采用它。
- * 此外，{@link CompletionStage}的回调执行顺序我们是无法保证的，我们需要更强的回调执行顺序保证。
+ * 该接口对标{@link CompletionStage}，多数接口意义一样，但有一定区别。
+ * 1. 部分API放在这里并不合适，会导致接口膨胀，因此该类的API类型是少于{@link CompletionStage}的。
+ * 2. 去掉不带{@link java.util.concurrent.Executor}的async系列方法。
+ * 3. 增加了对{@link Callable}的支持 - {@link Supplier#get()}较为特殊，因此选{@link Callable}。
+ * 4. {@link #catching(Class, Function)} {@link #whenComplete(BiConsumer)} {@link #whenExceptionally(Consumer)}有别于{@link CompletionStage}。
  * <p>
- * 由于和{@link CompletionStage}使用相同的api，因此方法归类也是相同。即：
- * 命名包含{@code handle} {@code when}的方法，无论{@code Future}执行成功还是失败，给定动作都将执行。
- * 而其它方法只有{@code Future}正常完成时，才会执行给定动作。
- *
- * <p>
- * Q: 为什么要引入该类，该类为了解决什么问题？
- * A: 该类主要为了解决异步操作流的问题。举个栗子：
- * 假设我们现在有一个业务，需要3步才能完成，且每一步都是异步的，其执行过程为： A -> B -> C。
- * 按照老式的代码，其代码将是这样的：
- * <pre> {@code
- *   void stepA() {
- *       doSomethingA()
- *       .addListener(this::stepB);
- *   }
- *
- *   void stepB(ListenableFuture future) {
- *      doSomethingB(future.getNow())
- *      .addListener(this::stepC);
- *   }
- *
- *   void stepC(ListenableFuture future){
- *       doSomethingC(future.getNow())
- *       .addListener(this::onComplete);
- *   }
- * }
- * </pre>
- * 其主要问题是执行流程过于分散，很难表现全局执行流程，且每一步之间强耦合，而如果使用{@link FluentFuture#thenCompose(Function)}，
- * 那么以上代码可能是这样的：
- * <pre>{@code
- *     void execute() {
- *          FluentFutures.form(stepA) // 假设的一个转换方法(将普通的Future转换为FluentFuture，很容易实现)
- *          .thenCompose(this::stepB)
- *          .thenCompose(this::stepC)
- *          .addListener(this::onComplete);
- *     }
- *
- *     ListenableFuture stepA() {
- *          return doSomethingA();
- *     }
- *
- *     ListenableFuture stepB(Object aResult) {
- *          return doSomethingB(aResult);
- *     }
- *
- *     ListenableFuture stepC(Object bResult) {
- *          return doSomethingC(bResult);
- *     }
- * }</pre>
- * 这样的代码具有更好的可读性和全局观。
- * 其实{@link FluentFuture}的核心API其实就一个{@link #thenCompose(Function)}，其它的API仅仅是锦上添花。
- *
- * <p>
- * Q: 这些API为什么出现在子类里，而不是{@link ListenableFuture}中？
- * A: 那样会使得{@link ListenableFuture}太重量级，而且很多时候我们可能并不需要那么多的API。
- * (现在的{@link java.util.concurrent.CompletableFuture}类职责就很多)
- *
- * <p>
- * 注意：实现应该提供方便的静态方法包装普通的{@link ListenableFuture}。
+ * Q: 为什么放弃了之前的{@code ListenableFuture} ?
+ * A: 最近在项目里实现了一套流式监听回调机制(单线程版)，参考了{@link CompletableFuture}的函数式语法实现，发现太强了，用着真的上瘾，
+ * 尤其是{@link CompletionStage#thenCompose(Function)}方法，可以消除嵌套回调，可以非常好的表达业务，而简单的{@code addListener}则差太多了。
+ * 于是我决定回归JDK的{@link CompletableFuture}。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/4/22
+ * date - 2020/3/6
  */
-public interface FluentFuture<V> extends ListenableFuture<V> {
+@ThreadSafe
+public interface FluentFuture<V> extends Future<V> {
 
     /**
+     * 查询future关联的任务是否可以被取消。
+     *
+     * @return true/false 当且仅当future关联的任务可以通过{@link #cancel(boolean)}被取消时返回true。
+     */
+    boolean isCancellable();
+
+    /**
+     * 尝试取消future关联的任务，如果取消成功，会使得Future进入完成状态，并且{@link #cause()}将返回{@link CancellationException}。
+     * 1. 如果取消成功，则返回true。
+     * 2. 如果任务已经被取消，则返回true。
+     * 3. 如果future关联的任务已完成，则返回false。
+     * <p>
+     * 链式操作，使得取消变得困难，因此在上面的取消操作可能达不到预期。
+     *
+     * @param mayInterruptIfRunning 是否允许中断工作者线程，在Future/Promise模式下意义不大
+     * @return 是否取消成功
+     */
+    boolean cancel(boolean mayInterruptIfRunning);
+
+    /**
+     * 如果future以任何形式的异常完成（包括被取消)，则返回true。
+     * 1. 如果future尚未进入完成状态，则返回false。
+     * 2. 如果任务正常完成，则返回false。
+     * 3. 当future关联的任务被取消或由于异常进入完成状态，则返回true。
+     * <p>
+     * 如果返回true，则{@link #cause()}不为null，也就是说该方法等价于{@code cause() != null}。
+     */
+    boolean isCompletedExceptionally();
+
+    /**
+     * 非阻塞获取导致任务失败的原因。
+     * 1. 如果future关联的task还未进入完成状态{@link #isDone() false}，则返回null。
+     * 2. 如果future关联的task已正常完成，则返回null。
+     * 3. 当future关联的任务被取消或由于异常进入完成状态后，该方法将返回操作失败的原因。
+     *
+     * @return 失败的原因
+     */
+    Throwable cause();
+
+    /**
+     * 非阻塞的获取当前结果：
+     * 1. 如果future关联的task还未完成{@link #isDone() false}，则返回null。
+     * 2. 如果任务执行成功，则返回对应的结果。
+     * 2. 如果任务被取消或失败，则抛出对应的异常。
+     * <p>
+     * 注意：
+     * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
+     * 你可以使用{@link #isCompletedExceptionally()},作为更好的选择。
+     *
+     * @return task执行结果
+     * @throws CancellationException 如果任务被取消了，则抛出该异常
+     * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
+     */
+    V getNow();
+
+    /**
+     * 阻塞式获取task的结果，阻塞期间不响应中断。
+     * 如果future关联的task尚未完成，则阻塞等待至任务完成，并返回计算的结果。
+     * 如果future关联的task已完成，则立即返回结果。
+     * <p>
+     * 注意：
+     * 如果future关联的task没有返回值(操作完成返回null)，此时不能根据返回值做任何判断。对于这种情况，
+     * 你可以使用{@link #isCompletedExceptionally()},作为更好的选择。
+     *
+     * @return task的结果
+     * @throws CancellationException 如果任务被取消了，则抛出该异常
+     * @throws CompletionException   如果在计算过程中出现了其它异常导致任务失败，则抛出该异常。
+     *                               使用非受检异常更好，这里和{@link CompletableFuture#join()}是一样的。
+     */
+    V join();
+
+    /**
+     * 在指定的时间范围内等待，直到future关联的任务进入完成状态。
+     * 如果正常返回，接下来的{@link #isDone()}调用都将返回true。
+     *
+     * @param timeout 等待的最大时间，<b>如果小于等于0，表示不阻塞</b>
+     * @param unit    时间单位
+     * @return 当且仅当future关联的task在指定时间内进入了完成状态，返回true。也就是接下来的{@link #isDone() true} 。
+     * @throws InterruptedException 如果当前线程在等待期间被中断
+     */
+    boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException;
+
+    /**
+     * 在指定的时间范围内等待，直到future关联的任务进入完成状态，并且在等待期间不响应中断。
+     * 在等待期间，会捕获中断，并默默的丢弃，在方法返回前会恢复中断状态。
+     *
+     * @param timeout 等待的最大时间，<b>如果小于等于0，表示不阻塞</b>
+     * @param unit    时间单位
+     * @return 当且仅当future关联的任务，在特定时间范围内进入完成状态时返回true。也就是接下来的{@link #isDone() true}。
+     */
+    boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit);
+
+    /**
+     * 等待future进入完成状态。
+     * await()不会查询任务的结果，在Future进入完成状态之后就返回，方法返回后，接下来的{@link #isDone()}调用都将返回true。
+     *
+     * @return this
+     * @throws InterruptedException 如果在等待期间线程被中断，则抛出中断异常。
+     */
+    FluentFuture<V> await() throws InterruptedException;
+
+    /**
+     * 等待future进入完成状态，等待期间不响应中断，并默默的丢弃，在方法返回前会重置中断状态。
+     * 在方法返回之后，接下来的{@link #isDone()}调用都将返回true。
+     *
+     * @return this
+     */
+    FluentFuture<V> awaitUninterruptibly();
+
+    // ------------------------------------- 监听器相关(计算结果处理) --------------------------------------
+
+    /**
+     * 该方法表示在当前{@code Future}与返回的{@code Future}中插入一个异步操作，构建异步管道。
+     * 这是本类的核心API，该方法非常强大，可以避免嵌套回调(回调地狱)。
+     * 该方法对应我们日常流中使用的{@link java.util.stream.Stream#flatMap(Function)}操作。
+     * <p>
      * 该方法返回一个新的{@code Future}，它的最终结果与指定的{@code Function}返回的{@code Future}结果相同。
      * 如果当前{@code Future}执行失败，则返回的{@code Future}将以相同的原因失败，且指定的动作不会执行。
      * 如果当前{@code Future}执行成功，则当前{@code Future}的执行结果将作为指定操作的执行参数。
      * <p>
-     * 这是本类的核心API，它的主要作用是构建异步管道，该方法非常强大，一定要熟悉之后再使用。
-     * <p>
      * {@link CompletionStage#thenCompose(Function)}
      */
-    <U> FluentFuture<U> thenCompose(Function<? super V, ? extends ListenableFuture<U>> fn);
+    <U> FluentFuture<U> thenCompose(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn);
 
     /**
-     * {@inheritDoc}
-     * 链式操作，使得取消变得困难。
+     * {@link #thenCompose(Function)}的特化版本，主要用于消除丑陋的void
+     * <p>
+     * 该方法返回一个新的{@code Future}，它的最终结果与指定的{@code Function}返回的{@code Future}结果相同。
+     * 如果当前{@code Future}执行失败，则返回的{@code Future}将以相同的原因失败，且指定的动作不会执行。
+     * 如果当前{@code Future}执行成功，则执行指定从操作。
+     * <p>
+     * 该方法在{@link CompletionStage}中也是不存在的。
      */
-    @Override
-    boolean cancel(boolean mayInterruptIfRunning);
+    <U> FluentFuture<U> thenCompose(@Nonnull Callable<? extends FluentFuture<U>> fn);
 
-    // ---------------------------------------- 以下只是锦上添花的功能而已 ---------------------------------
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * 返回一个新的{@code Future}，它的结果由当前{@code Future}驱动。
@@ -121,7 +185,17 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      * <p>
      * {@link CompletionStage#thenRun(Runnable)}
      */
-    FluentFuture<Void> thenRun(Runnable action);
+    FluentFuture<Void> thenRun(@Nonnull Runnable action);
+
+    /**
+     * 该方法返回一个新的{@code Future}，它的结果由当前{@code Future}驱动。
+     * 如果当前{@code Future}执行失败，则返回的{@code Future}将以相同的原因失败，且指定的动作不会执行。
+     * 如果当前{@code Future}执行成功，则当前{@code Future}的执行结果将作为指定操作的执行参数，返回的{@code Future}的结果取决于指定操作的执行结果。
+     * <p>
+     * 这个API在{@link CompletionStage}中是没有对应方法的。
+     * 由于{@link Supplier#get()}方法名太特殊，因此使用{@link Callable#call()}。
+     */
+    <U> FluentFuture<U> thenCall(@Nonnull Callable<U> fn);
 
     /**
      * 该方法返回一个新的{@code Future}，它的结果由当前{@code Future}驱动。
@@ -130,7 +204,7 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      * <p>
      * {@link CompletionStage#thenAccept(Consumer)}
      */
-    FluentFuture<Void> thenAccept(Consumer<? super V> action);
+    FluentFuture<Void> thenAccept(@Nonnull Consumer<? super V> action);
 
     /**
      * 该方法返回一个新的{@code Future}，它的结果由当前{@code Future}驱动。
@@ -139,41 +213,107 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      * <p>
      * {@link CompletionStage#thenApply(Function)}
      */
-    <U> FluentFuture<U> thenApply(Function<? super V, ? extends U> fn);
+    <U> FluentFuture<U> thenApply(@Nonnull Function<? super V, ? extends U> fn);
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * 该方法返回一个新的{@code Future}，无论当前{@code Future}执行成功还是失败，给定的操作都将执行。
-     * 与方法{@link #thenHandle(BiFunction)}不同，此方法不是为转换完成结果而设计的，因此提供的操作不应引发异常。
-     * 但是，如果确实引发的了异常，则应用以下规则：
-     * 如果当前{@code Future}执行成功，而指定的动作出现异常，则返回的{@code Future}以该异常完成。
-     * 如果当前{@code Future}执行失败，且指定的动作出现异常，则返回的{@code Future}以当前{@code Future}的异常完成(新的异常会被压入)。
+     * 它表示能从从特定的异常中恢复，并返回一个正常结果。
      * <p>
-     * 如果用在最后一步的话，可以考虑使用{@link #addListener(FutureListener)}代替该方法。
+     * 该方法返回一个新的{@code Future}，它的结果由当前{@code Future}驱动。
+     * 如果当前{@code Future}正常完成，则给定的动作不会执行，且返回的{@code Future}使用相同的结果值进入完成状态。
+     * 如果当前{@code Future}执行失败，如果异常可处理，则将其异常信息将作为指定操作的执行参数，返回的{@code Future}的结果取决于指定操作的执行结果，
+     * 否则，返回的{@code Future}以相同的的异常进入完成状态。
      * <p>
-     * {@link CompletionStage#whenComplete(BiConsumer)}
+     * 不得不说JDK的{@link CompletionStage#exceptionally(Function)}这个名字太差劲了，实现的也不够好，因此我们不使用它，这里选择了Guava中的实现。
+     *
+     * @param exceptionType 能处理的异常类型
+     * @param fallback      异常恢复函数
      */
-    FluentFuture<V> whenComplete(BiConsumer<? super V, ? super Throwable> action);
+    <X extends Throwable>
+    FluentFuture<V> catching(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback);
 
     /**
+     * 该方法表示既能处理当前计算的正常结果，又能处理当前结算的异常结果(可以将异常转换为新的结果)，并返回一个新的结果。
+     * 该方法可能隐藏异常，使用者一定注意。
+     * <p>
      * 该方法返回一个新的{@code Future}，无论当前{@code Future}执行成功还是失败，给定的操作都将执行。
-     * 该方法可以将异常转换为新的结果。
+     * 如果当前{@code Future}执行成功，而指定的动作出现异常，则返回的{@code Future}以该异常完成。
+     * 如果当前{@code Future}执行失败，且指定的动作出现异常，则返回的{@code Future}以新抛出的异常进入完成状态。
      * <p>
      * {@link CompletionStage#handle(BiFunction)}
      */
-    <U> FluentFuture<U> thenHandle(BiFunction<? super V, ? super Throwable, ? extends U> fn);
+    <U> FluentFuture<U> thenHandle(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn);
+
+    // ------------------------------------- 用在末尾的方法  --------------------------------------
 
     /**
-     * 该方法返回一个新的{@code Future}，它的结果由当前{@code Future}驱动。
-     * 如果当前{@code Future}正常完成，则给定的动作不会执行，且返回的{@code Future}使用相同的结果值进入完成状态。
-     * 如果当前{@code Future}执行失败，则其异常信息将作为指定操作的执行参数，返回的{@code Future}的结果取决于指定操作的执行结果。
+     * 与方法{@link #thenHandle(BiFunction)}不同，此方法不是为转换完成结果而设计的，因此提供的操作<b>不应引发异常</b>，
+     * 如果确实引发的了异常，则仅仅记录一个<b>日志</b>。
+     * <p>
+     * 注意！！！这里的实现与JDK的{@link CompletionStage#whenComplete(BiConsumer)}有很大不同，如下：
+     * 1. 这里并未返回新的{@code Future}，返回的还是当前{@code Future}，但是同样保证先添加的先执行，后添加的后执行。
+     * 2. @link CompletionStage#whenComplete(BiConsumer)}会传播指定操作的异常，而我们这里的{@code whenComplete}不会传播，而是记录一个日志
+     * <p>
+     * 该方法一般用在操作的末尾，用于处理最终结果。
+     *
+     * @return this
      */
-    FluentFuture<V> exceptionally(Function<Throwable, ? extends V> fn);
+    FluentFuture<V> whenComplete(@Nonnull BiConsumer<? super V, ? super Throwable> action);
 
+    /**
+     * 与{@link #catching(Class, Function)}不同，此方法不是为转换完成结果而设计的，因此提供的操作<b>不应引发异常</b>，
+     * 如果确实引发的了异常，则仅仅记录一个<b>日志</b>。
+     * <p>
+     * 注意！！！
+     * 这里返回的仍然是当前{@code Future}，但是同样保证先添加的先执行，后添加的后执行。
+     * <p>
+     * 该方法一般用在操作的末尾，用于最终的异常处理，如记录日志。
+     * 该方法在{@link CompletionStage}中是不存在对应方法的。
+     *
+     * @return this
+     */
+    FluentFuture<V> whenExceptionally(@Nonnull Consumer<? super Throwable> action);
 
-    // 普通流式语法支持
-    @Override
-    FluentFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
+    void addListener(FutureListener<? super V> listener);
 
-    @Override
-    FluentFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
+    void addListener(FutureListener<? super V> listener, Executor executor);
+
+    // ------------------------------------- 一个特殊的API  --------------------------------------
+
+    /**
+     * 如果{@code Future}已进入完成状态，则立即执行给定动作，否则什么也不做。
+     * <p>
+     * 我现在终于理解{@link CompletionStage#toCompletableFuture()}方法为什么必须存在了，部分操作依赖与{@link CompletableFuture}的实现。
+     * 不过我换了种方式，采用的是访问者的方式，这样可以减少对具体实现的依赖。
+     * <p>
+     * 该API用户也可以使用。
+     *
+     * @param action 用于接收当前的执行结果
+     */
+    void acceptNow(@Nonnull BiConsumer<? super V, ? super Throwable> action);
+
+    // ------------------------------------- 异步版本  --------------------------------------
+
+    <U> FluentFuture<U> thenComposeAsync(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn, Executor executor);
+
+    <U> FluentFuture<U> thenComposeAsync(@Nonnull Callable<? extends FluentFuture<U>> fn, Executor executor);
+
+    FluentFuture<Void> thenRunAsync(@Nonnull Runnable action, Executor executor);
+
+    <U> FluentFuture<U> thenCallAsync(@Nonnull Callable<U> fn, Executor executor);
+
+    FluentFuture<Void> thenAcceptAsync(@Nonnull Consumer<? super V> action, Executor executor);
+
+    <U> FluentFuture<U> thenApplyAsync(@Nonnull Function<? super V, ? extends U> fn, Executor executor);
+
+    <X extends Throwable>
+    FluentFuture<V> catchingAsync(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback, Executor executor);
+
+    <U> FluentFuture<U> thenHandleAsync(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn, Executor executor);
+
+    FluentFuture<V> whenCompleteAsync(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor);
+
+    FluentFuture<V> whenExceptionallyAsync(@Nonnull Consumer<? super Throwable> action, Executor executor);
+
 }

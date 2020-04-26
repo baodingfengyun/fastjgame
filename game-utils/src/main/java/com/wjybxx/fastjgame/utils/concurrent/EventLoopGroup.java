@@ -78,9 +78,9 @@ public interface EventLoopGroup extends ExecutorService {
 
     /**
      * 返回等待线程终止的future。
-     * 返回的{@link BlockingFuture}会在该Group管理的所有{@link EventLoop}终止后收到通知.
+     * 返回的{@link FluentFuture}会在该Group管理的所有{@link EventLoop}终止后收到通知.
      */
-    BlockingFuture<?> terminationFuture();
+    FluentFuture<?> terminationFuture();
 
     /**
      * 请求关闭 ExecutorService，不再接收新的任务。
@@ -118,15 +118,15 @@ public interface EventLoopGroup extends ExecutorService {
 
     @Nonnull
     @Override
-    BlockingFuture<?> submit(@Nonnull Runnable task);
+    FluentFuture<?> submit(@Nonnull Runnable task);
 
     @Nonnull
     @Override
-    <V> BlockingFuture<V> submit(@Nonnull Runnable task, V result);
+    <V> FluentFuture<V> submit(@Nonnull Runnable task, V result);
 
     @Nonnull
     @Override
-    <V> BlockingFuture<V> submit(@Nonnull Callable<V> task);
+    <V> FluentFuture<V> submit(@Nonnull Callable<V> task);
 
     // ------------------------------- 这是我不想支持的任务调度 ---------------------------------
 

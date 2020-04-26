@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -58,7 +59,7 @@ public interface RpcClientInvoker {
      * @param request rpc请求对象
      * @param flush   是否刷新缓冲区
      */
-    <V> RpcFuture<V> call(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request, boolean flush);
+    <V> FluentFuture<V> call(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request, boolean flush);
 
     /**
      * 发送一个rpc请求给对方，会立即刷新缓冲区，并阻塞到结果返回或超时。

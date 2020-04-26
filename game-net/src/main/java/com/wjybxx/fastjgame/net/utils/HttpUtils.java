@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.utils;
 
+import java.net.http.HttpTimeoutException;
 import java.util.Map;
 
 /**
@@ -68,6 +69,11 @@ public class HttpUtils {
             safeUrl = safeUrl + "?";
         }
         return safeUrl;
+    }
+
+
+    public static boolean isHttpTimeout(Throwable cause) {
+        return cause instanceof HttpTimeoutException;
     }
 
 }

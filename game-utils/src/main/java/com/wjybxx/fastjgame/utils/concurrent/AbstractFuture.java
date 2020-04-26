@@ -14,30 +14,27 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.rpc;
+package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.LocalPromise;
-import com.wjybxx.fastjgame.utils.concurrent.timeout.TimeoutPromise;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.Executor;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionException;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
- * RpcPromise
+ * 实现参考{@link java.util.concurrent.CompletableFuture}
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/3
- * github - https://github.com/hl845740757
+ * date - 2020/4/22
  */
-public interface RpcPromise<V> extends TimeoutPromise<V>, RpcFuture<V>, LocalPromise<V> {
+public abstract class AbstractFuture<V> implements FluentFuture<V> {
 
-    // 仅用于语法支持
-    @Override
-    RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener);
-
-    @Override
-    RpcPromise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor bindExecutor);
 
 }
