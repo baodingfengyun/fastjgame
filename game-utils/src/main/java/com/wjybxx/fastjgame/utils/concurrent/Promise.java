@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -108,4 +109,34 @@ public interface Promise<V> extends FluentFuture<V> {
     @Override
     Promise<V> whenExceptionally(@Nonnull Consumer<? super Throwable> action);
 
+    @Override
+    <U> Promise<U> thenComposeAsync(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn, Executor executor);
+
+    @Override
+    <U> Promise<U> thenComposeAsync(@Nonnull Callable<? extends FluentFuture<U>> fn, Executor executor);
+
+    @Override
+    Promise<Void> thenRunAsync(@Nonnull Runnable action, Executor executor);
+
+    @Override
+    <U> Promise<U> thenCallAsync(@Nonnull Callable<U> fn, Executor executor);
+
+    @Override
+    Promise<Void> thenAcceptAsync(@Nonnull Consumer<? super V> action, Executor executor);
+
+    @Override
+    <U> Promise<U> thenApplyAsync(@Nonnull Function<? super V, ? extends U> fn, Executor executor);
+
+    @Override
+    <X extends Throwable>
+    Promise<V> catchingAsync(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback, Executor executor);
+
+    @Override
+    <U> Promise<U> thenHandleAsync(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn, Executor executor);
+
+    @Override
+    Promise<V> whenCompleteAsync(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor);
+
+    @Override
+    Promise<V> whenExceptionallyAsync(@Nonnull Consumer<? super Throwable> action, Executor executor);
 }

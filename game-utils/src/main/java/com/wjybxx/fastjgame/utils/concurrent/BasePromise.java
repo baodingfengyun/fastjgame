@@ -111,63 +111,53 @@ public abstract class BasePromise<V> implements Promise<V> {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public <U> FluentFuture<U> thenComposeAsync(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn, Executor executor) {
+    public <U> Promise<U> thenComposeAsync(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn, Executor executor) {
         return null;
     }
 
     @Override
-    public <U> FluentFuture<U> thenComposeAsync(@Nonnull Callable<? extends FluentFuture<U>> fn, Executor executor) {
+    public <U> Promise<U> thenComposeAsync(@Nonnull Callable<? extends FluentFuture<U>> fn, Executor executor) {
         return null;
     }
 
     @Override
-    public FluentFuture<Void> thenRunAsync(@Nonnull Runnable action, Executor executor) {
+    public Promise<Void> thenRunAsync(@Nonnull Runnable action, Executor executor) {
         return null;
     }
 
     @Override
-    public <U> FluentFuture<U> thenCallAsync(@Nonnull Callable<U> fn, Executor executor) {
+    public <U> Promise<U> thenCallAsync(@Nonnull Callable<U> fn, Executor executor) {
         return null;
     }
 
     @Override
-    public FluentFuture<Void> thenAcceptAsync(@Nonnull Consumer<? super V> action, Executor executor) {
+    public Promise<Void> thenAcceptAsync(@Nonnull Consumer<? super V> action, Executor executor) {
         return null;
     }
 
     @Override
-    public <U> FluentFuture<U> thenApplyAsync(@Nonnull Function<? super V, ? extends U> fn, Executor executor) {
+    public <U> Promise<U> thenApplyAsync(@Nonnull Function<? super V, ? extends U> fn, Executor executor) {
         return null;
     }
 
     @Override
-    public <X extends Throwable> FluentFuture<V> catchingAsync(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback, Executor executor) {
+    public <X extends Throwable> Promise<V> catchingAsync(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback, Executor executor) {
         return null;
     }
 
     @Override
-    public <U> FluentFuture<U> thenHandleAsync(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn, Executor executor) {
+    public <U> Promise<U> thenHandleAsync(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn, Executor executor) {
         return null;
     }
 
     @Override
-    public FluentFuture<V> whenCompleteAsync(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor) {
+    public Promise<V> whenCompleteAsync(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor) {
         return null;
     }
 
     @Override
-    public FluentFuture<V> whenExceptionallyAsync(@Nonnull Consumer<? super Throwable> action, Executor executor) {
+    public Promise<V> whenExceptionallyAsync(@Nonnull Consumer<? super Throwable> action, Executor executor) {
         return null;
-    }
-
-    @Override
-    public void addListener(FutureListener<? super V> listener) {
-        
-    }
-
-    @Override
-    public void addListener(FutureListener<? super V> listener, Executor executor) {
-
     }
 
 
@@ -236,7 +226,6 @@ public abstract class BasePromise<V> implements Promise<V> {
             super(input, output);
             this.fn = fn;
         }
-
 
         @Override
         public void accept(V value, Throwable cause) {
