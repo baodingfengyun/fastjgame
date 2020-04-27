@@ -119,7 +119,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 线程终止future
      */
-    private final Promise<?> terminationFuture = new DefaultPromise(GlobalEventLoop.INSTANCE);
+    private final Promise<?> terminationFuture = new DefaultPromise();
 
     /**
      * @param parent                   容器节点

@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 /**
@@ -27,6 +26,18 @@ import java.util.function.BiConsumer;
 public class FutureUtils {
 
     private FutureUtils() {
+    }
+
+    public static <V> Promise<V> newSyncPromise() {
+        return new DefaultPromise<>();
+    }
+
+    public static <V> FluentFuture<V> newSucceedSyncFuture(V result) {
+        return new DefaultPromise<>(result);
+    }
+
+    public static <V> FluentFuture<V> newFailedSyncFuture(Throwable cause) {
+        return new DefaultPromise<>(cause);
     }
 
     /**

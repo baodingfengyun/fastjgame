@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
-import com.wjybxx.fastjgame.utils.concurrent.LocalFuture;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CompletionException;
@@ -59,7 +59,7 @@ public interface RedisClient {
      * @param decoder 解码器，不建议直接使用redis的存储结构作为返回值。如果需要，请使用{@link Function#identity()}函数。
      * @return future
      */
-    <T, U> LocalFuture<U> call(@Nonnull PipelineCommand<T> command, Function<T, U> decoder);
+    <T, U> FluentFuture<U> call(@Nonnull PipelineCommand<T> command, Function<T, U> decoder);
 
     /**
      * 异步执行一个redis命令，同时刷新命令队列，并在完成时通知指定的监听器。
@@ -68,7 +68,7 @@ public interface RedisClient {
      * @param decoder 解码器
      * @return future
      */
-    <T, U> LocalFuture<U> callAndFlush(@Nonnull PipelineCommand<T> command, Function<T, U> decoder);
+    <T, U> FluentFuture<U> callAndFlush(@Nonnull PipelineCommand<T> command, Function<T, U> decoder);
 
     /**
      * 执行一个redis命令，并阻塞到命令完成。

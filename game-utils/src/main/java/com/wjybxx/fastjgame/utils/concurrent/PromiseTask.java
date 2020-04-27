@@ -29,17 +29,15 @@ import java.util.concurrent.RunnableFuture;
  * date - 2019/7/14 20:32
  * github - https://github.com/hl845740757
  */
-public class FluentFutureTask<V> extends DefaultPromise<V> implements RunnableFuture<V> {
+public class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<V> {
 
     private final Callable<V> callable;
 
-    FluentFutureTask(EventLoop executor, Callable<V> callable) {
-        super(executor);
+    PromiseTask(EventLoop executor, Callable<V> callable) {
         this.callable = callable;
     }
 
-    FluentFutureTask(@Nonnull EventLoop defaultExecutor, Runnable runnable, V value) {
-        super(defaultExecutor);
+    PromiseTask(@Nonnull EventLoop defaultExecutor, Runnable runnable, V value) {
         this.callable = Executors.callable(runnable, value);
     }
 

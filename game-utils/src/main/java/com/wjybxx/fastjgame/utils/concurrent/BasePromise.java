@@ -43,69 +43,71 @@ public abstract class BasePromise<V> implements Promise<V> {
     @Override
     public <U> Promise<U> thenCompose(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn) {
         final Promise<U> promise = newIncompletePromise();
-        pushCompletion(new UnionCompose<>(this, promise, fn));
+        pushCompletion(new UniCompose<>(this, promise, fn));
         return promise;
     }
 
     @Override
     public <U> Promise<U> thenCompose(@Nonnull Callable<? extends FluentFuture<U>> fn) {
         final Promise<U> promise = newIncompletePromise();
-        pushCompletion(new UnionCompose2<>(this, promise, fn));
+        pushCompletion(new UniCompose2<>(this, promise, fn));
         return promise;
     }
 
     @Override
     public Promise<Void> thenRun(@Nonnull Runnable action) {
         final Promise<Void> promise = newIncompletePromise();
-        pushCompletion(new UnionRun<>(this, promise, action));
+        pushCompletion(new UniRun<>(this, promise, action));
         return promise;
     }
 
     @Override
     public <U> Promise<U> thenCall(@Nonnull Callable<U> fn) {
         final Promise<U> promise = newIncompletePromise();
-        pushCompletion(new UnionCall<>(this, promise, fn));
+        pushCompletion(new UniCall<>(this, promise, fn));
         return promise;
     }
 
     @Override
     public Promise<Void> thenAccept(@Nonnull Consumer<? super V> action) {
         final Promise<Void> promise = newIncompletePromise();
-        pushCompletion(new UnionAccept<>(this, promise, action));
+        pushCompletion(new UniAccept<>(this, promise, action));
         return promise;
     }
 
     @Override
     public <U> Promise<U> thenApply(@Nonnull Function<? super V, ? extends U> fn) {
         final Promise<U> promise = newIncompletePromise();
-        pushCompletion(new UnionApply<>(this, promise, fn));
+        pushCompletion(new UniApply<>(this, promise, fn));
         return promise;
     }
 
     @Override
     public <X extends Throwable> Promise<V> catching(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback) {
         final Promise<V> promise = newIncompletePromise();
-        pushCompletion(new UnionCaching<>(this, promise, exceptionType, fallback));
+        pushCompletion(new UniCaching<>(this, promise, exceptionType, fallback));
         return promise;
     }
 
     @Override
     public <U> Promise<U> thenHandle(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn) {
         final Promise<U> promise = newIncompletePromise();
-        pushCompletion(new UnionHandle<>(this, promise, fn));
+        pushCompletion(new UniHandle<>(this, promise, fn));
         return promise;
     }
 
     @Override
     public Promise<V> whenComplete(@Nonnull BiConsumer<? super V, ? super Throwable> action) {
-        pushCompletion(new ConsumeWhenComplete<>(this, action));
-        return this;
+        final Promise<V> promise = newIncompletePromise();
+        pushCompletion(new UniWhenComplete<>(this, promise, action));
+        return promise;
     }
 
     @Override
     public Promise<V> whenExceptionally(@Nonnull Consumer<? super Throwable> action) {
-        pushCompletion(new ConsumeWhenExceptionally<>(this, action));
-        return this;
+        final Promise<V> promise = newIncompletePromise();
+        pushCompletion(new UniWhenExceptionally<>(this, promise, action));
+        return promise;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,18 +204,21 @@ public abstract class BasePromise<V> implements Promise<V> {
 
     }
 
-    // -------------------------------------------------- UnionCompletion ---------------------------------------------------------------
+    // -------------------------------------------------- UniCompletion ---------------------------------------------------------------
 
     /**
-     * {@link UnionCompletion}表示联合两个{@link FluentFuture}
+     * {@link UniCompletion}表示联合两个{@code Future}
      * 因此它持有一个输入，一个动作，和一个输出。
+     *
+     * @param <V> 输入值类型
+     * @param <U> 输入值类型
      */
-    static abstract class UnionCompletion<V, U> extends Completion implements BiConsumer<V, Throwable> {
+    static abstract class UniCompletion<V, U> extends Completion implements BiConsumer<V, Throwable> {
 
         final FluentFuture<V> input;
         final Promise<U> output;
 
-        UnionCompletion(FluentFuture<V> input, Promise<U> output) {
+        UniCompletion(FluentFuture<V> input, Promise<U> output) {
             this.input = input;
             this.output = output;
         }
@@ -228,12 +233,12 @@ public abstract class BasePromise<V> implements Promise<V> {
 
     }
 
-    static class UnionCompose<V, U> extends UnionCompletion<V, U> {
+    static class UniCompose<V, U> extends UniCompletion<V, U> {
 
         final Function<? super V, ? extends FluentFuture<U>> fn;
 
-        UnionCompose(FluentFuture<V> input, Promise<U> output,
-                     Function<? super V, ? extends FluentFuture<U>> fn) {
+        UniCompose(FluentFuture<V> input, Promise<U> output,
+                   Function<? super V, ? extends FluentFuture<U>> fn) {
             super(input, output);
             this.fn = fn;
         }
@@ -245,7 +250,7 @@ public abstract class BasePromise<V> implements Promise<V> {
             } else {
                 try {
                     final FluentFuture<U> relay = fn.apply(value);
-                    relay.whenComplete(new UnionRelay<>(relay, output));
+                    relay.whenComplete(new UniRelay<>(relay, output));
                 } catch (Throwable ex) {
                     output.tryFailure(ex);
                 }
@@ -253,9 +258,9 @@ public abstract class BasePromise<V> implements Promise<V> {
         }
     }
 
-    static class UnionRelay<V> extends UnionCompletion<V, V> {
+    static class UniRelay<V> extends UniCompletion<V, V> {
 
-        UnionRelay(FluentFuture<V> input, Promise<V> output) {
+        UniRelay(FluentFuture<V> input, Promise<V> output) {
             super(input, output);
         }
 
@@ -269,12 +274,12 @@ public abstract class BasePromise<V> implements Promise<V> {
         }
     }
 
-    static class UnionCompose2<V, U> extends UnionCompletion<V, U> {
+    static class UniCompose2<V, U> extends UniCompletion<V, U> {
 
         final Callable<? extends FluentFuture<U>> fn;
 
-        UnionCompose2(FluentFuture<V> input, Promise<U> output,
-                      Callable<? extends FluentFuture<U>> fn) {
+        UniCompose2(FluentFuture<V> input, Promise<U> output,
+                    Callable<? extends FluentFuture<U>> fn) {
             super(input, output);
             this.fn = fn;
         }
@@ -286,7 +291,7 @@ public abstract class BasePromise<V> implements Promise<V> {
             } else {
                 try {
                     final FluentFuture<U> relay = fn.call();
-                    relay.whenComplete(new UnionRelay<>(relay, output));
+                    relay.whenComplete(new UniRelay<>(relay, output));
                 } catch (Throwable ex) {
                     output.tryFailure(ex);
                 }
@@ -294,11 +299,11 @@ public abstract class BasePromise<V> implements Promise<V> {
         }
     }
 
-    static class UnionRun<V> extends UnionCompletion<V, Void> {
+    static class UniRun<V> extends UniCompletion<V, Void> {
 
         final Runnable action;
 
-        UnionRun(FluentFuture<V> input, Promise<Void> output, Runnable action) {
+        UniRun(FluentFuture<V> input, Promise<Void> output, Runnable action) {
             super(input, output);
             this.action = action;
         }
@@ -319,11 +324,11 @@ public abstract class BasePromise<V> implements Promise<V> {
 
     }
 
-    static class UnionCall<V, U> extends UnionCompletion<V, U> {
+    static class UniCall<V, U> extends UniCompletion<V, U> {
 
         final Callable<U> fn;
 
-        UnionCall(FluentFuture<V> input, Promise<U> output, Callable<U> fn) {
+        UniCall(FluentFuture<V> input, Promise<U> output, Callable<U> fn) {
             super(input, output);
             this.fn = fn;
         }
@@ -344,11 +349,11 @@ public abstract class BasePromise<V> implements Promise<V> {
 
     }
 
-    static class UnionAccept<V> extends UnionCompletion<V, Void> {
+    static class UniAccept<V> extends UniCompletion<V, Void> {
 
         final Consumer<? super V> action;
 
-        UnionAccept(FluentFuture<V> input, Promise<Void> output, Consumer<? super V> action) {
+        UniAccept(FluentFuture<V> input, Promise<Void> output, Consumer<? super V> action) {
             super(input, output);
             this.action = action;
         }
@@ -369,12 +374,12 @@ public abstract class BasePromise<V> implements Promise<V> {
 
     }
 
-    static class UnionApply<V, U> extends UnionCompletion<V, U> {
+    static class UniApply<V, U> extends UniCompletion<V, U> {
 
         final Function<? super V, ? extends U> fn;
 
-        UnionApply(FluentFuture<V> input, Promise<U> output,
-                   Function<? super V, ? extends U> fn) {
+        UniApply(FluentFuture<V> input, Promise<U> output,
+                 Function<? super V, ? extends U> fn) {
             super(input, output);
             this.fn = fn;
         }
@@ -395,13 +400,13 @@ public abstract class BasePromise<V> implements Promise<V> {
 
     }
 
-    static class UnionCaching<V, X> extends UnionCompletion<V, V> {
+    static class UniCaching<V, X> extends UniCompletion<V, V> {
 
         final Class<X> exceptionType;
         final Function<? super X, ? extends V> fallback;
 
-        UnionCaching(FluentFuture<V> input, Promise<V> output,
-                     Class<X> exceptionType, Function<? super X, ? extends V> fallback) {
+        UniCaching(FluentFuture<V> input, Promise<V> output,
+                   Class<X> exceptionType, Function<? super X, ? extends V> fallback) {
             super(input, output);
             this.exceptionType = exceptionType;
             this.fallback = fallback;
@@ -429,12 +434,12 @@ public abstract class BasePromise<V> implements Promise<V> {
 
     }
 
-    static class UnionHandle<V, U> extends UnionCompletion<V, U> {
+    static class UniHandle<V, U> extends UniCompletion<V, U> {
 
         final BiFunction<? super V, ? super Throwable, ? extends U> fn;
 
-        UnionHandle(FluentFuture<V> input, Promise<U> output,
-                    BiFunction<? super V, ? super Throwable, ? extends U> fn) {
+        UniHandle(FluentFuture<V> input, Promise<U> output,
+                  BiFunction<? super V, ? super Throwable, ? extends U> fn) {
             super(input, output);
             this.fn = fn;
         }
@@ -450,38 +455,15 @@ public abstract class BasePromise<V> implements Promise<V> {
 
     }
 
-    // --------------------------------------------------------- ConsumeCompletion ---------------------------------------------
-
-    /**
-     * {@link ConsumeCompletion}表示消费当前{@link FluentFuture}的结果，因此它持有一个输入和一个动作。
-     */
-    protected static abstract class ConsumeCompletion<V> extends Completion implements BiConsumer<V, Throwable> {
-
-        final FluentFuture<V> input;
-
-        ConsumeCompletion(FluentFuture<V> input) {
-            this.input = input;
-        }
-
-        @Override
-        protected final void onComplete() {
-            input.acceptNow(this);
-        }
-
-        @Override
-        public abstract void accept(V value, Throwable cause);
-
-    }
-
-    static class ConsumeWhenComplete<V> extends ConsumeCompletion<V> {
+    static class UniWhenComplete<V> extends UniCompletion<V, V> {
 
         final BiConsumer<? super V, ? super Throwable> action;
 
-        ConsumeWhenComplete(FluentFuture<V> input, BiConsumer<? super V, ? super Throwable> action) {
-            super(input);
+        UniWhenComplete(FluentFuture<V> input, Promise<V> output,
+                        BiConsumer<? super V, ? super Throwable> action) {
+            super(input, output);
             this.action = action;
         }
-
 
         @Override
         public void accept(V value, Throwable cause) {
@@ -489,18 +471,19 @@ public abstract class BasePromise<V> implements Promise<V> {
                 action.accept(value, cause);
             } catch (Throwable ex) {
                 // 这里的实现与JDK不同，这里仅仅是记录一个异常，而不会影响另一个监听器
-                logger.warn("ConsumeWhenComplete.action.accept caught exception", ex);
+                logger.warn("UniWhenComplete.action.accept caught exception", ex);
             }
         }
 
     }
 
-    static class ConsumeWhenExceptionally<V> extends ConsumeCompletion<V> {
+    static class UniWhenExceptionally<V> extends UniCompletion<V, V> {
 
         final Consumer<? super Throwable> action;
 
-        ConsumeWhenExceptionally(FluentFuture<V> input, Consumer<? super Throwable> action) {
-            super(input);
+        UniWhenExceptionally(FluentFuture<V> input, Promise<V> output,
+                             Consumer<? super Throwable> action) {
+            super(input, output);
             this.action = action;
         }
 
@@ -512,7 +495,7 @@ public abstract class BasePromise<V> implements Promise<V> {
             try {
                 action.accept(cause);
             } catch (Throwable ex) {
-                logger.warn("ConsumeWhenExceptionally.action.accept caught exception", ex);
+                logger.warn("UniWhenExceptionally.action.accept caught exception", ex);
             }
         }
     }

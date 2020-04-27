@@ -41,7 +41,7 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
     /**
      * 监听所有子节点关闭的Listener，当所有的子节点关闭时，会收到关闭成功事件
      */
-    private final Promise<?> terminationFuture = new DefaultPromise(GlobalEventLoop.INSTANCE);
+    private final Promise<?> terminationFuture = new DefaultPromise();
     /**
      * 子类构造时传入的context，由子类自己决定如何解析，父类不做处理。
      */

@@ -250,30 +250,26 @@ public interface FluentFuture<V> extends Future<V> {
     // ------------------------------------- 用在末尾的方法  --------------------------------------
 
     /**
+     * 该方法表示消费者希望能消费一遍当前{@code Future}的执行结果，并将结果传递给下一个{@code Future}。
+     * <p>
+     * 该方法返回一个新的{@code Future}，它的结果始终与当前{@code Future}的结果相同。
+     * <p>
      * 与方法{@link #thenHandle(BiFunction)}不同，此方法不是为转换完成结果而设计的，因此提供的操作<b>不应引发异常</b>，
-     * 如果确实引发的了异常，则仅仅记录一个<b>日志</b>。
+     * 如果确实引发的了异常，则仅仅记录一个<b>日志</b>，不会向下传递，这里与JDK的{@link CompletionStage#whenComplete(BiConsumer)}并不相同。
      * <p>
-     * 注意！！！这里的实现与JDK的{@link CompletionStage#whenComplete(BiConsumer)}有很大不同，如下：
-     * 1. 这里并未返回新的{@code Future}，返回的还是当前{@code Future}，但是同样保证先添加的先执行，后添加的后执行。
-     * 2. @link CompletionStage#whenComplete(BiConsumer)}会传播指定操作的异常，而我们这里的{@code whenComplete}不会传播，而是记录一个日志
-     * <p>
-     * 该方法一般用在操作的末尾，用于处理最终结果。
-     *
-     * @return this
+     * {@link CompletionStage#whenComplete(BiConsumer)}
      */
     FluentFuture<V> whenComplete(@Nonnull BiConsumer<? super V, ? super Throwable> action);
 
     /**
+     * 该方法返回一个新的{@code Future}，它的结果始终与当前{@code Future}的结果相同。
+     * <p>
+     * 该方法表示希望消费一遍当前{@code Future}的执行结果，并将异常直接传递给下一个{@code Future}
+     * <p>
      * 与{@link #catching(Class, Function)}不同，此方法不是为转换完成结果而设计的，因此提供的操作<b>不应引发异常</b>，
-     * 如果确实引发的了异常，则仅仅记录一个<b>日志</b>。
+     * 如果确实引发的了异常，则仅仅记录一个<b>日志</b>，不会向下传递。
      * <p>
-     * 注意！！！
-     * 这里返回的仍然是当前{@code Future}，但是同样保证先添加的先执行，后添加的后执行。
-     * <p>
-     * 该方法一般用在操作的末尾，用于最终的异常处理，如记录日志。
      * 该方法在{@link CompletionStage}中是不存在对应方法的。
-     *
-     * @return this
      */
     FluentFuture<V> whenExceptionally(@Nonnull Consumer<? super Throwable> action);
 

@@ -16,11 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.Executor;
 
 /**
  * 默认的{@link Promise}实现。
@@ -49,13 +47,17 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    public DefaultPromise(@Nullable Executor workerExecutor) {
-        super(workerExecutor);
+    public DefaultPromise(V result) {
+        super(result);
+    }
+
+    public DefaultPromise(Throwable cause) {
+        super(cause);
     }
 
     @Override
     protected <U> AbstractPromise<U> newIncompletePromise() {
-        return new DefaultPromise<>(getWorkerExecutor());
+        return new DefaultPromise<>();
     }
 
     @Override

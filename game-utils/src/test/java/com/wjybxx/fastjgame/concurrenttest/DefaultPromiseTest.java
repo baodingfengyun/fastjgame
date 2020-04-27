@@ -14,27 +14,24 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.concurrent;
+package com.wjybxx.fastjgame.concurrenttest;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionException;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 
 /**
- * 实现参考{@link java.util.concurrent.CompletableFuture}
- *
  * @author wjybxx
  * @version 1.0
- * date - 2020/4/22
+ * date - 2020/4/27
  */
-public abstract class AbstractFuture<V> implements FluentFuture<V> {
+public class DefaultPromiseTest {
 
+    public static void main(String[] args) {
+        FutureUtils.newSucceedSyncFuture("hello world")
+                .thenAccept(System.out::println)
+                .getNow();
 
+        FutureUtils.newFailedSyncFuture(new RuntimeException("already failed"))
+                .thenRun(() -> System.out.println("failed future run?"))
+                .getNow();
+    }
 }

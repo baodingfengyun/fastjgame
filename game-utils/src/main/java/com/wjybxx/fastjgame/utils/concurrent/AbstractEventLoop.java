@@ -78,13 +78,13 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     @Nonnull
     @Override
     public <V> Promise<V> newPromise() {
-        return new DefaultPromise<>(this, true);
+        return new DefaultPromise<>();
     }
 
     @Nonnull
     @Override
     public <V> FluentFuture<V> newSucceededFuture(@Nullable V result) {
-        final Promise<V> promise = new DefaultPromise<>(this, true);
+        final Promise<V> promise = new DefaultPromise<>();
         promise.trySuccess(result);
         return promise;
     }
@@ -92,7 +92,7 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     @Nonnull
     @Override
     public final <V> FluentFuture<V> newFailedFuture(@Nonnull Throwable cause) {
-        final Promise<V> promise = new DefaultPromise<>(this, true);
+        final Promise<V> promise = new DefaultPromise<>();
         promise.tryFailure(cause);
         return promise;
     }
@@ -120,12 +120,12 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
     // 重要，重写newTaskFor方法，返回具体的future类型
     @Override
     protected final <T> RunnableFuture<T> newTaskFor(@Nonnull Runnable runnable, T value) {
-        return new FluentFutureTask<>(this, runnable, value);
+        return new PromiseTask<>(this, runnable, value);
     }
 
     @Override
     protected final <T> RunnableFuture<T> newTaskFor(@Nonnull Callable<T> callable) {
-        return new FluentFutureTask<>(this, callable);
+        return new PromiseTask<>(this, callable);
     }
     // endregion
 

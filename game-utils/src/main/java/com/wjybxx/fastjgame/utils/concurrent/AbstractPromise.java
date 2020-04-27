@@ -31,6 +31,10 @@ import static com.wjybxx.fastjgame.utils.ThreadUtils.checkInterrupted;
 /**
  * {@link Promise}的模板实现，它负责结果管理（状态迁移），和阻塞API的处理，不负责监听器管理。
  * <p>
+ * Q: 为什么用锁实现等待通知？
+ * A: 仅仅是为了简单。因为{@code Future}的本意就是不希望用户使用阻塞式API，因此我们不对阻塞API进行优化。
+ *
+ * <p>
  * 状态迁移：
  * <pre>
  *       (setUncancellabl) (result == UNCANCELLABLE)     (异常/成功)
@@ -267,7 +271,8 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
     /**
      * 通知所有的监听器
      *
-     * @apiNote 子类实现不应该抛出任何异常
+     * @apiNote 1. 子类实现不应该抛出任何异常
+     * 2. 必须避免并发通知，保证先压入的{@link Completion}先被通知
      */
     protected abstract void notifyListeners();
 
@@ -533,6 +538,7 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
                     }
                 }
                 return true;
+
             }
         } finally {
             // 恢复中断状态
