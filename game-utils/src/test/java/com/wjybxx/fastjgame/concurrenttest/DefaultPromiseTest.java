@@ -32,8 +32,8 @@ public class DefaultPromiseTest {
         promise.thenAccept(System.out::println)
                 .whenExceptionally(System.out::println);
 
-        promise.thenAcceptAsync(s -> {
-            System.out.println("Thread : " + Thread.currentThread().getName() + ", value : " + s);
+        promise.addListener(f -> {
+            System.out.println("Thread : " + Thread.currentThread().getName() + ", value : " + f.getNow());
         }, GlobalEventLoop.INSTANCE);
 
         promise.trySuccess("success");

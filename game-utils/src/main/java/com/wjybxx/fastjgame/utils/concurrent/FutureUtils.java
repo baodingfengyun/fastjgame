@@ -44,14 +44,13 @@ public class FutureUtils {
      * 将future的结果传输到promise上
      */
     public static <V> void setFuture(FluentFuture<V> future, Promise<? super V> promise) {
-        if (future.isDone()) {
-            future.acceptNow(new UniRelay<>(promise));
-        } else {
-            future.addListener(new UniRelay<>(promise));
+        final UniRelay<? super V> uniRelay = new UniRelay<>(promise);
+        if (!future.acceptNow(uniRelay)) {
+            future.addListener(uniRelay);
         }
     }
 
-    static class UniRelay<V> implements BiConsumer<V, Throwable>, FutureListener<V> {
+    static class UniRelay<V> implements BiConsumer<V, Throwable> {
 
         final Promise<V> promise;
 
@@ -68,10 +67,6 @@ public class FutureUtils {
             }
         }
 
-        @Override
-        public void onComplete(FluentFuture<V> future) throws Exception {
-            future.acceptNow(this);
-        }
     }
 
 }

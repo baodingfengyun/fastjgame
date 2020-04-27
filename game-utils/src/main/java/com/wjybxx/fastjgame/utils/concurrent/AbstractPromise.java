@@ -309,15 +309,15 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public final void acceptNow(@Nonnull BiConsumer<? super V, ? super Throwable> action) {
+    public final boolean acceptNow(@Nonnull BiConsumer<? super V, ? super Throwable> action) {
         final Object result = resultHolder;
         if (!isDone0(result)) {
-            return;
+            return false;
         }
 
         if (result == SUCCESS) {
             action.accept(null, null);
-            return;
+            return true;
         }
 
         if (result instanceof CauseHolder) {
@@ -326,6 +326,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
             @SuppressWarnings("unchecked") final V value = (V) result;
             action.accept(value, null);
         }
+        return true;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

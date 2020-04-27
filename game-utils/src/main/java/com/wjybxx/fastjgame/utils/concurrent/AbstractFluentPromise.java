@@ -212,12 +212,30 @@ public abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
     }
 
     @Override
+    public ListenableFuture<V> addListener(@Nonnull BiConsumer<? super V, ? super Throwable> action) {
+        if (action instanceof Completion) {
+            pushCompletion((Completion) action);
+        } else {
+            pushCompletion(new ListenWhenComplete<>(null, this, action));
+        }
+        return this;
+    }
+
+    @Override
+    public ListenableFuture<V> addListener(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor) {
+        pushCompletion(new ListenWhenComplete<>(executor, this, action));
+        return this;
+    }
+
+    @Override
     public Promise<V> addFailedListener(Consumer<? super Throwable> action) {
+        pushCompletion(new ListenWhenExceptionally<>(null, this, action));
         return this;
     }
 
     @Override
     public Promise<V> addFailedListener(Consumer<? super Throwable> action, Executor executor) {
+        pushCompletion(new ListenWhenExceptionally<>(executor, this, action));
         return this;
     }
 
@@ -313,15 +331,10 @@ public abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    static class UniRelay<V> extends UniCompletion<V, V> implements FutureListener<V> {
+    static class UniRelay<V> extends UniCompletion<V, V> {
 
         UniRelay(FluentFuture<V> input, Promise<V> output) {
             super(null, input, output);
-        }
-
-        @Override
-        public void onComplete(FluentFuture<V> future) throws Exception {
-            future.acceptNow(this);
         }
 
         @Override
@@ -573,6 +586,81 @@ public abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
             output.tryFailure(cause);
         }
 
+    }
+
+    static abstract class ListenCompletion<V> extends Completion implements Runnable, BiConsumer<V, Throwable> {
+
+        final Executor executor;
+        final FluentFuture<V> input;
+
+        ListenCompletion(Executor executor, FluentFuture<V> input) {
+            this.executor = executor;
+            this.input = input;
+        }
+
+        @Override
+        public final void run() {
+            input.acceptNow(this);
+        }
+
+        @Override
+        void tryFire() {
+            if (executor == null || EventLoopUtils.inEventLoop(executor)) {
+                input.acceptNow(this);
+            } else {
+                ConcurrentUtils.safeExecute(executor, this);
+            }
+        }
+
+        @Override
+        public abstract void accept(V value, Throwable cause);
+
+    }
+
+    static class ListenWhenComplete<V> extends ListenCompletion<V> {
+
+        final BiConsumer<? super V, ? super Throwable> action;
+
+        public ListenWhenComplete(Executor executor, FluentFuture<V> input,
+                                  BiConsumer<? super V, ? super Throwable> action) {
+            super(executor, input);
+            this.action = action;
+        }
+
+        @Override
+        public void accept(V value, Throwable cause) {
+            try {
+                action.accept(value, cause);
+            } catch (Throwable ex) {
+                // 这里的实现与JDK不同，这里仅仅是记录一个异常，不会传递给下一个Future
+                logger.warn("ListenWhenComplete.action.accept caught exception", ex);
+            }
+        }
+    }
+
+    static class ListenWhenExceptionally<V> extends ListenCompletion<V> {
+
+        final Consumer<? super Throwable> action;
+
+        public ListenWhenExceptionally(Executor executor, FluentFuture<V> input,
+                                       Consumer<? super Throwable> action) {
+            super(executor, input);
+            this.action = action;
+        }
+
+        @Override
+        public void accept(V value, Throwable cause) {
+            if (cause == null) {
+                return;
+            }
+
+            try {
+                action.accept(cause);
+            } catch (Throwable ex) {
+                // 这里仅仅是记录一个异常，不会传递给下一个Future
+                logger.warn("ListenWhenExceptionally.action.accept caught exception", ex);
+            }
+        }
     }
 
 }
