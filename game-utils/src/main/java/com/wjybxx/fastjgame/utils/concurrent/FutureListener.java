@@ -20,11 +20,10 @@ package com.wjybxx.fastjgame.utils.concurrent;
 /**
  * Future的监听者。
  * <p>
- * 监听{@link FluentFuture}的结果。一旦该listener通过{@link FluentFuture#addListener(FutureListener)}添加到future上，
- * future上关联的异步操作完成时，就会收到通知。
+ * 一旦该listener通过{@link FluentFuture#addListener(FutureListener)}添加到future上，future上关联的异步操作完成时，就会收到通知。
  *
  * <pre>{@code
- * ListenableFuture f = submit(task)
+ * FluentFuture f = submit(task)
  * f.addListener(future -> doSomething());
  * }</pre>
  *

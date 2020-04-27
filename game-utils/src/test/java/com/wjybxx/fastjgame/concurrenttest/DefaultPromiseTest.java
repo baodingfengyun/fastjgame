@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.concurrenttest;
 
 import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
+import com.wjybxx.fastjgame.utils.concurrent.GlobalEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 /**
  * @author wjybxx
@@ -26,12 +28,23 @@ import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 public class DefaultPromiseTest {
 
     public static void main(String[] args) {
-        FutureUtils.newSucceedSyncFuture("hello world")
+        final Promise<String> promise = FutureUtils.newPromise();
+        promise.thenAccept(System.out::println)
+                .whenExceptionally(System.out::println);
+
+        promise.thenAcceptAsync(s -> {
+            System.out.println("Thread : " + Thread.currentThread().getName() + ", value : " + s);
+        }, GlobalEventLoop.INSTANCE);
+
+        promise.trySuccess("success");
+
+        FutureUtils.newSucceedFuture("hello world")
                 .thenAccept(System.out::println)
                 .getNow();
 
-        FutureUtils.newFailedSyncFuture(new RuntimeException("already failed"))
+        FutureUtils.newFailedFuture(new RuntimeException("already failed"))
                 .thenRun(() -> System.out.println("failed future run?"))
                 .getNow();
     }
+
 }

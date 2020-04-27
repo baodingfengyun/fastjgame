@@ -28,15 +28,15 @@ public class FutureUtils {
     private FutureUtils() {
     }
 
-    public static <V> Promise<V> newSyncPromise() {
+    public static <V> Promise<V> newPromise() {
         return new DefaultPromise<>();
     }
 
-    public static <V> FluentFuture<V> newSucceedSyncFuture(V result) {
+    public static <V> FluentFuture<V> newSucceedFuture(V result) {
         return new DefaultPromise<>(result);
     }
 
-    public static <V> FluentFuture<V> newFailedSyncFuture(Throwable cause) {
+    public static <V> FluentFuture<V> newFailedFuture(Throwable cause) {
         return new DefaultPromise<>(cause);
     }
 
@@ -47,11 +47,11 @@ public class FutureUtils {
         if (future.isDone()) {
             future.acceptNow(new UniRelay<>(promise));
         } else {
-            future.whenComplete(new UniRelay<>(promise));
+            future.addListener(new UniRelay<>(promise));
         }
     }
 
-    static class UniRelay<V> implements BiConsumer<V, Throwable> {
+    static class UniRelay<V> implements BiConsumer<V, Throwable>, FutureListener<V> {
 
         final Promise<V> promise;
 
@@ -66,6 +66,11 @@ public class FutureUtils {
             } else {
                 promise.trySuccess(v);
             }
+        }
+
+        @Override
+        public void onComplete(FluentFuture<V> future) throws Exception {
+            future.acceptNow(this);
         }
     }
 

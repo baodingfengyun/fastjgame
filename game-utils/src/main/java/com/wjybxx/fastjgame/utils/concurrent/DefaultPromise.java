@@ -29,7 +29,7 @@ import java.util.Arrays;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public class DefaultPromise<V> extends AbstractPromise<V> {
+public class DefaultPromise<V> extends AbstractFluentPromise<V> {
 
     /**
      * 该future上注册的监听器们。
@@ -81,7 +81,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
         for (; ; ) {
             // 通知当前批次的监听器(此时不需要获得锁) -- 但是这里不能抛出异常，否则可能死锁(notifyingListeners状态无法清除)
-            tmpListeners.onComplete();
+            tmpListeners.tryFire();
 
             // 通知完当前批次后，检查是否有新的监听器加入
             synchronized (this) {
@@ -153,9 +153,9 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         @Override
-        protected void onComplete() {
+        protected void tryFire() {
             for (Completion completion : children) {
-                completion.onComplete();
+                completion.tryFire();
             }
         }
     }

@@ -99,9 +99,9 @@ public class EventLoopUtils {
     public static <V> FluentFuture<V> submitOrRun(@Nonnull EventLoop eventLoop, Callable<V> task) {
         if (eventLoop.inEventLoop()) {
             try {
-                return eventLoop.newSucceededFuture(task.call());
+                return FutureUtils.newSucceedFuture(task.call());
             } catch (Throwable e) {
-                return eventLoop.newFailedFuture(e);
+                return FutureUtils.newFailedFuture(e);
             }
         } else {
             return eventLoop.submit(task);

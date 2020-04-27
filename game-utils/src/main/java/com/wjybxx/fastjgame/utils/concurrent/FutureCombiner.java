@@ -66,7 +66,7 @@ import java.util.function.BiConsumer;
 @NotThreadSafe
 public class FutureCombiner {
 
-    private final BiConsumer<Object, Throwable> childrenListener = new ChildListener();
+    private final FutureListener<Object> childrenListener = new ChildListener();
     private final EventLoop appEventLoop;
 
     private int expectedCount;
@@ -99,7 +99,7 @@ public class FutureCombiner {
         checkAddFutureAllowed();
 
         ++expectedCount;
-        future.whenCompleteAsync(childrenListener, appEventLoop);
+        future.addListener(childrenListener, appEventLoop);
         return this;
     }
 
@@ -138,7 +138,12 @@ public class FutureCombiner {
         }
     }
 
-    private class ChildListener implements BiConsumer<Object, Throwable> {
+    private class ChildListener implements BiConsumer<Object, Throwable>, FutureListener<Object> {
+
+        @Override
+        public void onComplete(FluentFuture<Object> future) {
+            future.acceptNow(this);
+        }
 
         @Override
         public void accept(Object o, Throwable throwable) {

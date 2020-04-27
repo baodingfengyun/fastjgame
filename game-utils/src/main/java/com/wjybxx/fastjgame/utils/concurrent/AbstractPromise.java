@@ -51,7 +51,7 @@ import static com.wjybxx.fastjgame.utils.ThreadUtils.checkInterrupted;
  * @version 1.0
  * date - 2020/3/6
  */
-public abstract class AbstractPromise<V> extends BasePromise<V> {
+public abstract class AbstractPromise<V> implements Promise<V> {
 
     /**
      * 1毫秒多少纳秒
@@ -70,7 +70,6 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
     /**
      * Future关联的任务的计算结果。
      */
-    @SuppressWarnings("unused")
     private volatile Object resultHolder;
 
     /**
@@ -268,12 +267,6 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
         }
     }
 
-    /**
-     * 通知所有的监听器
-     *
-     * @apiNote 1. 子类实现不应该抛出任何异常
-     * 2. 必须避免并发通知，保证先压入的{@link Completion}先被通知
-     */
     protected abstract void notifyListeners();
 
     @Override

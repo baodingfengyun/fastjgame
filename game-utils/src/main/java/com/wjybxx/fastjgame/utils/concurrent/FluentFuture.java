@@ -170,9 +170,9 @@ public interface FluentFuture<V> extends Future<V> {
     /**
      * {@link #thenCompose(Function)}的特化版本，主要用于消除丑陋的void
      * <p>
-     * 该方法返回一个新的{@code Future}，它的最终结果与指定的{@code Function}返回的{@code Future}结果相同。
+     * 该方法返回一个新的{@code Future}，它的最终结果与指定的{@code Callable}返回的{@code Future}结果相同。
      * 如果当前{@code Future}执行失败，则返回的{@code Future}将以相同的原因失败，且指定的动作不会执行。
-     * 如果当前{@code Future}执行成功，则执行指定从操作。
+     * 如果当前{@code Future}执行成功，则执行指定的操作。
      * <p>
      * 该方法在{@link CompletionStage}中也是不存在的。
      */
@@ -195,7 +195,7 @@ public interface FluentFuture<V> extends Future<V> {
      * 如果当前{@code Future}执行成功，则当前{@code Future}的执行结果将作为指定操作的执行参数，返回的{@code Future}的结果取决于指定操作的执行结果。
      * <p>
      * 这个API在{@link CompletionStage}中是没有对应方法的。
-     * 由于{@link Supplier#get()}方法名太特殊，因此使用{@link Callable#call()}。
+     * 由于{@link Supplier#get()}方法名太特殊，{@code thenSupply}也不是个好名字，因此使用{@link Callable#call()}。
      */
     <U> FluentFuture<U> thenCall(@Nonnull Callable<U> fn);
 
@@ -232,8 +232,7 @@ public interface FluentFuture<V> extends Future<V> {
      * @param exceptionType 能处理的异常类型
      * @param fallback      异常恢复函数
      */
-    <X extends Throwable>
-    FluentFuture<V> catching(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback);
+    <X extends Throwable> FluentFuture<V> catching(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback);
 
     /**
      * 该方法表示既能处理当前计算的正常结果，又能处理当前结算的异常结果(可以将异常转换为新的结果)，并返回一个新的结果。
@@ -242,6 +241,7 @@ public interface FluentFuture<V> extends Future<V> {
      * 该方法返回一个新的{@code Future}，无论当前{@code Future}执行成功还是失败，给定的操作都将执行。
      * 如果当前{@code Future}执行成功，而指定的动作出现异常，则返回的{@code Future}以该异常完成。
      * 如果当前{@code Future}执行失败，且指定的动作出现异常，则返回的{@code Future}以新抛出的异常进入完成状态。
+     * (也就是说，一旦给定动作出现异常，返回的{@code Future}都将以新抛出的异常进入完成状态)
      * <p>
      * {@link CompletionStage#handle(BiFunction)}
      */
@@ -273,24 +273,6 @@ public interface FluentFuture<V> extends Future<V> {
      */
     FluentFuture<V> whenExceptionally(@Nonnull Consumer<? super Throwable> action);
 
-    void addListener(FutureListener<? super V> listener);
-
-    void addListener(FutureListener<? super V> listener, Executor executor);
-
-    // ------------------------------------- 一个特殊的API  --------------------------------------
-
-    /**
-     * 如果{@code Future}已进入完成状态，则立即执行给定动作，否则什么也不做。
-     * <p>
-     * 我现在理解{@link CompletionStage#toCompletableFuture()}方法为什么必须存在了，部分操作依赖于{@link CompletableFuture}的实现。
-     * 不过我换了种方式，采用的是访问者的方式，这样可以减少对具体实现的依赖。
-     * <p>
-     * 该API用户也可以使用。
-     *
-     * @param action 用于接收当前的执行结果
-     */
-    void acceptNow(@Nonnull BiConsumer<? super V, ? super Throwable> action);
-
     // ------------------------------------- 异步版本  --------------------------------------
 
     <U> FluentFuture<U> thenComposeAsync(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn, Executor executor);
@@ -305,13 +287,48 @@ public interface FluentFuture<V> extends Future<V> {
 
     <U> FluentFuture<U> thenApplyAsync(@Nonnull Function<? super V, ? extends U> fn, Executor executor);
 
-    <X extends Throwable>
-    FluentFuture<V> catchingAsync(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback, Executor executor);
+    <X extends Throwable> FluentFuture<V> catchingAsync(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback, Executor executor);
 
     <U> FluentFuture<U> thenHandleAsync(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn, Executor executor);
 
     FluentFuture<V> whenCompleteAsync(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor);
 
     FluentFuture<V> whenExceptionallyAsync(@Nonnull Consumer<? super Throwable> action, Executor executor);
+
+    // ------------------------------------- 非管道操作  --------------------------------------
+
+    /**
+     * @return this
+     */
+    FluentFuture<V> addListener(FutureListener<? super V> listener);
+
+    /**
+     * @return this
+     */
+    FluentFuture<V> addListener(FutureListener<? super V> listener, Executor executor);
+
+    /**
+     * @return this
+     */
+    FluentFuture<V> addFailedListener(Consumer<? super Throwable> action);
+
+    /**
+     * @return this
+     */
+    FluentFuture<V> addFailedListener(Consumer<? super Throwable> action, Executor executor);
+
+    // ------------------------------------- 一个特殊的API  --------------------------------------
+
+    /**
+     * 如果{@code Future}已进入完成状态，则立即执行给定动作，否则什么也不做。
+     * <p>
+     * 我现在理解{@link CompletionStage#toCompletableFuture()}方法为什么必须存在了，部分操作依赖于{@link CompletableFuture}的实现。
+     * 不过我换了种方式，采用的是访问者的方式，这样可以减少对具体实现的依赖。
+     * <p>
+     * 该API用户也可以使用。
+     *
+     * @param action 用于接收当前的执行结果
+     */
+    void acceptNow(@Nonnull BiConsumer<? super V, ? super Throwable> action);
 
 }

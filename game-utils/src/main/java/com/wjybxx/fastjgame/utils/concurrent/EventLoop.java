@@ -107,7 +107,7 @@ public interface EventLoop extends FixedEventLoopGroup {
      *
      * @param <V>    the type of value
      * @param result 结果值
-     * @return ListenableFuture
+     * @return Future
      */
     @Nonnull
     <V> FluentFuture<V> newSucceededFuture(@Nullable V result);
@@ -118,7 +118,7 @@ public interface EventLoop extends FixedEventLoopGroup {
      *
      * @param <V>   the type of value
      * @param cause 任务失败的原因
-     * @return ListenableFuture
+     * @return Future
      */
     @Nonnull
     <V> FluentFuture<V> newFailedFuture(@Nonnull Throwable cause);
