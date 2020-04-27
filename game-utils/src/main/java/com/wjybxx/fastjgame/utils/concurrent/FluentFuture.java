@@ -96,6 +96,8 @@ public interface FluentFuture<V> extends Future<V> {
      */
     V getNow();
 
+    // ------------------------------------- 阻塞式API --------------------------------------
+
     /**
      * 阻塞式获取task的结果，阻塞期间不响应中断。
      * 如果future关联的task尚未完成，则阻塞等待至任务完成，并返回计算的结果。
@@ -284,7 +286,7 @@ public interface FluentFuture<V> extends Future<V> {
     /**
      * 如果{@code Future}已进入完成状态，则立即执行给定动作，否则什么也不做。
      * <p>
-     * 我现在终于理解{@link CompletionStage#toCompletableFuture()}方法为什么必须存在了，部分操作依赖与{@link CompletableFuture}的实现。
+     * 我现在理解{@link CompletionStage#toCompletableFuture()}方法为什么必须存在了，部分操作依赖于{@link CompletableFuture}的实现。
      * 不过我换了种方式，采用的是访问者的方式，这样可以减少对具体实现的依赖。
      * <p>
      * 该API用户也可以使用。

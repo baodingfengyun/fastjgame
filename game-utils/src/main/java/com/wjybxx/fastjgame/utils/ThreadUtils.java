@@ -31,7 +31,12 @@ public class ThreadUtils {
      * @param t 异常
      */
     public static void recoveryInterrupted(Throwable t) {
-        recoveryInterrupted(t instanceof InterruptedException);
+        if (t instanceof InterruptedException) {
+            try {
+                Thread.currentThread().interrupt();
+            } catch (SecurityException ignore) {
+            }
+        }
     }
 
     /**

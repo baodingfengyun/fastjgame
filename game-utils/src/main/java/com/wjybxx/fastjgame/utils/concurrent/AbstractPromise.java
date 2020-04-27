@@ -16,17 +16,20 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.wjybxx.fastjgame.utils.ThreadUtils;
+import com.wjybxx.fastjgame.utils.TimeUtils;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.atomic.AtomicReference;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.BiConsumer;
 
+import static com.wjybxx.fastjgame.utils.ThreadUtils.checkInterrupted;
+
 /**
- * {@link Promise}的模板实现，它只负责结果管理（状态迁移），这部分逻辑完全无锁。
+ * {@link Promise}的模板实现，它负责结果管理（状态迁移），和阻塞API的处理，不负责监听器管理。
  * <p>
  * 状态迁移：
  * <pre>
@@ -46,12 +49,15 @@ import java.util.function.BiConsumer;
  */
 public abstract class AbstractPromise<V> extends BasePromise<V> {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractPromise.class);
+    /**
+     * 1毫秒多少纳秒
+     */
+    private static final int NANO_PER_MILLISECOND = (int) TimeUtils.NANO_PER_MILLISECOND;
 
     /**
      * 如果一个任务成功时没有结果{@link #setSuccess(Object) null}，使用该对象代替。
      */
-    static final Object SUCCESS = new Object();
+    private static final Object SUCCESS = new Object();
     /**
      * 表示future关联的任务进入不可取消状态。
      */
@@ -59,12 +65,78 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
 
     /**
      * Future关联的任务的计算结果。
-     * {@link AtomicReference}用于保证原子性和可见性。
      */
-    final AtomicReference<Object> resultHolder = new AtomicReference<>();
+    @SuppressWarnings("unused")
+    private volatile Object resultHolder;
 
-    protected AbstractPromise() {
+    /**
+     * 是否需要调用{@link #notifyAll()} - 是否有线程阻塞在当前{@code Future}上，减少锁获取和notifyAll调用。
+     */
+    @SuppressWarnings("unused")
+    private volatile int signalNeeded;
 
+    public AbstractPromise() {
+
+    }
+
+    public AbstractPromise(V result) {
+        resultHolder = result == null ? SUCCESS : result;
+    }
+
+    public AbstractPromise(Throwable cause) {
+        resultHolder = new CauseHolder(cause);
+    }
+
+    /**
+     * 成功完成或失败完成
+     *
+     * @return 如果赋值成功，则返回true，否则返回false。
+     */
+    private boolean tryComplete(@Nonnull Object value) {
+        // 正常完成可以由初始状态或不可取消状态进入完成状态
+        if (RESULT_HOLDER.compareAndSet(this, null, value)
+                || RESULT_HOLDER.compareAndSet(this, UNCANCELLABLE, value)) {
+            postComplete();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 尝试标记为不可取消
+     */
+    private boolean trySetUncancellable() {
+        return RESULT_HOLDER.compareAndSet(this, null, UNCANCELLABLE);
+    }
+
+    /**
+     * 由取消进入完成状态
+     *
+     * @return 成功取消则返回true
+     */
+    private boolean tryCompleteCancellation() {
+        // 取消只能由初始状态(null)切换为完成状态
+        if (RESULT_HOLDER.compareAndSet(this, null, new CauseHolder(new CancellationException()))) {
+            postComplete();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 标记为需要通知
+     */
+    private void markSignalNeeded() {
+        SIGNAL_NEEDED.setVolatile(this, 1);
+    }
+
+    /**
+     * 清楚是否需要被通知状态，并返回是否需要被通知
+     */
+    private boolean clearSignalNeeded() {
+        return (int) SIGNAL_NEEDED.getAndSet(this, 0) == 1;
     }
 
     // --------------------------------------------- 查询 --------------------------------------------------
@@ -73,7 +145,7 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
      * 解释一下为什么多线程的代码喜欢将volatile变量存为临时变量或传递给某一个方法做判断。
      * 为了保证数据的一致性，当对volatile执行多个操作时，如果不把volatile变量保存下来，则每次读取的结果可能是不一样的。
      */
-    static boolean isDone0(Object result) {
+    private static boolean isDone0(Object result) {
         // 当result不为null，且不是不可取消占位符的时候表示已进入完成状态
         return result != null && result != UNCANCELLABLE;
     }
@@ -98,29 +170,29 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
 
     @Override
     public final boolean isDone() {
-        return isDone0(resultHolder.get());
+        return isDone0(resultHolder);
     }
 
     @Override
     public final boolean isCompletedExceptionally() {
-        return isCompletedExceptionally0(resultHolder.get());
+        return isCompletedExceptionally0(resultHolder);
     }
 
     @Override
     public final boolean isCancelled() {
-        return isCancelled0(resultHolder.get());
+        return isCancelled0(resultHolder);
     }
 
     @Override
     public final boolean isCancellable() {
-        return isCancellable0(resultHolder.get());
+        return isCancellable0(resultHolder);
     }
 
     // ---------------------------------------------- 非阻塞式获取结果 -----------------------------------------------------
 
     @Override
     public final V getNow() {
-        final Object result = resultHolder.get();
+        final Object result = resultHolder;
         if (isDone0(result)) {
             return reportJoin(result);
         }
@@ -128,11 +200,10 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
     }
 
     /**
-     * {@link FluentFuture#getNow()}和{@link FluentFuture#join()}方法上报结果。
      * 不命名为{@code reportGetNow}是为了放大不同之处。
      */
     @SuppressWarnings("unchecked")
-    static <T> T reportJoin(final Object r) {
+    private static <T> T reportJoin(final Object r) {
         if (r == SUCCESS) {
             return null;
         }
@@ -144,45 +215,33 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
         return (T) r;
     }
 
-    @Override
-    public final Throwable cause() {
-        return getCause0(resultHolder.get());
-    }
-
-    /**
-     * 用于{@link FluentFuture#getNow()}和{@link FluentFuture#join()}抛出失败异常。
-     * <p>
-     * 不命名为{@code rethrowGetNow}是为了放大不同之处。
-     *
-     * @param cause 任务失败的原因
-     * @throws CancellationException 如果任务被取消，则抛出该异常
-     * @throws CompletionException   其它原因导致失败
-     */
-    static <T> T rethrowJoin(@Nonnull Throwable cause) throws CancellationException, CompletionException {
+    private static <T> T rethrowJoin(@Nonnull Throwable cause) throws CancellationException, CompletionException {
         if (cause instanceof CancellationException) {
             throw (CancellationException) cause;
         }
         throw new CompletionException(cause);
     }
 
+    @Override
+    public final Throwable cause() {
+        return getCause0(resultHolder);
+    }
+
     // ------------------------------------------------- 状态迁移 --------------------------------------------
     @Override
     public final boolean setUncancellable() {
-        if (resultHolder.compareAndSet(null, UNCANCELLABLE)) {
+        if (trySetUncancellable()) {
             return true;
         } else {
             // 到这里result一定不为null，当前为不可取消状态 或 结束状态
-            final Object result = resultHolder.get();
+            final Object result = resultHolder;
             return result == UNCANCELLABLE || !isCancelled0(result);
         }
     }
 
-    /**
-     * @param mayInterruptIfRunning 该参数在这里的实现中没有意义，任务开始执行前可以取消，开始执行后无法取消。
-     */
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        final Object result = resultHolder.get();
+        final Object result = resultHolder;
         if (isCancelled0(result)) {
             return true;
         }
@@ -190,36 +249,27 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
     }
 
     /**
-     * 由取消进入完成状态
-     *
-     * @return 成功取消则返回true
-     */
-    private boolean tryCompleteCancellation() {
-        // 取消只能由初始状态(null)切换为完成状态
-        if (resultHolder.compareAndSet(null, new CauseHolder(new CancellationException()))) {
-            postCompleteSafely();
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
      * 安全的推送future进入完成状态事件，由于推送由子类实现，无法保证所有实现都足够安全，因此需要捕获异常。
      */
-    private void postCompleteSafely() {
-        try {
-            postComplete();
-        } catch (Throwable e) {
-            logger.error("PostComplete caught exception, bad promise implementation {}", this.getClass(), e);
+    private void postComplete() {
+        notifyWaiters();
+        notifyListeners();
+    }
+
+    private void notifyWaiters() {
+        if (clearSignalNeeded()) {
+            synchronized (this) {
+                notifyAll();
+            }
         }
     }
 
     /**
-     * 推送future进入完成状态事件。
-     * 主要用于唤醒等待的线程和通知监听器们。
+     * 通知所有的监听器
+     *
+     * @apiNote 子类实现不应该抛出任何异常
      */
-    protected abstract void postComplete();
+    protected abstract void notifyListeners();
 
     @Override
     public final void setSuccess(V result) {
@@ -232,23 +282,6 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
     public final boolean trySuccess(V result) {
         // 当future关联的task成功，但是没有返回值时，使用SUCCESS代替
         return tryComplete(result == null ? SUCCESS : result);
-    }
-
-    /**
-     * 成功完成或失败完成
-     *
-     * @param value 要赋的值，一定不为null
-     * @return 如果赋值成功，则返回true，否则返回false。
-     */
-    private boolean tryComplete(@Nonnull Object value) {
-        // 正常完成可以由初始状态或不可取消状态进入完成状态
-        if (resultHolder.compareAndSet(null, value)
-                || resultHolder.compareAndSet(UNCANCELLABLE, value)) {
-            postCompleteSafely();
-            return true;
-        } else {
-            return false;
-        }
     }
 
     @Override
@@ -275,9 +308,11 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     @Override
     public final void acceptNow(@Nonnull BiConsumer<? super V, ? super Throwable> action) {
-        final Object result = resultHolder.get();
+        final Object result = resultHolder;
         if (!isDone0(result)) {
             return;
         }
@@ -293,5 +328,235 @@ public abstract class AbstractPromise<V> extends BasePromise<V> {
             @SuppressWarnings("unchecked") final V value = (V) result;
             action.accept(value, null);
         }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // --------------------------------------------- 阻塞式获取结果 -----------------------------------
+
+    @Override
+    public final V get() throws InterruptedException, ExecutionException {
+        final Object result = resultHolder;
+        if (isDone0(result)) {
+            return reportGet(result);
+        }
+
+        await();
+
+        return reportGet(resultHolder);
+    }
+
+    /**
+     * {@link FluentFuture#get()} {@link FluentFuture#get(long, TimeUnit)}
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> T reportGet(Object r) throws ExecutionException {
+        if (r == SUCCESS) {
+            return null;
+        }
+
+        if (r instanceof CauseHolder) {
+            return rethrowGet(((CauseHolder) r).cause);
+        }
+
+        return (T) r;
+    }
+
+    private static <T> T rethrowGet(Throwable cause) throws CancellationException, ExecutionException {
+        if (cause instanceof CancellationException) {
+            throw (CancellationException) cause;
+        }
+        throw new ExecutionException(cause);
+    }
+
+    @Override
+    public final V get(long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        final Object result = resultHolder;
+        if (isDone0(result)) {
+            return reportGet(result);
+        }
+
+        if (await(timeout, unit)) {
+            return reportGet(resultHolder);
+        }
+
+        throw new TimeoutException();
+    }
+
+    @Override
+    public final V join() throws CompletionException {
+        final Object result = resultHolder;
+        if (isDone0(result)) {
+            return reportJoin(result);
+        }
+
+        awaitUninterruptibly();
+
+        return reportJoin(resultHolder);
+    }
+
+    @Override
+    public final Promise<V> await() throws InterruptedException {
+        // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
+        if (isDone()) {
+            return this;
+        }
+        // 检查死锁可能
+        checkDeadlock();
+
+        // 检查中断 --- 在执行一个耗时操作之前检查中断是有必要的
+        checkInterrupted();
+
+        synchronized (this) {
+            while (!isDone()) {
+                markSignalNeeded();
+                this.wait();
+            }
+        }
+        return this;
+    }
+
+    /**
+     * 检查死锁可能。
+     */
+    private void checkDeadlock() {
+        // 实现流式语法后，无法很好的检查死锁问题
+    }
+
+    @Override
+    public final Promise<V> awaitUninterruptibly() {
+        // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
+        if (isDone()) {
+            return this;
+        }
+        // 检查死锁可能
+        checkDeadlock();
+
+        boolean interrupted = false;
+        boolean marked = false;
+
+        try {
+            synchronized (this) {
+                while (!isDone()) {
+                    if (!marked) {
+                        markSignalNeeded();
+                        marked = true;
+                    }
+
+                    try {
+                        this.wait();
+                    } catch (InterruptedException e) {
+                        interrupted = true;
+                    }
+                }
+            }
+        } finally {
+            // 恢复中断
+            ThreadUtils.recoveryInterrupted(interrupted);
+        }
+        return this;
+    }
+
+    @Override
+    public final boolean await(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
+        // 小于等于0，则不阻塞
+        if (timeout <= 0) {
+            return isDone();
+        }
+        // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
+        if (isDone()) {
+            return true;
+        }
+        // 等待之前检查死锁可能
+        checkDeadlock();
+
+        // 即将等待之前检查中断标记（在耗时操作开始前检查中断是有必要的 -- 要养成习惯）
+        checkInterrupted();
+
+        boolean marked = false;
+
+        final long endTime = System.nanoTime() + unit.toNanos(timeout);
+        synchronized (this) {
+            while (!isDone()) {
+                // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
+                final long remainNano = endTime - System.nanoTime();
+                if (remainNano <= 0) {
+                    return false;
+                }
+
+                if (!marked) {
+                    markSignalNeeded();
+                    marked = true;
+                }
+
+                this.wait(remainNano / NANO_PER_MILLISECOND, (int) (remainNano % NANO_PER_MILLISECOND));
+            }
+            return true;
+        }
+    }
+
+    @Override
+    public final boolean awaitUninterruptibly(long timeout, @Nonnull TimeUnit unit) {
+        // 小于等于0，则不阻塞
+        if (timeout <= 0) {
+            return isDone();
+        }
+        // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
+        if (isDone()) {
+            return true;
+        }
+        // 检查死锁可能
+        checkDeadlock();
+
+        boolean interrupted = false;
+        boolean marked = false;
+
+        final long endTime = System.nanoTime() + unit.toNanos(timeout);
+        try {
+            synchronized (this) {
+                while (!isDone()) {
+                    // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
+                    final long remainNano = endTime - System.nanoTime();
+                    if (remainNano <= 0) {
+                        return false;
+                    }
+
+                    if (!marked) {
+                        markSignalNeeded();
+                        marked = true;
+                    }
+
+                    try {
+                        this.wait(remainNano / NANO_PER_MILLISECOND, (int) (remainNano % NANO_PER_MILLISECOND));
+                    } catch (InterruptedException e) {
+                        interrupted = true;
+                    }
+                }
+                return true;
+            }
+        } finally {
+            // 恢复中断状态
+            ThreadUtils.recoveryInterrupted(interrupted);
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private static final VarHandle SIGNAL_NEEDED;
+    private static final VarHandle RESULT_HOLDER;
+
+    static {
+        try {
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            RESULT_HOLDER = l.findVarHandle(AbstractPromise.class, "resultHolder", Object.class);
+            SIGNAL_NEEDED = l.findVarHandle(AbstractPromise.class, "signalNeeded", int.class);
+        } catch (ReflectiveOperationException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+
+        // 遵循JDK的处理
+        // Reduce the risk of rare disastrous classloading in first call to
+        // LockSupport.park: https://bugs.openjdk.java.net/browse/JDK-8074773
+        Class<?> ensureLoaded = LockSupport.class;
     }
 }

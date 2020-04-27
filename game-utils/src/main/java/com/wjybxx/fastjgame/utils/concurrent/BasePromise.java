@@ -160,6 +160,17 @@ public abstract class BasePromise<V> implements Promise<V> {
         return null;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void addListener(FutureListener<? super V> listener) {
+
+    }
+
+    @Override
+    public void addListener(FutureListener<? super V> listener, Executor executor) {
+
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 

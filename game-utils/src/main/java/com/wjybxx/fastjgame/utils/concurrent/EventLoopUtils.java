@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
  */
 public class EventLoopUtils {
 
-    public static boolean inEventLoop(Executor executor) {
+    public static boolean inEventLoop(@Nullable Executor executor) {
         return executor instanceof EventLoop && ((EventLoop) executor).inEventLoop();
     }
 
