@@ -268,18 +268,25 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     // -------------------------------------------------- UniCompletion ---------------------------------------------------------------
 
+    static <U> AbstractPromise<U> postFire(@Nonnull AbstractPromise<U> output, int mode) {
+        if (postCompleteMode(mode)) {
+            postComplete(output);
+            return null;
+        } else {
+            return output;
+        }
+    }
+
     /**
      * {@link UniCompletion}表示联合两个{@code Future}，因此它持有一个输入，一个动作，和一个输出。
      * 实现{@link Runnable}接口是为了避免创建不必要的对象，如果需要在另一个线程执行的时候。
      */
-    static abstract class UniCompletion<U> extends Completion {
+    static abstract class UniCompletion extends Completion {
 
         Executor executor;
-        AbstractPromise<U> output;
 
-        UniCompletion(Executor executor, AbstractPromise<U> output) {
+        UniCompletion(Executor executor) {
             this.executor = executor;
-            this.output = output;
         }
 
         final boolean claim() {
@@ -300,18 +307,20 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
      * @param <V> 输入值类型
      * @param <U> 输入值类型
      */
-    static abstract class UniCompletion2<V, U> extends UniCompletion<U> {
+    static abstract class AbstractUniCompletion<V, U> extends UniCompletion {
 
         AbstractPromise<V> input;
+        AbstractPromise<U> output;
 
-        UniCompletion2(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output) {
-            super(executor, output);
+        AbstractUniCompletion(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output) {
+            super(executor);
             this.input = input;
+            this.output = output;
         }
 
     }
 
-    static class UniComposeApply<V, U> extends UniCompletion2<V, U> {
+    static class UniComposeApply<V, U> extends AbstractUniCompletion<V, U> {
 
         Function<? super V, ? extends ListenableFuture<U>> fn;
 
@@ -321,44 +330,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
             this.fn = fn;
         }
 
-        @Override
-        AbstractPromise<?> tryFire(int mode) {
-            final AbstractPromise<V> in = input;
-            final AbstractPromise<U> out = output;
-            final Object resultInput = in.resultHolder;
 
-            // 发现加了一个不可取消状态之后，复杂度高了许多
-            if (isDone0(out.resultHolder)) {
-
-            }
-
-            if (out.setUncancellable()) {
-                if (resultInput instanceof AltResult) {
-                    // 给定操作不需要执行，可直接进入完成状态
-                    out.completeThrowable(((AltResult) resultInput).cause);
-                } else {
-                    if (directMode(mode) && !claim()) {
-                        return null;
-                    }
-
-
-                    V value = in.decodeValue(resultInput);
-                    final ListenableFuture<U> relay = fn.apply(value);
-                    relay.addListener(new UniRelay<>(relay, out));
-                }
-            }
-
-            // help gc
-            input = null;
-            output = null;
-            fn = null;
-
-
-            return null;
-        }
-
-
-        @Override
         public void accept(V value, Throwable cause) {
             if (cause != null) {
                 output.tryFailure(cause);
@@ -373,28 +345,41 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    static class UniRelay<V> extends UniCompletion<V, V> {
+    static class UniRelay<V> extends UniCompletion {
 
         ListenableFuture<V> input;
+        AbstractPromise<V> output;
 
         UniRelay(ListenableFuture<V> input, AbstractPromise<V> output) {
-            super(null, output);
+            super(null);
             this.input = input;
+            this.output = output;
         }
 
-        
-
         @Override
-        public void accept(V value, Throwable cause) {
-            if (cause == null) {
-                output.trySuccess(value);
-            } else {
-                output.tryFailure(cause);
+        AbstractPromise<?> tryFire(int mode) {
+            final AbstractPromise<V> out = this.output;
+
+            if (!isDone0(out.resultHolder)) {
+                // 这里不假设其实现类型，有助于扩展性
+                final ListenableFuture<V> in = this.input;
+                final Throwable cause = in.cause();
+                if (cause != null) {
+                    out.completeThrowable(cause);
+                } else {
+                    out.completeValue(in.getNow());
+                }
             }
+
+            // help gc
+            output = null;
+            input = null;
+
+            return postFire(out, mode);
         }
     }
 
-    static class UniComposeCall<V, U> extends UniCompletion2<V, U> {
+    static class UniComposeCall<V, U> extends AbstractUniCompletion<V, U> {
 
         final Callable<? extends ListenableFuture<U>> fn;
 
@@ -419,7 +404,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    static class UniRun<V> extends UniCompletion2<V, Void> {
+    static class UniRun<V> extends AbstractUniCompletion<V, Void> {
 
         final Runnable action;
 
@@ -445,7 +430,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniCall<V, U> extends UniCompletion2<V, U> {
+    static class UniCall<V, U> extends AbstractUniCompletion<V, U> {
 
         final Callable<U> fn;
 
@@ -471,7 +456,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniAccept<V> extends UniCompletion2<V, Void> {
+    static class UniAccept<V> extends AbstractUniCompletion<V, Void> {
 
         final Consumer<? super V> action;
 
@@ -497,7 +482,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniApply<V, U> extends UniCompletion2<V, U> {
+    static class UniApply<V, U> extends AbstractUniCompletion<V, U> {
 
         final Function<? super V, ? extends U> fn;
 
@@ -523,7 +508,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniCaching<V, X> extends UniCompletion2<V, V> {
+    static class UniCaching<V, X> extends AbstractUniCompletion<V, V> {
 
         final Class<X> exceptionType;
         final Function<? super X, ? extends V> fallback;
@@ -557,7 +542,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniHandle<V, U> extends UniCompletion2<V, U> {
+    static class UniHandle<V, U> extends AbstractUniCompletion<V, U> {
 
         final BiFunction<? super V, ? super Throwable, ? extends U> fn;
 
@@ -578,7 +563,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniWhenComplete<V> extends UniCompletion2<V, V> {
+    static class UniWhenComplete<V> extends AbstractUniCompletion<V, V> {
 
         final BiConsumer<? super V, ? super Throwable> action;
 
@@ -606,7 +591,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniWhenExceptionally<V> extends UniCompletion2<V, V> {
+    static class UniWhenExceptionally<V> extends AbstractUniCompletion<V, V> {
 
         final Consumer<? super Throwable> action;
 

@@ -188,7 +188,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     /**
      * Completes with an exceptional result, unless already completed.
      */
-    final boolean completeThrowable(Throwable x) {
+    final boolean completeThrowable(@Nonnull Throwable x) {
         return internalComplete(encodeThrowable(x));
     }
 
@@ -196,7 +196,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
      * Returns the encoding of the given (non-null) exception as a
      * wrapped CompletionException unless it is one already.
      */
-    static AltResult encodeThrowable(Throwable x) {
+    static AltResult encodeThrowable(@Nonnull Throwable x) {
         return new AltResult((x instanceof CompletionException) ? x :
                 new CompletionException(x));
     }
@@ -209,7 +209,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
      * equivalent, i.e. if this is a simple propagation of an
      * existing CompletionException.
      */
-    final boolean completeThrowable(Throwable x, Object r) {
+    final boolean completeThrowable(@Nonnull Throwable x, @Nonnull Object r) {
         return internalComplete(encodeThrowable(x, r));
     }
 
@@ -224,7 +224,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
      * source future) if it is equivalent, i.e. if this is a simple
      * relay of an existing CompletionException.
      */
-    static Object encodeThrowable(Throwable x, Object r) {
+    static Object encodeThrowable(@Nonnull Throwable x, @Nonnull Object r) {
         if (!(x instanceof CompletionException)) {
             x = new CompletionException(x);
         } else if (r instanceof AltResult && x == ((AltResult) r).cause) {
@@ -348,6 +348,27 @@ public abstract class AbstractPromise<V> implements Promise<V> {
         return getCause0(resultHolder);
     }
 
+    @Override
+    public final boolean acceptNow(@Nonnull BiConsumer<? super V, ? super Throwable> action) {
+        final Object result = resultHolder;
+        if (!isDone0(result)) {
+            return false;
+        }
+
+        if (result == NIL) {
+            action.accept(null, null);
+            return true;
+        }
+
+        if (result instanceof AltResult) {
+            action.accept(null, ((AltResult) result).cause);
+        } else {
+            @SuppressWarnings("unchecked") final V value = (V) result;
+            action.accept(value, null);
+        }
+        return true;
+    }
+
     // ------------------------------------------------- 状态迁移 --------------------------------------------
     @Override
     public final boolean setUncancellable() {
@@ -412,32 +433,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
         return false;
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public final boolean acceptNow(@Nonnull BiConsumer<? super V, ? super Throwable> action) {
-        final Object result = resultHolder;
-        if (!isDone0(result)) {
-            return false;
-        }
-
-        if (result == NIL) {
-            action.accept(null, null);
-            return true;
-        }
-
-        if (result instanceof AltResult) {
-            action.accept(null, ((AltResult) result).cause);
-        } else {
-            @SuppressWarnings("unchecked") final V value = (V) result;
-            action.accept(value, null);
-        }
-        return true;
-    }
-
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // --------------------------------------------- 阻塞式获取结果 -----------------------------------
 
     @Override
     public final V get() throws InterruptedException, ExecutionException {
@@ -655,33 +651,43 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     // Modes for Completion.tryFire. Signedness matters.
     /**
      * 同步调用模式，表示压栈过程中发现{@code Future}已进入完成状态，从而调用的{@link Completion#tryFire(int)}。
-     * 1. 如果在该模式下，使下一个{@code Future}进入完成状态，则需要调用{@link #postComplete(AbstractPromise)}
+     * 1. 如果在该模式下使下一个{@code Future}进入完成状态，则直接触发目标{@code Future}的完成事件，即调用{@link #postComplete(AbstractPromise)}。
      * 2. 在该模式，表示首次调用，需要判断是否能立即运行。
      */
     static final int SYNC = 0;
     /**
-     * 间接调用模式，表示提交到{@link Executor}之后调用{@link Completion#tryFire(int)}
-     * 1. 如果在该模式下，使下一个{@code Future}进入完成状态，则需要调用{@link #postComplete(AbstractPromise)}
+     * 异步调用模式，表示提交到{@link Executor}之后调用{@link Completion#tryFire(int)}
+     * 1. 如果在该模式下使下一个{@code Future}进入完成状态，则直接触发目标{@code Future}的完成事件，即调用{@link #postComplete(AbstractPromise)}。
+     * <p>
      * 2. 在该模式，表示非首次调用，立即运行。
      */
     static final int ASYNC = 1;
     /**
-     * 最近调用模式，表示由{@link #postComplete(AbstractPromise)}中触发调用。
-     * 1. 如果在该模式下，使下一个{@code Future}进入完成状态，则返回下一个{@code Future}。
+     * 嵌套调用模式，表示由{@link #postComplete(AbstractPromise)}中触发调用。
+     * 1. 如果在该模式下使下一个{@code Future}进入完成状态，不直接触发目标{@code Future}的完成事件，而是返回目标{@code Future}由当前{@code Future}代为推送。
      * 2. 在该模式，表示首次调用，需要判断是否能立即运行。
      */
     static final int NESTED = -1;
 
     /**
-     * 是否是直接调用的模式
-     * 大佬们的思维就是不一样...也不定义单独的方法，理解起来费死劲了
+     * 大佬就是不一样...也不定义单独的方法，理解起来费死劲了
      */
-    static boolean directMode(int mode) {
+    static boolean isFirstFireMode(int mode) {
         return mode <= 0;
     }
 
+    /**
+     * 是否是需要推送目标{@code Future}完成事件的模式(非嵌套模式)
+     */
     static boolean postCompleteMode(int mode) {
         return mode >= 0;
+    }
+
+    /**
+     * 是否是嵌套模式
+     */
+    static boolean isNestedMode(int mode) {
+        return mode < 0;
     }
 
     static abstract class Completion implements Runnable {
@@ -737,7 +743,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
      * 推送future的完成事件。
      * - 声明为静态会更清晰易懂
      */
-    private static void postComplete(AbstractPromise<?> future) {
+    static void postComplete(AbstractPromise<?> future) {
         Completion next = null;
         outer:
         while (true) {
