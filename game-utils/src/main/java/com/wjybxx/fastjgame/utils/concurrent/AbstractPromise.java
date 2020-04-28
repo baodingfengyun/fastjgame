@@ -720,6 +720,11 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     }
 
     final void pushCompletion(Completion newHead) {
+        if (isDone()) {
+            newHead.tryFire(SYNC);
+            return;
+        }
+
         // 如果future已完成，则立即执行
         if (!isDone()) {
             Completion head;
@@ -736,6 +741,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
 
         // 到这里的时候 head == TOMBSTONE，表示目标Future已进入完成状态，且正在被通知或已经通知完毕。
         // 由于Future已进入完成状态，且我们的Completion压栈失败，因此新的completion需要当前线程来通知
+        newHead.next = null;
         newHead.tryFire(SYNC);
     }
 
@@ -756,6 +762,8 @@ public abstract class AbstractPromise<V> implements Promise<V> {
             while (next != null) {
                 Completion curr = next;
                 next = next.next;
+                // help gc
+                curr.next = null;
 
                 // Completion的tryFire实现不可以抛出异常，否则会导致其它监听器也丢失信号
                 future = curr.tryFire(NESTED);
@@ -804,7 +812,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     private Completion clearListeners(Completion onto) {
         // 我们需要进行三件事
         // 1. 原子方式将当前Listeners赋值为TOMBSTONE，因为pushCompletion添加的监听器的可见性是由CAS提供的。
-        // 2. 将当前栈内元素逆序，因为即使在接口层进行了说明，但仍然有人依赖于监听器的执行时序(期望先添加的先执行)
+        // 2. 将当前栈内元素逆序，因为即使在接口层进行了说明（不提供监听器执行时序保证），但仍然有人依赖于监听器的执行时序(期望先添加的先执行)
         // 3. 将逆序后的元素插入到'onto'前面，即插入到原本要被通知的下一个监听器的前面
 
         Completion head;

@@ -169,4 +169,13 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     ListenableFuture<V> addFailedListener(Consumer<? super Throwable> action, Executor executor);
 
+    /**
+     * @return this
+     */
+    ListenableFuture<V> addListener(@Nonnull Runnable action);
+
+    /**
+     * @return this
+     */
+    ListenableFuture<V> addListener(@Nonnull Runnable action, Executor executor);
 }

@@ -256,6 +256,20 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         return this;
     }
 
+    @Override
+    public ListenableFuture<V> addListener(@Nonnull Runnable action) {
+        if (action instanceof Completion) {
+            pushCompletion((Completion) action);
+        }
+
+        return this;
+    }
+
+    @Override
+    public ListenableFuture<V> addListener(@Nonnull Runnable action, Executor executor) {
+        return this;
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -268,7 +282,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     // -------------------------------------------------- UniCompletion ---------------------------------------------------------------
 
-    static <U> AbstractPromise<U> postFire(@Nonnull AbstractPromise<U> output, int mode) {
+    private static <U> AbstractPromise<U> postFire(@Nonnull AbstractPromise<U> output, int mode) {
         if (postCompleteMode(mode)) {
             postComplete(output);
             return null;
@@ -330,18 +344,61 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
             this.fn = fn;
         }
 
+        /**
+         * {@link #input}执行成功的情况下才执行
+         */
+        @Override
+        AbstractPromise<?> tryFire(int mode) {
+            AbstractPromise<U> out = output;
 
-        public void accept(V value, Throwable cause) {
-            if (cause != null) {
-                output.tryFailure(cause);
-            } else {
+            // 这个语法真是不想用
+            tryComplete:
+            if (!isDone0(out.resultHolder)) {
+                AbstractPromise<V> in = input;
+                Object inResult = in.resultHolder;
+
+                if (inResult instanceof AltResult) {
+                    out.completeThrowable(((AltResult) inResult).cause);
+                    break tryComplete;
+                }
+
                 try {
-                    final ListenableFuture<U> relay = fn.apply(value);
+                    if (isFirstFireMode(mode) && !claim()) {
+                        // 首次fire但是不能立即运行
+                        return null;
+                    }
 
+                    V value = in.decodeValue(inResult);
+                    ListenableFuture<U> relay = fn.apply(value);
+
+                    if (relay.isDone()) {
+                        // 返回的是已完成的Future
+                        transferTo(relay, out);
+                    } else {
+                        relay.addListener(new UniRelay<>(relay, out));
+                        // 可能在这期间完成
+                        if (!isDone0(out.resultHolder)) {
+                            return null;
+                        }
+                    }
                 } catch (Throwable ex) {
-                    output.tryFailure(ex);
+                    out.completeThrowable(ex);
                 }
             }
+            // 走到这里表示，output已进入完成状态
+            input = null;
+            output = null;
+            fn = null;
+            return postFire(out, mode);
+        }
+    }
+
+    private static <U> void transferTo(ListenableFuture<U> relay, AbstractPromise<U> out) {
+        Throwable cause = relay.cause();
+        if (cause != null) {
+            out.completeThrowable(cause);
+        } else {
+            out.completeValue(relay.getNow());
         }
     }
 
@@ -359,16 +416,10 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         @Override
         AbstractPromise<?> tryFire(int mode) {
             final AbstractPromise<V> out = this.output;
+            final ListenableFuture<V> in = this.input;
 
             if (!isDone0(out.resultHolder)) {
-                // 这里不假设其实现类型，有助于扩展性
-                final ListenableFuture<V> in = this.input;
-                final Throwable cause = in.cause();
-                if (cause != null) {
-                    out.completeThrowable(cause);
-                } else {
-                    out.completeValue(in.getNow());
-                }
+                transferTo(in, out);
             }
 
             // help gc
@@ -381,7 +432,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     static class UniComposeCall<V, U> extends AbstractUniCompletion<V, U> {
 
-        final Callable<? extends ListenableFuture<U>> fn;
+        Callable<? extends ListenableFuture<U>> fn;
 
         UniComposeCall(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output,
                        Callable<? extends ListenableFuture<U>> fn) {
@@ -390,23 +441,52 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         @Override
-        public void accept(V value, Throwable cause) {
-            if (cause != null) {
-                output.tryFailure(cause);
-            } else {
+        AbstractPromise<?> tryFire(int mode) {
+            AbstractPromise<U> out = output;
+
+            tryComplete:
+            if (!isDone0(out.resultHolder)) {
+                Object inResult = input.resultHolder;
+
+                if (inResult instanceof AltResult) {
+                    out.completeThrowable(((AltResult) inResult).cause);
+                    break tryComplete;
+                }
+
                 try {
-                    final ListenableFuture<U> relay = fn.call();
-                    relay.addListener(new UniRelay<>(relay, output));
+                    if (isFirstFireMode(mode) && !claim()) {
+                        // 首次fire但是不能立即运行
+                        return null;
+                    }
+
+                    ListenableFuture<U> relay = fn.call();
+
+                    if (relay.isDone()) {
+                        // 返回的是已完成的Future
+                        transferTo(relay, out);
+                    } else {
+                        relay.addListener(new UniRelay<>(relay, out));
+                        // 可能在这期间完成
+                        if (!isDone0(out.resultHolder)) {
+                            return null;
+                        }
+                    }
                 } catch (Throwable ex) {
-                    output.tryFailure(ex);
+                    out.completeThrowable(ex);
                 }
             }
+
+            input = null;
+            output = null;
+            fn = null;
+            return postFire(out, mode);
         }
+
     }
 
     static class UniRun<V> extends AbstractUniCompletion<V, Void> {
 
-        final Runnable action;
+        Runnable action;
 
         UniRun(Executor executor, AbstractPromise<V> input, AbstractPromise<Void> output,
                Runnable action) {
@@ -415,24 +495,37 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         @Override
-        public void accept(V value, Throwable cause) {
-            if (cause != null) {
-                output.tryFailure(cause);
-            } else {
-                try {
-                    action.run();
-                    output.trySuccess(null);
-                } catch (Throwable ex) {
-                    output.tryFailure(ex);
+        AbstractPromise<?> tryFire(int mode) {
+            AbstractPromise<Void> out = output;
+            if (!isDone0(out.resultHolder)) {
+                Object inResult = input.resultHolder;
+
+                if (inResult instanceof AltResult) {
+                    out.completeThrowable(((AltResult) inResult).cause, inResult);
+                } else {
+                    try {
+                        if (isFirstFireMode(mode) && !claim()) {
+                            return null;
+                        }
+                        action.run();
+                        out.completeNull();
+                    } catch (Throwable ex) {
+                        out.completeThrowable(ex);
+                    }
                 }
             }
+
+            input = null;
+            output = null;
+            action = null;
+            return postFire(out, mode);
         }
 
     }
 
     static class UniCall<V, U> extends AbstractUniCompletion<V, U> {
 
-        final Callable<U> fn;
+        Callable<U> fn;
 
         UniCall(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output,
                 Callable<U> fn) {
@@ -441,17 +534,29 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         @Override
-        public void accept(V value, Throwable cause) {
-            if (cause != null) {
-                output.tryFailure(cause);
-            } else {
-                try {
-                    final U newValue = fn.call();
-                    output.trySuccess(newValue);
-                } catch (Throwable ex) {
-                    output.tryFailure(ex);
+        AbstractPromise<?> tryFire(int mode) {
+            AbstractPromise<U> out = output;
+            if (!isDone0(out.resultHolder)) {
+                Object inResult = input.resultHolder;
+
+                if (inResult instanceof AltResult) {
+                    out.completeThrowable(((AltResult) inResult).cause, inResult);
+                } else {
+                    try {
+                        if (isFirstFireMode(mode) && !claim()) {
+                            return null;
+                        }
+                        out.completeValue(fn.call());
+                    } catch (Throwable ex) {
+                        out.completeThrowable(ex);
+                    }
                 }
             }
+
+            input = null;
+            output = null;
+            fn = null;
+            return postFire(out, mode);
         }
 
     }
@@ -464,6 +569,35 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
                   Consumer<? super V> action) {
             super(executor, input, output);
             this.action = action;
+        }
+
+        @Override
+        AbstractPromise<?> tryFire(int mode) {
+            AbstractPromise<Void> out = output;
+            if (!isDone0(out.resultHolder)) {
+                AbstractPromise<V> in = input;
+                Object inResult = in.resultHolder;
+
+                if (inResult instanceof AltResult) {
+                    out.completeThrowable(((AltResult) inResult).cause, inResult);
+                } else {
+                    try {
+                        if (isFirstFireMode(mode) && !claim()) {
+                            return null;
+                        }
+                        V value = in.decodeValue(inResult);
+                        action.accept(value);
+                        out.completeNull();
+                    } catch (Throwable ex) {
+                        out.completeThrowable(ex);
+                    }
+                }
+            }
+
+            input = null;
+            output = null;
+            fn = null;
+            return postFire(out, mode);
         }
 
         @Override
