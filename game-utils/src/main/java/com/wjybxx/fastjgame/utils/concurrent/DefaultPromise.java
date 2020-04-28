@@ -271,57 +271,92 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
     /**
      * {@link UniCompletion}表示联合两个{@code Future}，因此它持有一个输入，一个动作，和一个输出。
      * 实现{@link Runnable}接口是为了避免创建不必要的对象，如果需要在另一个线程执行的时候。
-     *
-     * @param <V> 输入值类型
-     * @param <U> 输入值类型
      */
-    static abstract class UniCompletion<V, U> extends Completion implements Runnable, BiConsumer<V, Throwable> {
+    static abstract class UniCompletion<U> extends Completion {
 
-        final Executor executor;
-        final ListenableFuture<V> input;
-        final AbstractPromise<U> output;
+        Executor executor;
+        AbstractPromise<U> output;
 
-        UniCompletion(Executor executor, ListenableFuture<V> input, AbstractPromise<U> output) {
+        UniCompletion(Executor executor, AbstractPromise<U> output) {
             this.executor = executor;
-            this.input = input;
             this.output = output;
         }
 
-        @Override
-        protected final AbstractPromise<U> tryFire() {
-            if (null == executor || EventLoopUtils.inEventLoop(executor)) {
-                input.acceptNow(this);
-            } else {
-                ConcurrentUtils.safeExecute(executor, this);
+        final boolean claim() {
+            Executor e = executor;
+            if (e == null || EventLoopUtils.inEventLoop(e)) {
+                executor = null;
+                return true;
             }
-            return null;
-        }
 
-        @Override
-        public final void run() {
-            input.acceptNow(this);
+            e.execute(this);
+            // help gc
+            executor = null;
+            return false;
         }
+    }
 
-        /**
-         * 子类实现不应抛出异常
-         *
-         * @param value input正常完成时的结果
-         * @param cause input异常完成时的结果
-         */
-        @Override
-        public abstract void accept(V value, Throwable cause);
+    /**
+     * @param <V> 输入值类型
+     * @param <U> 输入值类型
+     */
+    static abstract class UniCompletion2<V, U> extends UniCompletion<U> {
+
+        AbstractPromise<V> input;
+
+        UniCompletion2(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output) {
+            super(executor, output);
+            this.input = input;
+        }
 
     }
 
-    static class UniComposeApply<V, U> extends UniCompletion<V, U> {
+    static class UniComposeApply<V, U> extends UniCompletion2<V, U> {
 
-        final Function<? super V, ? extends ListenableFuture<U>> fn;
+        Function<? super V, ? extends ListenableFuture<U>> fn;
 
-        UniComposeApply(Executor executor, ListenableFuture<V> input, AbstractPromise<U> output,
+        UniComposeApply(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output,
                         Function<? super V, ? extends ListenableFuture<U>> fn) {
             super(executor, input, output);
             this.fn = fn;
         }
+
+        @Override
+        AbstractPromise<?> tryFire(int mode) {
+            final AbstractPromise<V> in = input;
+            final AbstractPromise<U> out = output;
+            final Object resultInput = in.resultHolder;
+
+            // 发现加了一个不可取消状态之后，复杂度高了许多
+            if (isDone0(out.resultHolder)) {
+
+            }
+
+            if (out.setUncancellable()) {
+                if (resultInput instanceof AltResult) {
+                    // 给定操作不需要执行，可直接进入完成状态
+                    out.completeThrowable(((AltResult) resultInput).cause);
+                } else {
+                    if (directMode(mode) && !claim()) {
+                        return null;
+                    }
+
+
+                    V value = in.decodeValue(resultInput);
+                    final ListenableFuture<U> relay = fn.apply(value);
+                    relay.addListener(new UniRelay<>(relay, out));
+                }
+            }
+
+            // help gc
+            input = null;
+            output = null;
+            fn = null;
+
+
+            return null;
+        }
+
 
         @Override
         public void accept(V value, Throwable cause) {
@@ -330,7 +365,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
             } else {
                 try {
                     final ListenableFuture<U> relay = fn.apply(value);
-                    relay.addListener(new UniRelay<>(relay, output));
+
                 } catch (Throwable ex) {
                     output.tryFailure(ex);
                 }
@@ -340,9 +375,14 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     static class UniRelay<V> extends UniCompletion<V, V> {
 
+        ListenableFuture<V> input;
+
         UniRelay(ListenableFuture<V> input, AbstractPromise<V> output) {
-            super(null, input, output);
+            super(null, output);
+            this.input = input;
         }
+
+        
 
         @Override
         public void accept(V value, Throwable cause) {
@@ -354,11 +394,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    static class UniComposeCall<V, U> extends UniCompletion<V, U> {
+    static class UniComposeCall<V, U> extends UniCompletion2<V, U> {
 
         final Callable<? extends ListenableFuture<U>> fn;
 
-        UniComposeCall(Executor executor, ListenableFuture<V> input, AbstractPromise<U> output,
+        UniComposeCall(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output,
                        Callable<? extends ListenableFuture<U>> fn) {
             super(executor, input, output);
             this.fn = fn;
@@ -379,11 +419,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    static class UniRun<V> extends UniCompletion<V, Void> {
+    static class UniRun<V> extends UniCompletion2<V, Void> {
 
         final Runnable action;
 
-        UniRun(Executor executor, ListenableFuture<V> input, AbstractPromise<Void> output,
+        UniRun(Executor executor, AbstractPromise<V> input, AbstractPromise<Void> output,
                Runnable action) {
             super(executor, input, output);
             this.action = action;
@@ -405,11 +445,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniCall<V, U> extends UniCompletion<V, U> {
+    static class UniCall<V, U> extends UniCompletion2<V, U> {
 
         final Callable<U> fn;
 
-        UniCall(Executor executor, ListenableFuture<V> input, AbstractPromise<U> output,
+        UniCall(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output,
                 Callable<U> fn) {
             super(executor, input, output);
             this.fn = fn;
@@ -431,11 +471,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniAccept<V> extends UniCompletion<V, Void> {
+    static class UniAccept<V> extends UniCompletion2<V, Void> {
 
         final Consumer<? super V> action;
 
-        UniAccept(Executor executor, ListenableFuture<V> input, AbstractPromise<Void> output,
+        UniAccept(Executor executor, AbstractPromise<V> input, AbstractPromise<Void> output,
                   Consumer<? super V> action) {
             super(executor, input, output);
             this.action = action;
@@ -457,11 +497,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniApply<V, U> extends UniCompletion<V, U> {
+    static class UniApply<V, U> extends UniCompletion2<V, U> {
 
         final Function<? super V, ? extends U> fn;
 
-        UniApply(Executor executor, ListenableFuture<V> input, AbstractPromise<U> output,
+        UniApply(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output,
                  Function<? super V, ? extends U> fn) {
             super(executor, input, output);
             this.fn = fn;
@@ -483,12 +523,12 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniCaching<V, X> extends UniCompletion<V, V> {
+    static class UniCaching<V, X> extends UniCompletion2<V, V> {
 
         final Class<X> exceptionType;
         final Function<? super X, ? extends V> fallback;
 
-        UniCaching(Executor executor, ListenableFuture<V> input, AbstractPromise<V> output,
+        UniCaching(Executor executor, AbstractPromise<V> input, AbstractPromise<V> output,
                    Class<X> exceptionType, Function<? super X, ? extends V> fallback) {
             super(executor, input, output);
             this.exceptionType = exceptionType;
@@ -517,11 +557,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniHandle<V, U> extends UniCompletion<V, U> {
+    static class UniHandle<V, U> extends UniCompletion2<V, U> {
 
         final BiFunction<? super V, ? super Throwable, ? extends U> fn;
 
-        UniHandle(Executor executor, ListenableFuture<V> input, AbstractPromise<U> output,
+        UniHandle(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output,
                   BiFunction<? super V, ? super Throwable, ? extends U> fn) {
             super(executor, input, output);
             this.fn = fn;
@@ -538,11 +578,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniWhenComplete<V> extends UniCompletion<V, V> {
+    static class UniWhenComplete<V> extends UniCompletion2<V, V> {
 
         final BiConsumer<? super V, ? super Throwable> action;
 
-        UniWhenComplete(Executor executor, ListenableFuture<V> input, AbstractPromise<V> output,
+        UniWhenComplete(Executor executor, AbstractPromise<V> input, AbstractPromise<V> output,
                         BiConsumer<? super V, ? super Throwable> action) {
             super(executor, input, output);
             this.action = action;
@@ -566,11 +606,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniWhenExceptionally<V> extends UniCompletion<V, V> {
+    static class UniWhenExceptionally<V> extends UniCompletion2<V, V> {
 
         final Consumer<? super Throwable> action;
 
-        UniWhenExceptionally(Executor executor, ListenableFuture<V> input, AbstractPromise<V> output,
+        UniWhenExceptionally(Executor executor, AbstractPromise<V> input, AbstractPromise<V> output,
                              Consumer<? super Throwable> action) {
             super(executor, input, output);
             this.action = action;
@@ -598,9 +638,9 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
     static abstract class ListenCompletion<V> extends Completion implements Runnable, BiConsumer<V, Throwable> {
 
         final Executor executor;
-        final ListenableFuture<V> input;
+        final AbstractPromise<V> input;
 
-        ListenCompletion(Executor executor, ListenableFuture<V> input) {
+        ListenCompletion(Executor executor, AbstractPromise<V> input) {
             this.executor = executor;
             this.input = input;
         }
@@ -611,7 +651,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         @Override
-        AbstractPromise<V> tryFire() {
+        AbstractPromise<V> tryFire(int mode) {
             if (executor == null || EventLoopUtils.inEventLoop(executor)) {
                 input.acceptNow(this);
             } else {
@@ -629,7 +669,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
         final BiConsumer<? super V, ? super Throwable> action;
 
-        ListenWhenComplete(Executor executor, ListenableFuture<V> input,
+        ListenWhenComplete(Executor executor, AbstractPromise<V> input,
                            BiConsumer<? super V, ? super Throwable> action) {
             super(executor, input);
             this.action = action;
@@ -650,7 +690,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
         final Consumer<? super Throwable> action;
 
-        ListenWhenExceptionally(Executor executor, ListenableFuture<V> input,
+        ListenWhenExceptionally(Executor executor, AbstractPromise<V> input,
                                 Consumer<? super Throwable> action) {
             super(executor, input);
             this.action = action;

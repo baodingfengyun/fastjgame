@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
 import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 
@@ -76,10 +77,11 @@ public abstract class AbstractPromise<V> implements Promise<V> {
      * <li>其它任何非null值，表示终止状态，表示正常完成，且计算结果非null。</li>
      * </ul>
      */
-    private volatile Object resultHolder;
+    volatile Object resultHolder;
 
     /**
      * 当前对象上的所有监听器，使用栈方式存储
+     * 如果{@code stack}为{@link Completion#TOMBSTONE}，表明当前Future已完成，且正在进行通知，或已通知完毕。
      */
     private volatile Completion stack = null;
 
@@ -94,7 +96,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     }
 
     public AbstractPromise(V result) {
-        resultHolder = result == null ? NIL : result;
+        resultHolder = encodeValue(result);
     }
 
     public AbstractPromise(Throwable cause) {
@@ -102,55 +104,29 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     }
 
     /**
-     * 异常结果包装对象，只有该类型表示失败。
+     * 非取消完成可以由初始状态或不可取消状态进入完成状态
+     * CAS{@code null}或者{@link #UNCANCELLABLE} 到指定结果值
      */
-    static class AltResult {
-
-        final Throwable cause;
-
-        AltResult(Throwable cause) {
-            this.cause = cause;
-        }
+    private boolean internalComplete(Object result) {
+        return RESULT_HOLDER.compareAndSet(this, null, result)
+                || RESULT_HOLDER.compareAndSet(this, UNCANCELLABLE, result);
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * 取消只能由初始状态(null)切换为完成状态
+     * CAS {@code null}到{@link AltResult}
+     */
+    private boolean internalCompleteCancellation(CancellationException ex) {
+        return RESULT_HOLDER.compareAndSet(this, null, new AltResult(ex));
+    }
 
     /**
-     * 成功完成或失败完成
+     * CAS {@code null}到{@link #UNCANCELLABLE}
      *
-     * @return 如果赋值成功，则返回true，否则返回false。
+     * @return the oldValue
      */
-    private boolean tryComplete(@Nonnull Object value) {
-        // 正常完成可以由初始状态或不可取消状态进入完成状态
-        if (RESULT_HOLDER.compareAndSet(this, null, value)
-                || RESULT_HOLDER.compareAndSet(this, UNCANCELLABLE, value)) {
-            postComplete(this);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * 尝试标记为不可取消
-     */
-    private boolean trySetUncancellable() {
-        return RESULT_HOLDER.compareAndSet(this, null, UNCANCELLABLE);
-    }
-
-    /**
-     * 由取消进入完成状态
-     *
-     * @return 成功取消则返回true
-     */
-    private boolean tryCompleteCancellation() {
-        // 取消只能由初始状态(null)切换为完成状态
-        if (RESULT_HOLDER.compareAndSet(this, null, new AltResult(new CancellationException()))) {
-            postComplete(this);
-            return true;
-        } else {
-            return false;
-        }
+    private Object internalUnCancellable() {
+        return RESULT_HOLDER.compareAndExchange(this, null, UNCANCELLABLE);
     }
 
     /**
@@ -167,19 +143,136 @@ public abstract class AbstractPromise<V> implements Promise<V> {
         return (int) SIGNAL_NEEDED.getAndSet(this, 0) == 1;
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * 异常结果包装对象，只有该类型表示失败。
+     */
+    static class AltResult {
+
+        final Throwable cause;
+
+        AltResult(Throwable cause) {
+            this.cause = cause;
+        }
+    }
+
+    /* ------------------------- 带编解码的完成方法，主要用于Completion关联的计算 -------------------------- */
+
+    /**
+     * Completes with the null value, unless already completed.
+     */
+    final boolean completeNull() {
+        return internalComplete(NIL);
+    }
+
+    /**
+     * Completes with a non-exceptional result, unless already completed.
+     */
+    final boolean completeValue(V value) {
+        return internalComplete(encodeValue(value));
+    }
+
+    /**
+     * Returns the encoding of the given non-exceptional value.
+     */
+    final Object encodeValue(V value) {
+        return (value == null) ? NIL : value;
+    }
+
+    @SuppressWarnings("unchecked")
+    final V decodeValue(Object result) {
+        return result == NIL ? null : (V) result;
+    }
+
+    /**
+     * Completes with an exceptional result, unless already completed.
+     */
+    final boolean completeThrowable(Throwable x) {
+        return internalComplete(encodeThrowable(x));
+    }
+
+    /**
+     * Returns the encoding of the given (non-null) exception as a
+     * wrapped CompletionException unless it is one already.
+     */
+    static AltResult encodeThrowable(Throwable x) {
+        return new AltResult((x instanceof CompletionException) ? x :
+                new CompletionException(x));
+    }
+
+    /**
+     * Completes with the given (non-null) exceptional result as a
+     * wrapped CompletionException unless it is one already, unless
+     * already completed.  May complete with the given Object r
+     * (which must have been the result of a source future) if it is
+     * equivalent, i.e. if this is a simple propagation of an
+     * existing CompletionException.
+     */
+    final boolean completeThrowable(Throwable x, Object r) {
+        return internalComplete(encodeThrowable(x, r));
+    }
+
+    /**
+     * 如果给定的异常(非Null)不是{@link CompletionException}，则将其包装为{@link CompletionException}。
+     * 如果给定的异常与依赖的结果的异常相同，则直接返回它(它一定是原Future的结果) - 它表名当前{@link Completion}是一个简单中继。
+     *
+     * <p>
+     * Returns the encoding of the given (non-null) exception as a
+     * wrapped CompletionException unless it is one already.  May
+     * return the given Object r (which must have been the result of a
+     * source future) if it is equivalent, i.e. if this is a simple
+     * relay of an existing CompletionException.
+     */
+    static Object encodeThrowable(Throwable x, Object r) {
+        if (!(x instanceof CompletionException)) {
+            x = new CompletionException(x);
+        } else if (r instanceof AltResult && x == ((AltResult) r).cause) {
+            // 用户重新抛出上一个Completion的CompletionException
+            return r;
+        }
+        return new AltResult(x);
+    }
+
+    /**
+     * Returns the encoding of a copied outcome; if exceptional,
+     * rewraps as a CompletionException, else returns argument.
+     */
+    static Object encodeRelay(Object r) {
+        if (r == NIL) {
+            return r;
+        }
+
+        Throwable x;
+        if (r instanceof AltResult
+                && (x = ((AltResult) r).cause) != null
+                && !(x instanceof CompletionException)) {
+            r = new AltResult(new CompletionException(x));
+        }
+        return r;
+    }
+
+    /**
+     * Completes with r or a copy of r, unless already completed.
+     * If exceptional, r is first coerced to a CompletionException.
+     */
+    final boolean completeRelay(Object r) {
+        return RESULT_HOLDER.compareAndSet(this, null, encodeRelay(r));
+    }
+
     // --------------------------------------------- 查询 --------------------------------------------------
 
     /**
      * 解释一下为什么多线程的代码喜欢将volatile变量存为临时变量或传递给某一个方法做判断。
      * 为了保证数据的一致性，当对volatile执行多个操作时，如果不把volatile变量保存下来，则每次读取的结果可能是不一样的。
      */
-    private static boolean isDone0(Object result) {
+    static boolean isDone0(Object result) {
         // 当result不为null，且不是不可取消占位符的时候表示已进入完成状态
         return result != null && result != UNCANCELLABLE;
     }
 
     private static boolean isCompletedExceptionally0(Object result) {
-        return result instanceof AbstractPromise.AltResult;
+        return result instanceof AltResult;
     }
 
     private static boolean isCancelled0(Object result) {
@@ -188,7 +281,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     }
 
     private static Throwable getCause0(Object result) {
-        return (result instanceof AbstractPromise.AltResult) ? ((AltResult) result).cause : null;
+        return (result instanceof AltResult) ? ((AltResult) result).cause : null;
     }
 
     private static boolean isCancellable0(Object result) {
@@ -236,7 +329,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
             return null;
         }
 
-        if (r instanceof AbstractPromise.AltResult) {
+        if (r instanceof AltResult) {
             return rethrowJoin(((AltResult) r).cause);
         }
 
@@ -258,47 +351,65 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     // ------------------------------------------------- 状态迁移 --------------------------------------------
     @Override
     public final boolean setUncancellable() {
-        if (trySetUncancellable()) {
-            return true;
-        } else {
-            // 到这里result一定不为null，当前为不可取消状态 或 结束状态
-            final Object result = resultHolder;
-            return result == UNCANCELLABLE || !isCancelled0(result);
-        }
+        final Object result = internalUnCancellable();
+        // 到这里result一定不为null，当前为不可取消状态 或 结束状态
+        return result == UNCANCELLABLE || !isCancelled0(result);
     }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         final Object result = resultHolder;
-        if (isCancelled0(result)) {
+        if (isCancellable0(result) && internalCompleteCancellation(new CancellationException())) {
+            // 判断一次是否可取消，可以减少异常创建
+            postComplete(this);
             return true;
         }
-        return isCancellable0(result) && tryCompleteCancellation();
+
+        // 可能是已取消或被其它线程取消
+        return isCancelled0(result) || isCancelled();
     }
 
     @Override
     public final void setSuccess(V result) {
-        if (!trySuccess(result)) {
-            throw new IllegalStateException("complete already, discard result " + result);
+        if (internalComplete(encodeValue(result))) {
+            postComplete(this);
+            return;
         }
+
+        throw new IllegalStateException("complete already, discard result " + result);
     }
 
     @Override
     public final boolean trySuccess(V result) {
-        // 当future关联的task成功，但是没有返回值时，使用SUCCESS代替
-        return tryComplete(result == null ? NIL : result);
+        if (internalComplete(encodeValue(result))) {
+            postComplete(this);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public final void setFailure(@Nonnull Throwable cause) {
-        if (!tryFailure(cause)) {
-            throw new IllegalStateException("complete already, discard cause " + cause);
+        Objects.requireNonNull(cause, "cause");
+
+        if (internalComplete(new AltResult(cause))) {
+            postComplete(this);
+            return;
         }
+
+        throw new IllegalStateException("complete already, discard cause " + cause);
     }
 
     @Override
     public final boolean tryFailure(@Nonnull Throwable cause) {
-        return tryComplete(new AltResult(cause));
+        Objects.requireNonNull(cause, "cause");
+
+        if (internalComplete(new AltResult(cause))) {
+            postComplete(this);
+            return true;
+        }
+
+        return false;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,7 +426,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
             return true;
         }
 
-        if (result instanceof AbstractPromise.AltResult) {
+        if (result instanceof AltResult) {
             action.accept(null, ((AltResult) result).cause);
         } else {
             @SuppressWarnings("unchecked") final V value = (V) result;
@@ -346,7 +457,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
             return null;
         }
 
-        if (r instanceof AbstractPromise.AltResult) {
+        if (r instanceof AltResult) {
             return rethrowGet(((AltResult) r).cause);
         }
 
@@ -541,11 +652,43 @@ public abstract class AbstractPromise<V> implements Promise<V> {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    static abstract class Completion {
+    // Modes for Completion.tryFire. Signedness matters.
+    /**
+     * 同步调用模式，表示压栈过程中发现{@code Future}已进入完成状态，从而调用的{@link Completion#tryFire(int)}。
+     * 1. 如果在该模式下，使下一个{@code Future}进入完成状态，则需要调用{@link #postComplete(AbstractPromise)}
+     * 2. 在该模式，表示首次调用，需要判断是否能立即运行。
+     */
+    static final int SYNC = 0;
+    /**
+     * 间接调用模式，表示提交到{@link Executor}之后调用{@link Completion#tryFire(int)}
+     * 1. 如果在该模式下，使下一个{@code Future}进入完成状态，则需要调用{@link #postComplete(AbstractPromise)}
+     * 2. 在该模式，表示非首次调用，立即运行。
+     */
+    static final int ASYNC = 1;
+    /**
+     * 最近调用模式，表示由{@link #postComplete(AbstractPromise)}中触发调用。
+     * 1. 如果在该模式下，使下一个{@code Future}进入完成状态，则返回下一个{@code Future}。
+     * 2. 在该模式，表示首次调用，需要判断是否能立即运行。
+     */
+    static final int NESTED = -1;
+
+    /**
+     * 是否是直接调用的模式
+     * 大佬们的思维就是不一样...也不定义单独的方法，理解起来费死劲了
+     */
+    static boolean directMode(int mode) {
+        return mode <= 0;
+    }
+
+    static boolean postCompleteMode(int mode) {
+        return mode >= 0;
+    }
+
+    static abstract class Completion implements Runnable {
 
         static final Completion TOMBSTONE = new Completion() {
             @Override
-            AbstractPromise<Object> tryFire() {
+            AbstractPromise<Object> tryFire(int mode) {
                 return null;
             }
         };
@@ -555,36 +698,39 @@ public abstract class AbstractPromise<V> implements Promise<V> {
          */
         Completion next;
 
+        @Override
+        public final void run() {
+            tryFire(ASYNC);
+        }
+
         /**
-         * 尝试执行回调逻辑
-         *
-         * @return 如果tryFire使得另一个Future进入完成状态，返回该Future(在这之前不要推送进入完成事件)
+         * 传递当前{@code Future}进入完成状态事件。
+         * 如果tryFire使得另一个{@code Future}进入完成状态，分两种情况：
+         * 1. mode指示不要调用{@link #postComplete(AbstractPromise)}方法时，则返回新进入完成状态的{@code Future}。
+         * 2. mode指示可以调用{@link #postComplete(AbstractPromise)}方法时，则直接其进入完成状态的事件。
          */
-        abstract AbstractPromise<?> tryFire();
+        abstract AbstractPromise<?> tryFire(int mode);
 
     }
 
     final void pushCompletion(Completion newHead) {
         // 如果future已完成，则立即执行
-        if (isDone()) {
-            newHead.tryFire();
-            return;
-        }
+        if (!isDone()) {
+            Completion head;
+            while ((head = stack) != Completion.TOMBSTONE) {
+                // 由下面的CAS保证可见性
+                newHead.next = head;
 
-        Completion head;
-        while ((head = stack) != Completion.TOMBSTONE) {
-            // 由下面的CAS保证可见性
-            newHead.next = head;
-
-            if (STACK.compareAndSet(this, head, newHead)) {
-                // 如果成功添加到头部，证明Future尚未完成，或已完成但还未开始通知，新添加的completion会被其它线程通知
-                return;
+                if (STACK.compareAndSet(this, head, newHead)) {
+                    // 如果成功添加到头部，证明Future尚未完成，或已完成但还未开始通知，新添加的completion会被其它线程通知
+                    return;
+                }
             }
         }
 
         // 到这里的时候 head == TOMBSTONE，表示目标Future已进入完成状态，且正在被通知或已经通知完毕。
-        // 由于Future已进入完成状态，且我们的Completion压入栈失败，因此新的completion需要当前线程来通知
-        newHead.tryFire();
+        // 由于Future已进入完成状态，且我们的Completion压栈失败，因此新的completion需要当前线程来通知
+        newHead.tryFire(SYNC);
     }
 
     /**
@@ -606,7 +752,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
                 next = next.next;
 
                 // Completion的tryFire实现不可以抛出异常，否则会导致其它监听器也丢失信号
-                future = curr.tryFire();
+                future = curr.tryFire(NESTED);
 
                 if (future != null) {
                     // 如果某个Completion使另一个Future进入完成状态，则更新为新的Future，并重试整个流程
@@ -634,7 +780,7 @@ public abstract class AbstractPromise<V> implements Promise<V> {
      * <p>
      * Q: 这步操作是要干什么？<br>
      * A: 由于一个{@link Completion}在执行时可能使另一个{@code Future}进入完成状态，如果不做处理的话，则可能产生一个很深的递归，
-     * 从而造成堆栈移除，也影响性能。该操作就是将可能通知的监听器由树结构展开为链表结构，消除深嵌套的递归。
+     * 从而造成堆栈溢出，也影响性能。该操作就是将可能通知的监听器由树结构展开为链表结构，消除深嵌套的递归。
      * <pre>
      *      Future1(stack) -> Completion1_1 ->  Completion1_2 -> Completion1_3
      *                              ↓
@@ -671,7 +817,6 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
     private static final VarHandle RESULT_HOLDER;
     private static final VarHandle STACK;
