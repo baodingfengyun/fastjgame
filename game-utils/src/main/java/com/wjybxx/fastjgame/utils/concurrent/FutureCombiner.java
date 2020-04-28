@@ -20,7 +20,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 
 /**
  * {@link FluentFuture}聚合器。
@@ -138,16 +137,11 @@ public class FutureCombiner {
         }
     }
 
-    private class ChildListener implements BiConsumer<Object, Throwable>, FutureListener<Object> {
+    private class ChildListener implements FutureListener<Object> {
 
         @Override
-        public void onComplete(FluentFuture<Object> future) {
-            future.acceptNow(this);
-        }
-
-        @Override
-        public void accept(Object o, Throwable throwable) {
-            assert appEventLoop.inEventLoop();
+        public void onComplete(ListenableFuture<Object> future) {
+            final Throwable throwable = future.cause();
 
             if (throwable != null) {
                 cause = throwable;
@@ -159,7 +153,6 @@ public class FutureCombiner {
                 tryPromise();
             }
         }
-
     }
 
     private boolean tryPromise() {

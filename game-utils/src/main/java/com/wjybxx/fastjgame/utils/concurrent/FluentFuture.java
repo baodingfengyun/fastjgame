@@ -61,7 +61,7 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      * <p>
      * {@link CompletionStage#thenCompose(Function)}
      */
-    <U> FluentFuture<U> thenCompose(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn);
+    <U> FluentFuture<U> thenCompose(@Nonnull Function<? super V, ? extends ListenableFuture<U>> fn);
 
     /**
      * {@link #thenCompose(Function)}的特化版本，主要用于消除丑陋的void
@@ -72,7 +72,7 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      * <p>
      * 该方法在{@link CompletionStage}中也是不存在的。
      */
-    <U> FluentFuture<U> thenCompose(@Nonnull Callable<? extends FluentFuture<U>> fn);
+    <U> FluentFuture<U> thenCompose(@Nonnull Callable<? extends ListenableFuture<U>> fn);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -171,9 +171,9 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
 
     // ------------------------------------- 异步版本  --------------------------------------
 
-    <U> FluentFuture<U> thenComposeAsync(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn, Executor executor);
+    <U> FluentFuture<U> thenComposeAsync(@Nonnull Function<? super V, ? extends ListenableFuture<U>> fn, Executor executor);
 
-    <U> FluentFuture<U> thenComposeAsync(@Nonnull Callable<? extends FluentFuture<U>> fn, Executor executor);
+    <U> FluentFuture<U> thenComposeAsync(@Nonnull Callable<? extends ListenableFuture<U>> fn, Executor executor);
 
     FluentFuture<Void> thenRunAsync(@Nonnull Runnable action, Executor executor);
 
@@ -196,13 +196,14 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
     /**
      * @return this
      */
+    @Deprecated
     FluentFuture<V> addListener(FutureListener<? super V> listener);
 
     /**
      * @return this
      */
+    @Deprecated
     FluentFuture<V> addListener(FutureListener<? super V> listener, Executor executor);
-
 
 
 }

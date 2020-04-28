@@ -45,6 +45,6 @@ public interface FutureListener<V> {
      * @param future 监听器监听的future。
      * @throws Exception error
      */
-    void onComplete(FluentFuture<V> future) throws Exception;
+    void onComplete(ListenableFuture<V> future) throws Exception;
 
 }

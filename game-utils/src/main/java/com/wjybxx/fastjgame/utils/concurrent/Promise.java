@@ -79,10 +79,10 @@ public interface Promise<V> extends FluentFuture<V> {
     Promise<V> awaitUninterruptibly();
 
     @Override
-    <U> Promise<U> thenCompose(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn);
+    <U> Promise<U> thenCompose(@Nonnull Function<? super V, ? extends ListenableFuture<U>> fn);
 
     @Override
-    <U> Promise<U> thenCompose(@Nonnull Callable<? extends FluentFuture<U>> fn);
+    <U> Promise<U> thenCompose(@Nonnull Callable<? extends ListenableFuture<U>> fn);
 
     @Override
     Promise<Void> thenRun(@Nonnull Runnable action);
@@ -110,10 +110,10 @@ public interface Promise<V> extends FluentFuture<V> {
     Promise<V> whenExceptionally(@Nonnull Consumer<? super Throwable> action);
 
     @Override
-    <U> Promise<U> thenComposeAsync(@Nonnull Function<? super V, ? extends FluentFuture<U>> fn, Executor executor);
+    <U> Promise<U> thenComposeAsync(@Nonnull Function<? super V, ? extends ListenableFuture<U>> fn, Executor executor);
 
     @Override
-    <U> Promise<U> thenComposeAsync(@Nonnull Callable<? extends FluentFuture<U>> fn, Executor executor);
+    <U> Promise<U> thenComposeAsync(@Nonnull Callable<? extends ListenableFuture<U>> fn, Executor executor);
 
     @Override
     Promise<Void> thenRunAsync(@Nonnull Runnable action, Executor executor);
@@ -140,11 +140,19 @@ public interface Promise<V> extends FluentFuture<V> {
     @Override
     Promise<V> whenExceptionallyAsync(@Nonnull Consumer<? super Throwable> action, Executor executor);
 
+    @Deprecated
     @Override
     Promise<V> addListener(FutureListener<? super V> listener);
 
+    @Deprecated
     @Override
     Promise<V> addListener(FutureListener<? super V> listener, Executor executor);
+
+    @Override
+    Promise<V> addListener(@Nonnull BiConsumer<? super V, ? super Throwable> action);
+
+    @Override
+    Promise<V> addListener(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor);
 
     @Override
     Promise<V> addFailedListener(Consumer<? super Throwable> action);

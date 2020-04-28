@@ -54,6 +54,8 @@ public class DefaultEventLoopTest {
             return "500";
         });
 
+        future3.awaitUninterruptibly();
+
         future3.addListener(f -> {
             System.out.println("1 whenComplete, thread " + Thread.currentThread().getName() + ",result = " + f.getNow());
         }, GlobalEventLoop.INSTANCE);

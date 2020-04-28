@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -228,7 +229,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
 
         @Override
-        public void onComplete(FluentFuture<Object> future) throws Exception {
+        public void onComplete(ListenableFuture<Object> future) throws Exception {
             if (context.session.isClosed()) {
                 return;
             }
