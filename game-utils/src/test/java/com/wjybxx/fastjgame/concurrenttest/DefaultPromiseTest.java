@@ -20,6 +20,8 @@ import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.utils.concurrent.GlobalEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * @author wjybxx
  * @version 1.0
@@ -27,7 +29,7 @@ import com.wjybxx.fastjgame.utils.concurrent.Promise;
  */
 public class DefaultPromiseTest {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         final Promise<String> promise = FutureUtils.newPromise();
         promise.thenAccept(System.out::println)
                 .whenExceptionally(System.out::println);

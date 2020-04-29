@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -283,11 +282,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
     // -------------------------------------------------- UniCompletion ---------------------------------------------------------------
 
     private static <U> AbstractPromise<U> postFire(@Nonnull AbstractPromise<U> output, int mode) {
-        if (postCompleteMode(mode)) {
+        if (isNestedMode(mode)) {
+            return output;
+        } else {
             postComplete(output);
             return null;
-        } else {
-            return output;
         }
     }
 
@@ -303,7 +302,10 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
             this.executor = executor;
         }
 
-        final boolean claim() {
+        /**
+         * 如果可以立即执行，则返回true，否则将提交到{@link #executor}稍后执行。
+         */
+        final boolean executeDirectly() {
             Executor e = executor;
             if (e == null || EventLoopUtils.inEventLoop(e)) {
                 executor = null;
@@ -351,21 +353,25 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
-            // 这个语法真是不想用
+            // 一直以为循环才能带标签...
             tryComplete:
-            if (!isDone0(out.resultHolder)) {
+            if (out.isCancellable()) {
                 AbstractPromise<V> in = input;
                 Object inResult = in.resultHolder;
 
                 if (inResult instanceof AltResult) {
-                    out.completeThrowable(((AltResult) inResult).cause);
+                    // 上一步异常完成，不执行给定动作，直接完成(当前completion只是简单中继)
+                    out.completeRelayThrowable(inResult);
                     break tryComplete;
                 }
 
                 try {
-                    if (isFirstFireMode(mode) && !claim()) {
-                        // 首次fire但是不能立即运行
+                    if (isSyncOrNestedMode(mode) && !executeDirectly()) {
                         return null;
+                    }
+
+                    if (!out.setUncancellable()) {
+                        break tryComplete;
                     }
 
                     V value = in.decodeValue(inResult);
@@ -373,32 +379,36 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
                     if (relay.isDone()) {
                         // 返回的是已完成的Future
-                        transferTo(relay, out);
+                        completeRelay(out, relay);
                     } else {
                         relay.addListener(new UniRelay<>(relay, out));
-                        // 可能在这期间完成
-                        if (!isDone0(out.resultHolder)) {
-                            return null;
-                        }
                     }
                 } catch (Throwable ex) {
                     out.completeThrowable(ex);
                 }
             }
-            // 走到这里表示，output已进入完成状态
+
+            // 走到这里表示，表示该completion已完成，释放内存
+            // help gc
             input = null;
             output = null;
             fn = null;
+
             return postFire(out, mode);
         }
     }
 
-    private static <U> void transferTo(ListenableFuture<U> relay, AbstractPromise<U> out) {
+    private static <U> boolean completeRelay(AbstractPromise<U> out, ListenableFuture<U> relay) {
+        if (relay instanceof AbstractPromise) {
+            Object result = ((AbstractPromise<U>) relay).resultHolder;
+            return out.completeRelay(result);
+        }
+
         Throwable cause = relay.cause();
         if (cause != null) {
-            out.completeThrowable(cause);
+            return out.completeThrowable(cause);
         } else {
-            out.completeValue(relay.getNow());
+            return out.completeValue(relay.getNow());
         }
     }
 
@@ -415,11 +425,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
         @Override
         AbstractPromise<?> tryFire(int mode) {
-            final AbstractPromise<V> out = this.output;
-            final ListenableFuture<V> in = this.input;
+            AbstractPromise<V> out = this.output;
+            ListenableFuture<V> in = this.input;
 
-            if (!isDone0(out.resultHolder)) {
-                transferTo(in, out);
+            if (out.setUncancellable()) {
+                completeRelay(out, in);
             }
 
             // help gc
@@ -444,41 +454,44 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
+            // 一直以为循环才能带标签...主要用于减少嵌套
             tryComplete:
             if (!isDone0(out.resultHolder)) {
                 Object inResult = input.resultHolder;
 
                 if (inResult instanceof AltResult) {
-                    out.completeThrowable(((AltResult) inResult).cause);
+                    // 上一步异常完成，不执行给定动作，直接完成
+                    out.completeRelayThrowable(inResult);
                     break tryComplete;
                 }
 
                 try {
-                    if (isFirstFireMode(mode) && !claim()) {
-                        // 首次fire但是不能立即运行
+                    if (isSyncOrNestedMode(mode) && !executeDirectly()) {
                         return null;
+                    }
+
+                    if (!out.setUncancellable()) {
+                        break tryComplete;
                     }
 
                     ListenableFuture<U> relay = fn.call();
 
                     if (relay.isDone()) {
                         // 返回的是已完成的Future
-                        transferTo(relay, out);
+                        completeRelay(out, relay);
                     } else {
                         relay.addListener(new UniRelay<>(relay, out));
-                        // 可能在这期间完成
-                        if (!isDone0(out.resultHolder)) {
-                            return null;
-                        }
                     }
                 } catch (Throwable ex) {
                     out.completeThrowable(ex);
                 }
             }
 
+            // help gc
             input = null;
             output = null;
             fn = null;
+
             return postFire(out, mode);
         }
 
@@ -497,18 +510,22 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         @Override
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<Void> out = output;
+
             if (!isDone0(out.resultHolder)) {
                 Object inResult = input.resultHolder;
 
                 if (inResult instanceof AltResult) {
-                    out.completeThrowable(((AltResult) inResult).cause, inResult);
+                    out.completeRelayThrowable(inResult);
                 } else {
                     try {
-                        if (isFirstFireMode(mode) && !claim()) {
+                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
                             return null;
                         }
-                        action.run();
-                        out.completeNull();
+
+                        if (out.setUncancellable()) {
+                            action.run();
+                            out.completeNull();
+                        }
                     } catch (Throwable ex) {
                         out.completeThrowable(ex);
                     }
@@ -518,6 +535,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
             input = null;
             output = null;
             action = null;
+
             return postFire(out, mode);
         }
 
@@ -536,17 +554,21 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         @Override
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
+
             if (!isDone0(out.resultHolder)) {
                 Object inResult = input.resultHolder;
 
                 if (inResult instanceof AltResult) {
-                    out.completeThrowable(((AltResult) inResult).cause, inResult);
+                    out.completeRelayThrowable(inResult);
                 } else {
                     try {
-                        if (isFirstFireMode(mode) && !claim()) {
+                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
                             return null;
                         }
-                        out.completeValue(fn.call());
+
+                        if (out.setUncancellable()) {
+                            out.completeValue(fn.call());
+                        }
                     } catch (Throwable ex) {
                         out.completeThrowable(ex);
                     }
@@ -556,6 +578,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
             input = null;
             output = null;
             fn = null;
+
             return postFire(out, mode);
         }
 
@@ -563,7 +586,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
 
     static class UniAccept<V> extends AbstractUniCompletion<V, Void> {
 
-        final Consumer<? super V> action;
+        Consumer<? super V> action;
 
         UniAccept(Executor executor, AbstractPromise<V> input, AbstractPromise<Void> output,
                   Consumer<? super V> action) {
@@ -574,20 +597,70 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         @Override
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<Void> out = output;
+
             if (!isDone0(out.resultHolder)) {
                 AbstractPromise<V> in = input;
                 Object inResult = in.resultHolder;
 
                 if (inResult instanceof AltResult) {
-                    out.completeThrowable(((AltResult) inResult).cause, inResult);
+                    out.completeRelayThrowable(inResult);
                 } else {
                     try {
-                        if (isFirstFireMode(mode) && !claim()) {
+                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
                             return null;
                         }
-                        V value = in.decodeValue(inResult);
-                        action.accept(value);
-                        out.completeNull();
+
+                        if (out.setUncancellable()) {
+                            V value = in.decodeValue(inResult);
+                            action.accept(value);
+                            out.completeNull();
+                        }
+
+                    } catch (Throwable ex) {
+                        out.completeThrowable(ex);
+                    }
+                }
+            }
+
+            input = null;
+            output = null;
+            action = null;
+
+            return postFire(out, mode);
+        }
+
+    }
+
+    static class UniApply<V, U> extends AbstractUniCompletion<V, U> {
+
+        Function<? super V, ? extends U> fn;
+
+        UniApply(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output,
+                 Function<? super V, ? extends U> fn) {
+            super(executor, input, output);
+            this.fn = fn;
+        }
+
+        @Override
+        AbstractPromise<?> tryFire(int mode) {
+            AbstractPromise<U> out = output;
+
+            if (!isDone0(out.resultHolder)) {
+                AbstractPromise<V> in = input;
+                Object inResult = in.resultHolder;
+
+                if (inResult instanceof AltResult) {
+                    out.completeRelayThrowable(inResult);
+                } else {
+                    try {
+                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                            return null;
+                        }
+
+                        if (out.setUncancellable()) {
+                            V value = in.decodeValue(inResult);
+                            out.completeValue(fn.apply(value));
+                        }
                     } catch (Throwable ex) {
                         out.completeThrowable(ex);
                     }
@@ -597,55 +670,15 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
             input = null;
             output = null;
             fn = null;
+
             return postFire(out, mode);
         }
-
-        @Override
-        public void accept(V value, Throwable cause) {
-            if (cause != null) {
-                output.tryFailure(cause);
-            } else {
-                try {
-                    action.accept(value);
-                    output.trySuccess(null);
-                } catch (Throwable ex) {
-                    output.tryFailure(ex);
-                }
-            }
-        }
-
-    }
-
-    static class UniApply<V, U> extends AbstractUniCompletion<V, U> {
-
-        final Function<? super V, ? extends U> fn;
-
-        UniApply(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output,
-                 Function<? super V, ? extends U> fn) {
-            super(executor, input, output);
-            this.fn = fn;
-        }
-
-        @Override
-        public void accept(V value, Throwable cause) {
-            if (cause != null) {
-                output.tryFailure(cause);
-            } else {
-                try {
-                    final U newValue = fn.apply(value);
-                    output.trySuccess(newValue);
-                } catch (Throwable ex) {
-                    output.tryFailure(ex);
-                }
-            }
-        }
-
     }
 
     static class UniCaching<V, X> extends AbstractUniCompletion<V, V> {
 
-        final Class<X> exceptionType;
-        final Function<? super X, ? extends V> fallback;
+        Class<X> exceptionType;
+        Function<? super X, ? extends V> fallback;
 
         UniCaching(Executor executor, AbstractPromise<V> input, AbstractPromise<V> output,
                    Class<X> exceptionType, Function<? super X, ? extends V> fallback) {
@@ -655,30 +688,44 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         @Override
-        public void accept(V value, Throwable cause) {
-            if (cause == null) {
-                output.trySuccess(value);
-                return;
+        AbstractPromise<?> tryFire(int mode) {
+            AbstractPromise<V> out = output;
+
+            if (!isDone0(out.resultHolder)) {
+                Object inResult = input.resultHolder;
+                Throwable cause;
+
+                if (inResult instanceof AltResult
+                        && exceptionType.isInstance((cause = ((AltResult) inResult).cause))) {
+                    try {
+                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                            return null;
+                        }
+
+                        if (out.setUncancellable()) {
+                            @SuppressWarnings("unchecked") final X castException = (X) cause;
+                            out.completeValue(fallback.apply(castException));
+                        }
+                    } catch (Throwable ex) {
+                        out.completeThrowable(ex);
+                    }
+                } else {
+                    out.completeRelay(inResult);
+                }
             }
 
-            if (!exceptionType.isInstance(cause)) {
-                output.tryFailure(cause);
-                return;
-            }
+            input = null;
+            output = null;
+            exceptionType = null;
+            fallback = null;
 
-            try {
-                @SuppressWarnings("unchecked") final X castException = (X) cause;
-                output.trySuccess(fallback.apply(castException));
-            } catch (Throwable ex) {
-                output.tryFailure(ex);
-            }
+            return postFire(out, mode);
         }
-
     }
 
     static class UniHandle<V, U> extends AbstractUniCompletion<V, U> {
 
-        final BiFunction<? super V, ? super Throwable, ? extends U> fn;
+        BiFunction<? super V, ? super Throwable, ? extends U> fn;
 
         UniHandle(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output,
                   BiFunction<? super V, ? super Throwable, ? extends U> fn) {
@@ -687,19 +734,49 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         @Override
-        public void accept(V value, Throwable cause) {
-            try {
-                output.trySuccess(fn.apply(value, cause));
-            } catch (Throwable ex) {
-                output.tryFailure(ex);
+        AbstractPromise<?> tryFire(int mode) {
+            AbstractPromise<U> out = output;
+
+            if (!isDone0(out.resultHolder)) {
+                try {
+                    if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                        return null;
+                    }
+
+                    if (out.setUncancellable()) {
+                        AbstractPromise<V> in = input;
+                        Object inResult = in.resultHolder;
+                        Throwable cause;
+                        V value;
+
+                        if (inResult instanceof AltResult) {
+                            value = null;
+                            cause = ((AltResult) inResult).cause;
+                        } else {
+                            value = in.decodeValue(inResult);
+                            cause = null;
+                        }
+
+                        out.completeValue(fn.apply(value, cause));
+                    }
+
+                } catch (Throwable ex) {
+                    out.completeThrowable(ex);
+                }
             }
+
+            input = null;
+            output = null;
+            fn = null;
+
+            return postFire(out, mode);
         }
 
     }
 
     static class UniWhenComplete<V> extends AbstractUniCompletion<V, V> {
 
-        final BiConsumer<? super V, ? super Throwable> action;
+        BiConsumer<? super V, ? super Throwable> action;
 
         UniWhenComplete(Executor executor, AbstractPromise<V> input, AbstractPromise<V> output,
                         BiConsumer<? super V, ? super Throwable> action) {
@@ -708,26 +785,53 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         @Override
-        public void accept(V value, Throwable cause) {
-            try {
-                action.accept(value, cause);
-            } catch (Throwable ex) {
-                // 这里的实现与JDK不同，这里仅仅是记录一个异常，不会传递给下一个Future
-                logger.warn("UniWhenComplete.action.accept caught exception", ex);
+        AbstractPromise<?> tryFire(int mode) {
+            AbstractPromise<V> out = output;
+
+            if (!isDone0(out.resultHolder)) {
+                try {
+                    if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                        return null;
+                    }
+
+                    if (out.setUncancellable()) {
+                        AbstractPromise<V> in = input;
+                        Object inResult = in.resultHolder;
+                        Throwable cause;
+                        V value;
+
+                        if (inResult instanceof AltResult) {
+                            value = null;
+                            cause = ((AltResult) inResult).cause;
+                        } else {
+                            value = in.decodeValue(inResult);
+                            cause = null;
+                        }
+
+                        action.accept(value, cause);
+
+                        out.completeRelay(inResult);
+                    }
+                } catch (Throwable ex) {
+                    // 这里的实现与JDK不同，这里仅仅是记录一个异常，不会传递给下一个Future
+                    logger.warn("UniWhenComplete.action.accept caught exception", ex);
+
+                    out.completeRelay(input.resultHolder);
+                }
             }
 
-            if (cause != null) {
-                output.tryFailure(cause);
-            } else {
-                output.trySuccess(value);
-            }
+            input = null;
+            output = null;
+            action = null;
+
+            return postFire(out, mode);
         }
 
     }
 
     static class UniWhenExceptionally<V> extends AbstractUniCompletion<V, V> {
 
-        final Consumer<? super Throwable> action;
+        Consumer<? super Throwable> action;
 
         UniWhenExceptionally(Executor executor, AbstractPromise<V> input, AbstractPromise<V> output,
                              Consumer<? super Throwable> action) {
@@ -736,57 +840,73 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         @Override
-        public void accept(V value, Throwable cause) {
-            if (cause == null) {
-                output.trySuccess(value);
-                return;
+        AbstractPromise<?> tryFire(int mode) {
+            AbstractPromise<V> out = output;
+
+            if (!isDone0(out.resultHolder)) {
+                Object inResult = input.resultHolder;
+
+                if (inResult instanceof AltResult) {
+                    try {
+                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                            return null;
+                        }
+
+                        if (out.setUncancellable()) {
+                            action.accept(((AltResult) inResult).cause);
+                            out.completeRelay(inResult);
+                        }
+
+                    } catch (Throwable ex) {
+                        // 这里仅仅是记录一个异常，不会传递给下一个Future
+                        logger.warn("UniWhenExceptionally.action.accept caught exception", ex);
+                        out.completeRelay(inResult);
+                    }
+                } else {
+                    out.completeRelay(inResult);
+                }
             }
 
-            try {
-                action.accept(cause);
-            } catch (Throwable ex) {
-                // 这里仅仅是记录一个异常，不会传递给下一个Future
-                logger.warn("UniWhenExceptionally.action.accept caught exception", ex);
-            }
+            input = null;
+            output = null;
+            action = null;
 
-            output.tryFailure(cause);
+            return postFire(out, mode);
         }
 
     }
 
-    static abstract class ListenCompletion<V> extends Completion implements Runnable, BiConsumer<V, Throwable> {
+    static abstract class ListenCompletion<V> extends Completion {
 
-        final Executor executor;
-        final AbstractPromise<V> input;
+        Executor executor;
+        AbstractPromise<V> input;
 
         ListenCompletion(Executor executor, AbstractPromise<V> input) {
             this.executor = executor;
             this.input = input;
         }
 
-        @Override
-        public final void run() {
-            input.acceptNow(this);
-        }
-
-        @Override
-        AbstractPromise<V> tryFire(int mode) {
-            if (executor == null || EventLoopUtils.inEventLoop(executor)) {
-                input.acceptNow(this);
-            } else {
-                ConcurrentUtils.safeExecute(executor, this);
+        /**
+         * 如果可以立即执行，则返回true，否则将提交到{@link #executor}稍后执行。
+         */
+        final boolean executeDirectly() {
+            Executor e = executor;
+            if (e == null || EventLoopUtils.inEventLoop(e)) {
+                executor = null;
+                return true;
             }
-            return null;
-        }
 
-        @Override
-        public abstract void accept(V value, Throwable cause);
+            e.execute(this);
+            // help gc
+            executor = null;
+            return false;
+        }
 
     }
 
     static class ListenWhenComplete<V> extends ListenCompletion<V> {
 
-        final BiConsumer<? super V, ? super Throwable> action;
+        BiConsumer<? super V, ? super Throwable> action;
 
         ListenWhenComplete(Executor executor, AbstractPromise<V> input,
                            BiConsumer<? super V, ? super Throwable> action) {
@@ -795,19 +915,40 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         @Override
-        public void accept(V value, Throwable cause) {
+        AbstractPromise<?> tryFire(int mode) {
             try {
+                if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                    return null;
+                }
+
+                AbstractPromise<V> in = input;
+                Object inResult = in.resultHolder;
+                Throwable cause;
+                V value;
+
+                if (inResult instanceof AltResult) {
+                    value = null;
+                    cause = ((AltResult) inResult).cause;
+                } else {
+                    value = in.decodeValue(inResult);
+                    cause = null;
+                }
+
                 action.accept(value, cause);
             } catch (Throwable ex) {
-                // 这里的实现与JDK不同，这里仅仅是记录一个异常，不会传递给下一个Future
                 logger.warn("ListenWhenComplete.action.accept caught exception", ex);
             }
+
+            input = null;
+            action = null;
+
+            return null;
         }
     }
 
     static class ListenWhenExceptionally<V> extends ListenCompletion<V> {
 
-        final Consumer<? super Throwable> action;
+        Consumer<? super Throwable> action;
 
         ListenWhenExceptionally(Executor executor, AbstractPromise<V> input,
                                 Consumer<? super Throwable> action) {
@@ -816,17 +957,27 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         @Override
-        public void accept(V value, Throwable cause) {
-            if (cause == null) {
-                return;
+        AbstractPromise<?> tryFire(int mode) {
+            AbstractPromise<V> in = input;
+            Object inResult = in.resultHolder;
+
+            if (inResult instanceof AltResult) {
+                try {
+                    if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                        return null;
+                    }
+
+                    Throwable cause = ((AltResult) inResult).cause;
+                    action.accept(cause);
+                } catch (Throwable ex) {
+                    logger.warn("ListenWhenComplete.action.accept caught exception", ex);
+                }
             }
 
-            try {
-                action.accept(cause);
-            } catch (Throwable ex) {
-                // 这里仅仅是记录一个异常，不会传递给下一个Future
-                logger.warn("ListenWhenExceptionally.action.accept caught exception", ex);
-            }
+            input = null;
+            action = null;
+
+            return null;
         }
     }
 

@@ -159,23 +159,14 @@ public abstract class AbstractPromise<V> implements Promise<V> {
 
     /* ------------------------- 带编解码的完成方法，主要用于Completion关联的计算 -------------------------- */
 
-    /**
-     * Completes with the null value, unless already completed.
-     */
     final boolean completeNull() {
         return internalComplete(NIL);
     }
 
-    /**
-     * Completes with a non-exceptional result, unless already completed.
-     */
     final boolean completeValue(V value) {
         return internalComplete(encodeValue(value));
     }
 
-    /**
-     * Returns the encoding of the given non-exceptional value.
-     */
     final Object encodeValue(V value) {
         return (value == null) ? NIL : value;
     }
@@ -196,68 +187,41 @@ public abstract class AbstractPromise<V> implements Promise<V> {
      * Returns the encoding of the given (non-null) exception as a
      * wrapped CompletionException unless it is one already.
      */
-    static AltResult encodeThrowable(@Nonnull Throwable x) {
+    private static AltResult encodeThrowable(@Nonnull Throwable x) {
         return new AltResult((x instanceof CompletionException) ? x :
                 new CompletionException(x));
     }
 
     /**
-     * Completes with the given (non-null) exceptional result as a
-     * wrapped CompletionException unless it is one already, unless
-     * already completed.  May complete with the given Object r
-     * (which must have been the result of a source future) if it is
-     * equivalent, i.e. if this is a simple propagation of an
-     * existing CompletionException.
+     * 使用依赖项的结果进入完成状态，通常表示当前{@link Completion}只是一个简单的中继。
      */
-    final boolean completeThrowable(@Nonnull Throwable x, @Nonnull Object r) {
-        return internalComplete(encodeThrowable(x, r));
+    final boolean completeRelay(Object r) {
+        return internalComplete(encodeRelay(r));
     }
 
-    /**
-     * 如果给定的异常(非Null)不是{@link CompletionException}，则将其包装为{@link CompletionException}。
-     * 如果给定的异常与依赖的结果的异常相同，则直接返回它(它一定是原Future的结果) - 它表名当前{@link Completion}是一个简单中继。
-     *
-     * <p>
-     * Returns the encoding of the given (non-null) exception as a
-     * wrapped CompletionException unless it is one already.  May
-     * return the given Object r (which must have been the result of a
-     * source future) if it is equivalent, i.e. if this is a simple
-     * relay of an existing CompletionException.
-     */
-    static Object encodeThrowable(@Nonnull Throwable x, @Nonnull Object r) {
-        if (!(x instanceof CompletionException)) {
-            x = new CompletionException(x);
-        } else if (r instanceof AltResult && x == ((AltResult) r).cause) {
-            // 用户重新抛出上一个Completion的CompletionException
-            return r;
-        }
-        return new AltResult(x);
-    }
-
-    /**
-     * Returns the encoding of a copied outcome; if exceptional,
-     * rewraps as a CompletionException, else returns argument.
-     */
-    static Object encodeRelay(Object r) {
+    private static Object encodeRelay(Object r) {
         if (r == NIL) {
             return r;
         }
 
-        Throwable x;
-        if (r instanceof AltResult
-                && (x = ((AltResult) r).cause) != null
-                && !(x instanceof CompletionException)) {
-            r = new AltResult(new CompletionException(x));
+        if (r instanceof AltResult) {
+            Throwable cause = ((AltResult) r).cause;
+            return cause instanceof CompletionException ? r : new AltResult(new CompletionException(cause));
         }
+
         return r;
     }
 
     /**
-     * Completes with r or a copy of r, unless already completed.
-     * If exceptional, r is first coerced to a CompletionException.
+     * 使用依赖项的异常结果进入完成状态，通常表示当前{@link Completion}只是一个简单的中继。
+     * 在已知依赖项异常完成的时候可以调用该方法，减少开销。
      */
-    final boolean completeRelay(Object r) {
-        return RESULT_HOLDER.compareAndSet(this, null, encodeRelay(r));
+    final boolean completeRelayThrowable(Object r) {
+        return internalComplete(encodeRelay(((AltResult) r).cause, r));
+    }
+
+    private static Object encodeRelay(Throwable cause, Object r) {
+        return cause instanceof CompletionException ? r : new AltResult(new CompletionException(cause));
     }
 
     // --------------------------------------------- 查询 --------------------------------------------------
@@ -340,6 +304,10 @@ public abstract class AbstractPromise<V> implements Promise<V> {
         if (cause instanceof CancellationException) {
             throw (CancellationException) cause;
         }
+        if (cause instanceof CompletionException) {
+            throw (CompletionException) cause;
+        }
+
         throw new CompletionException(cause);
     }
 
@@ -372,7 +340,10 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     // ------------------------------------------------- 状态迁移 --------------------------------------------
     @Override
     public final boolean setUncancellable() {
-        final Object result = internalUnCancellable();
+        Object result = this.resultHolder;
+        if (result == null) {
+            result = internalUnCancellable();
+        }
         // 到这里result一定不为null，当前为不可取消状态 或 结束状态
         return result == UNCANCELLABLE || !isCancelled0(result);
     }
@@ -461,8 +432,12 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     }
 
     private static <T> T rethrowGet(Throwable cause) throws CancellationException, ExecutionException {
+        Throwable rootCause;
         if (cause instanceof CancellationException) {
             throw (CancellationException) cause;
+        }
+        if ((cause instanceof CompletionException) && (rootCause = cause.getCause()) != null) {
+            cause = rootCause;
         }
         throw new ExecutionException(cause);
     }
@@ -658,7 +633,6 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     /**
      * 异步调用模式，表示提交到{@link Executor}之后调用{@link Completion#tryFire(int)}
      * 1. 如果在该模式下使下一个{@code Future}进入完成状态，则直接触发目标{@code Future}的完成事件，即调用{@link #postComplete(AbstractPromise)}。
-     * <p>
      * 2. 在该模式，表示非首次调用，立即运行。
      */
     static final int ASYNC = 1;
@@ -669,17 +643,11 @@ public abstract class AbstractPromise<V> implements Promise<V> {
      */
     static final int NESTED = -1;
 
-    /**
-     * 大佬就是不一样...也不定义单独的方法，理解起来费死劲了
-     */
-    static boolean isFirstFireMode(int mode) {
+    static boolean isSyncOrNestedMode(int mode) {
         return mode <= 0;
     }
 
-    /**
-     * 是否是需要推送目标{@code Future}完成事件的模式(非嵌套模式)
-     */
-    static boolean postCompleteMode(int mode) {
+    static boolean isNotNestedMode(int mode) {
         return mode >= 0;
     }
 
@@ -720,24 +688,35 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     }
 
     final void pushCompletion(Completion newHead) {
+        // 如果future已完成，则立即执行
         if (isDone()) {
             newHead.tryFire(SYNC);
             return;
         }
 
-        // 如果future已完成，则立即执行
-        if (!isDone()) {
-            Completion head;
-            while ((head = stack) != Completion.TOMBSTONE) {
-                // 由下面的CAS保证可见性
-                newHead.next = head;
+        Completion expectedHead = stack;
+        Completion realHead;
 
-                if (STACK.compareAndSet(this, head, newHead)) {
-                    // 如果成功添加到头部，证明Future尚未完成，或已完成但还未开始通知，新添加的completion会被其它线程通知
-                    return;
-                }
+        while (true) {
+            // 由下面的CAS保证可见性
+            newHead.next = expectedHead;
+
+            realHead = (Completion) STACK.compareAndExchange(this, expectedHead, newHead);
+
+            if (realHead == expectedHead) {
+                // 成功添加completion到头部，其会在Future进入完成状态时被通知
+                return;
             }
+
+            if (realHead == Completion.TOMBSTONE) {
+                // 有线程触发了Future的完成事件，该completion需要立即被通知
+                break;
+            }
+
+            // retry
+            expectedHead = realHead;
         }
+
 
         // 到这里的时候 head == TOMBSTONE，表示目标Future已进入完成状态，且正在被通知或已经通知完毕。
         // 由于Future已进入完成状态，且我们的Completion压栈失败，因此新的completion需要当前线程来通知
