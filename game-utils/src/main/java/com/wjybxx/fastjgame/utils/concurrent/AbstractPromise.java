@@ -210,6 +210,13 @@ public abstract class AbstractPromise<V> implements Promise<V> {
         return result != null && result != UNCANCELLABLE;
     }
 
+    /**
+     * 是否是未完成状态
+     */
+    static boolean isNotDone(Object result) {
+        return result == null || result == UNCANCELLABLE;
+    }
+
     private static boolean isCompletedExceptionally0(Object result) {
         return result instanceof AltResult;
     }

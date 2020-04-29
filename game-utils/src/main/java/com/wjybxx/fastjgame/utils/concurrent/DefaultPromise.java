@@ -362,9 +362,8 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
             AbstractPromise<U> out = output;
 
             // 一直以为循环才能带标签...
-            // result == null 表示初始状态，还没有执行方且还未被取消
             tryComplete:
-            if (out.result == null) {
+            if (isNotDone(out.result)) {
                 AbstractPromise<V> in = input;
                 Object inResult = in.result;
 
@@ -380,6 +379,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
                     }
 
                     if (!out.setUncancellable()) {
+                        // 设置为不可取消状态失败，意味着future已进入完成状态
                         break tryComplete;
                     }
 
@@ -403,6 +403,9 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
             output = null;
             fn = null;
 
+            // 这里表示future一定进入了完成状态，但不一定是当前completion使其完成的，
+            // 因此这里可能抢占它的监听器，会导致A线程使其完成，B线程对它通知，
+            // 如果客户端未指定Executor，其执行过程可能和所想并不一致
             return postFire(out, mode);
         }
     }
@@ -469,7 +472,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
             AbstractPromise<U> out = output;
 
             tryComplete:
-            if (out.result == null) {
+            if (isNotDone(out.result)) {
                 Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
@@ -522,7 +525,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<Void> out = output;
 
-            if (out.result == null) {
+            if (isNotDone(out.result)) {
                 Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
@@ -566,7 +569,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
-            if (out.result == null) {
+            if (isNotDone(out.result)) {
                 Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
@@ -609,7 +612,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<Void> out = output;
 
-            if (out.result == null) {
+            if (isNotDone(out.result)) {
                 AbstractPromise<V> in = input;
                 Object inResult = in.result;
 
@@ -655,7 +658,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
-            if (out.result == null) {
+            if (isNotDone(out.result)) {
                 AbstractPromise<V> in = input;
                 Object inResult = in.result;
 
@@ -701,7 +704,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<V> out = output;
 
-            if (out.result == null) {
+            if (isNotDone(out.result)) {
                 Object inResult = input.result;
                 Throwable cause;
 
@@ -747,7 +750,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
-            if (out.result == null) {
+            if (isNotDone(out.result)) {
                 try {
                     if (isSyncOrNestedMode(mode) && !claim()) {
                         return null;
@@ -798,7 +801,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<V> out = output;
 
-            if (out.result == null) {
+            if (isNotDone(out.result)) {
                 try {
                     if (isSyncOrNestedMode(mode) && !claim()) {
                         return null;
@@ -853,7 +856,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<V> out = output;
 
-            if (out.result == null) {
+            if (isNotDone(out.result)) {
                 Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
