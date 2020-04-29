@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -303,16 +304,23 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
 
         /**
-         * 如果可以立即执行，则返回true，否则将提交到{@link #executor}稍后执行。
+         * 当{@link Completion}满足触发条件时，如果是{@link #SYNC}和{@link #NESTED}模式，则调用该方法抢占执行权限。
+         * 如果{@link Completion}有多个触发条件，则可能并发调用{@link #tryFire(int)}，而只有一个线程应该执行特定逻辑。
+         * {@link #ASYNC}模式表示已抢得执行权限，但是不能在当前线程执行。
+         * <p>
+         * 这个名字很难搞....
+         *
+         * @return 如果成功抢占权限且可以立即执行则返回true，否则返回false
          */
-        final boolean executeDirectly() {
+        final boolean claim() {
             Executor e = executor;
-            if (e == null || EventLoopUtils.inEventLoop(e)) {
+            if (e == null || e == MoreExecutors.directExecutor() || EventLoopUtils.inEventLoop(e)) {
                 executor = null;
                 return true;
             }
 
             e.execute(this);
+
             // help gc
             executor = null;
             return false;
@@ -354,10 +362,11 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
             AbstractPromise<U> out = output;
 
             // 一直以为循环才能带标签...
+            // result == null 表示初始状态，还没有执行方且还未被取消
             tryComplete:
-            if (out.isCancellable()) {
+            if (out.result == null) {
                 AbstractPromise<V> in = input;
-                Object inResult = in.resultHolder;
+                Object inResult = in.result;
 
                 if (inResult instanceof AltResult) {
                     // 上一步异常完成，不执行给定动作，直接完成(当前completion只是简单中继)
@@ -366,7 +375,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
                 }
 
                 try {
-                    if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                    if (isSyncOrNestedMode(mode) && !claim()) {
                         return null;
                     }
 
@@ -398,17 +407,23 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    private static <U> boolean completeRelay(AbstractPromise<U> out, ListenableFuture<U> relay) {
+    private static <U> void completeRelay(AbstractPromise<U> out, ListenableFuture<U> relay) {
         if (relay instanceof AbstractPromise) {
-            Object result = ((AbstractPromise<U>) relay).resultHolder;
-            return out.completeRelay(result);
+            Object localResult = ((AbstractPromise<U>) relay).result;
+            out.completeRelay(localResult);
+            return;
         }
 
-        Throwable cause = relay.cause();
-        if (cause != null) {
-            return out.completeThrowable(cause);
-        } else {
-            return out.completeValue(relay.getNow());
+        // 万一有人实现了别的子类
+        try {
+            Throwable cause = relay.cause();
+            if (cause != null) {
+                out.completeRelayThrowable(new AltResult(cause));
+            } else {
+                out.completeValue(relay.getNow());
+            }
+        } catch (Throwable ex) {
+            out.completeThrowable(ex);
         }
     }
 
@@ -426,10 +441,9 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         @Override
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<V> out = this.output;
-            ListenableFuture<V> in = this.input;
 
             if (out.setUncancellable()) {
-                completeRelay(out, in);
+                completeRelay(out, this.input);
             }
 
             // help gc
@@ -454,19 +468,17 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
-            // 一直以为循环才能带标签...主要用于减少嵌套
             tryComplete:
-            if (!isDone0(out.resultHolder)) {
-                Object inResult = input.resultHolder;
+            if (out.result == null) {
+                Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
-                    // 上一步异常完成，不执行给定动作，直接完成
                     out.completeRelayThrowable(inResult);
                     break tryComplete;
                 }
 
                 try {
-                    if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                    if (isSyncOrNestedMode(mode) && !claim()) {
                         return null;
                     }
 
@@ -477,7 +489,6 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
                     ListenableFuture<U> relay = fn.call();
 
                     if (relay.isDone()) {
-                        // 返回的是已完成的Future
                         completeRelay(out, relay);
                     } else {
                         relay.addListener(new UniRelay<>(relay, out));
@@ -511,14 +522,14 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<Void> out = output;
 
-            if (!isDone0(out.resultHolder)) {
-                Object inResult = input.resultHolder;
+            if (out.result == null) {
+                Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
                     out.completeRelayThrowable(inResult);
                 } else {
                     try {
-                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                        if (isSyncOrNestedMode(mode) && !claim()) {
                             return null;
                         }
 
@@ -555,14 +566,14 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
-            if (!isDone0(out.resultHolder)) {
-                Object inResult = input.resultHolder;
+            if (out.result == null) {
+                Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
                     out.completeRelayThrowable(inResult);
                 } else {
                     try {
-                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                        if (isSyncOrNestedMode(mode) && !claim()) {
                             return null;
                         }
 
@@ -598,15 +609,15 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<Void> out = output;
 
-            if (!isDone0(out.resultHolder)) {
+            if (out.result == null) {
                 AbstractPromise<V> in = input;
-                Object inResult = in.resultHolder;
+                Object inResult = in.result;
 
                 if (inResult instanceof AltResult) {
                     out.completeRelayThrowable(inResult);
                 } else {
                     try {
-                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                        if (isSyncOrNestedMode(mode) && !claim()) {
                             return null;
                         }
 
@@ -615,7 +626,6 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
                             action.accept(value);
                             out.completeNull();
                         }
-
                     } catch (Throwable ex) {
                         out.completeThrowable(ex);
                     }
@@ -645,15 +655,15 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
-            if (!isDone0(out.resultHolder)) {
+            if (out.result == null) {
                 AbstractPromise<V> in = input;
-                Object inResult = in.resultHolder;
+                Object inResult = in.result;
 
                 if (inResult instanceof AltResult) {
                     out.completeRelayThrowable(inResult);
                 } else {
                     try {
-                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                        if (isSyncOrNestedMode(mode) && !claim()) {
                             return null;
                         }
 
@@ -691,14 +701,14 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<V> out = output;
 
-            if (!isDone0(out.resultHolder)) {
-                Object inResult = input.resultHolder;
+            if (out.result == null) {
+                Object inResult = input.result;
                 Throwable cause;
 
                 if (inResult instanceof AltResult
                         && exceptionType.isInstance((cause = ((AltResult) inResult).cause))) {
                     try {
-                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                        if (isSyncOrNestedMode(mode) && !claim()) {
                             return null;
                         }
 
@@ -737,15 +747,15 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
-            if (!isDone0(out.resultHolder)) {
+            if (out.result == null) {
                 try {
-                    if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                    if (isSyncOrNestedMode(mode) && !claim()) {
                         return null;
                     }
 
                     if (out.setUncancellable()) {
                         AbstractPromise<V> in = input;
-                        Object inResult = in.resultHolder;
+                        Object inResult = in.result;
                         Throwable cause;
                         V value;
 
@@ -788,15 +798,15 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<V> out = output;
 
-            if (!isDone0(out.resultHolder)) {
+            if (out.result == null) {
                 try {
-                    if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                    if (isSyncOrNestedMode(mode) && !claim()) {
                         return null;
                     }
 
                     if (out.setUncancellable()) {
                         AbstractPromise<V> in = input;
-                        Object inResult = in.resultHolder;
+                        Object inResult = in.result;
                         Throwable cause;
                         V value;
 
@@ -816,7 +826,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
                     // 这里的实现与JDK不同，这里仅仅是记录一个异常，不会传递给下一个Future
                     logger.warn("UniWhenComplete.action.accept caught exception", ex);
 
-                    out.completeRelay(input.resultHolder);
+                    out.completeRelay(input.result);
                 }
             }
 
@@ -843,12 +853,12 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<V> out = output;
 
-            if (!isDone0(out.resultHolder)) {
-                Object inResult = input.resultHolder;
+            if (out.result == null) {
+                Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
                     try {
-                        if (isSyncOrNestedMode(mode) && !executeDirectly()) {
+                        if (isSyncOrNestedMode(mode) && !claim()) {
                             return null;
                         }
 
@@ -922,7 +932,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
                 }
 
                 AbstractPromise<V> in = input;
-                Object inResult = in.resultHolder;
+                Object inResult = in.result;
                 Throwable cause;
                 V value;
 
@@ -959,7 +969,7 @@ public class DefaultPromise<V> extends AbstractPromise<V> {
         @Override
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<V> in = input;
-            Object inResult = in.resultHolder;
+            Object inResult = in.result;
 
             if (inResult instanceof AltResult) {
                 try {
