@@ -22,6 +22,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
+ * 基于性能方面的考虑，Listener之间不再提供时序保证。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/4/27
@@ -149,33 +151,40 @@ public interface ListenableFuture<V> extends Future<V> {
      */
     ListenableFuture<V> awaitUninterruptibly();
 
-    /**
-     * @return this
-     */
-    ListenableFuture<V> addListener(@Nonnull BiConsumer<? super V, ? super Throwable> action);
+    // ------------------------------------- 监听器 --------------------------------------
 
     /**
-     * @return this
+     * 添加一个监听器，一旦{@code Future}进入完成状态，无论正常完成还是异常完成，给定的操作就将被执行。
+     * 如果{@code Future}当前已完成，则立即执行给定的动作。
      */
-    ListenableFuture<V> addListener(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor);
+    void addListener(@Nonnull Runnable action);
 
     /**
-     * @return this
+     * 添加一个监听器，一旦{@code Future}进入完成状态，无论正常完成还是异常完成，给定的操作就将被执行。
+     * 如果{@code Future}当前已完成，则立即执行给定的动作。
      */
-    ListenableFuture<V> addFailedListener(Consumer<? super Throwable> action);
+    void addListener(@Nonnull BiConsumer<? super V, ? super Throwable> action);
 
     /**
-     * @return this
+     * 添加一个监听器，一旦{@code Future}进入完成状态，如果{@code Future}由于异常完成，给定的操作就将被执行。
+     * 如果{@code Future}当前已完成，则立即执行给定的动作。
      */
-    ListenableFuture<V> addFailedListener(Consumer<? super Throwable> action, Executor executor);
+    void addFailedListener(Consumer<? super Throwable> action);
 
     /**
-     * @return this
+     * 添加一个监听器，一旦{@code Future}进入完成状态，无论正常完成还是异常完成，给定的操作就将被执行。
+     * 如果{@code Future}当前已完成，则立即执行给定的动作。
      */
-    ListenableFuture<V> addListener(@Nonnull Runnable action);
+    void addListener(FutureListener<? super V> listener);
 
-    /**
-     * @return this
-     */
-    ListenableFuture<V> addListener(@Nonnull Runnable action, Executor executor);
+    // ------------------------------------- 可绑定Executor版本 --------------------------------------
+
+    void addListener(FutureListener<? super V> listener, Executor executor);
+
+    void addListener(@Nonnull Runnable action, Executor executor);
+
+    void addFailedListener(Consumer<? super Throwable> action, Executor executor);
+
+    void addListener(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor);
+
 }

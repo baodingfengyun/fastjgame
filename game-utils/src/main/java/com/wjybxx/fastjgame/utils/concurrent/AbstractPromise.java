@@ -51,7 +51,7 @@ import static com.wjybxx.fastjgame.utils.ThreadUtils.recoveryInterrupted;
  * @version 1.0
  * date - 2020/3/6
  */
-public abstract class AbstractPromise<V> implements Promise<V> {
+abstract class AbstractPromise<V> implements Promise<V> {
 
     /**
      * 1毫秒多少纳秒
@@ -98,8 +98,8 @@ public abstract class AbstractPromise<V> implements Promise<V> {
         this.result = encodeValue(result);
     }
 
-    public AbstractPromise(Throwable cause) {
-        result = new AltResult(cause);
+    public AbstractPromise(@Nonnull Throwable cause) {
+        result = new AltResult(Objects.requireNonNull(cause, "cause"));
     }
 
     /**

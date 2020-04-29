@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
-import com.wjybxx.fastjgame.utils.concurrent.JdkFutureAdapters;
+import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -98,7 +98,7 @@ public class DefaultTimeoutHttpClient implements TimeoutHttpClient {
      */
     @Override
     public <T> FluentFuture<HttpResponse<T>> sendAsync(HttpRequest.Builder builder, HttpResponse.BodyHandler<T> responseBodyHandler) {
-        return JdkFutureAdapters.delegateFuture(httpClient.sendAsync(setTimeoutAndBuild(builder), responseBodyHandler));
+        return FutureUtils.fromCompletableFuture(httpClient.sendAsync(setTimeoutAndBuild(builder), responseBodyHandler));
     }
 
     /**
@@ -136,7 +136,7 @@ public class DefaultTimeoutHttpClient implements TimeoutHttpClient {
     @Override
     public <T> FluentFuture<HttpResponse<T>> sendAsync(HttpRequest request, HttpResponse.BodyHandler<T> responseBodyHandler) {
         ensureTimeoutPresent(request);
-        return JdkFutureAdapters.delegateFuture(httpClient.sendAsync(request, responseBodyHandler));
+        return FutureUtils.fromCompletableFuture(httpClient.sendAsync(request, responseBodyHandler));
     }
 
     /**

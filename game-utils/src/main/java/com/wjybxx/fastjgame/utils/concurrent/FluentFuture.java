@@ -191,19 +191,4 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
 
     FluentFuture<V> whenExceptionallyAsync(@Nonnull Consumer<? super Throwable> action, Executor executor);
 
-    // ------------------------------------- 非管道操作  --------------------------------------
-
-    /**
-     * @return this
-     */
-    @Deprecated
-    FluentFuture<V> addListener(FutureListener<? super V> listener);
-
-    /**
-     * @return this
-     */
-    @Deprecated
-    FluentFuture<V> addListener(FutureListener<? super V> listener, Executor executor);
-
-
 }

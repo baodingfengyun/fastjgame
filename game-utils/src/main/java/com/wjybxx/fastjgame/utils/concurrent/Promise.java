@@ -71,7 +71,8 @@ public interface Promise<V> extends FluentFuture<V> {
      */
     boolean setUncancellable();
 
-    // 语法支持
+    // -------------------------------------------------- 语法支持 ---------------------------------------------
+
     @Override
     Promise<V> await() throws InterruptedException;
 
@@ -139,25 +140,5 @@ public interface Promise<V> extends FluentFuture<V> {
 
     @Override
     Promise<V> whenExceptionallyAsync(@Nonnull Consumer<? super Throwable> action, Executor executor);
-
-    @Deprecated
-    @Override
-    Promise<V> addListener(FutureListener<? super V> listener);
-
-    @Deprecated
-    @Override
-    Promise<V> addListener(FutureListener<? super V> listener, Executor executor);
-
-    @Override
-    Promise<V> addListener(@Nonnull BiConsumer<? super V, ? super Throwable> action);
-
-    @Override
-    Promise<V> addListener(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor);
-
-    @Override
-    Promise<V> addFailedListener(Consumer<? super Throwable> action);
-
-    @Override
-    Promise<V> addFailedListener(Consumer<? super Throwable> action, Executor executor);
 
 }

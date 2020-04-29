@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 /**
@@ -66,7 +67,25 @@ public class FutureUtils {
                 promise.trySuccess(v);
             }
         }
-
     }
 
+    public static <V> Promise<V> fromCompletableFuture(CompletableFuture<V> completableFuture) {
+        final Promise<V> promise = new JdkPromise<>(completableFuture);
+        completableFuture.whenComplete(new UniRelay<>(promise));
+        return promise;
+    }
+
+    private static class JdkPromise<V> extends DefaultPromise<V> {
+
+        final CompletableFuture<V> completableFuture;
+
+        private JdkPromise(CompletableFuture<V> completableFuture) {
+            this.completableFuture = completableFuture;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return completableFuture.cancel(mayInterruptIfRunning) && super.cancel(mayInterruptIfRunning);
+        }
+    }
 }
