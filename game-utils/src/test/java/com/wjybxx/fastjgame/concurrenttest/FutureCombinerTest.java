@@ -34,17 +34,17 @@ public class FutureCombinerTest {
         final DefaultEventLoop eventLoopB = new DefaultEventLoop(null, new DefaultThreadFactory("BBBBBB"), RejectedExecutionHandlers.abort());
 
         final FluentFuture<String> aFuture = eventLoopA.submit(() -> "success");
-        aFuture.whenComplete((result, cause) -> {
+        aFuture.addListener(future -> {
             System.out.println("CallbackA, Thread : " + Thread.currentThread().getName());
-            System.out.println("CallbackA, result " + getResultAsStringSafely(result, cause));
+            System.out.println("CallbackA, result " + getResultAsStringSafely(future));
         });
 
         final FluentFuture<String> bFuture = eventLoopB.submit(() -> {
             throw new Exception("failure");
         });
-        bFuture.whenComplete((result, cause) -> {
+        bFuture.addListener(future -> {
             System.out.println("CallbackB, Thread : " + Thread.currentThread().getName());
-            System.out.println("CallbackB, result " + getResultAsStringSafely(result, cause));
+            System.out.println("CallbackB, result " + getResultAsStringSafely(future));
         });
 
         final DefaultEventLoop appEventLoop = new DefaultEventLoop(null, new DefaultThreadFactory("APP"), RejectedExecutionHandlers.abort());
@@ -66,17 +66,18 @@ public class FutureCombinerTest {
                 .add(aFuture)
                 .add(bFuture)
                 .finish(appEventLoop.newPromise())
-                .whenComplete((result, cause) -> {
+                .addListener(future -> {
                     System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
-                    System.out.println("Callback Combine, result " + getResultAsStringSafely(result, cause));
+                    System.out.println("Callback Combine, result " + getResultAsStringSafely(future));
                 });
     }
 
-    private static <V> String getResultAsStringSafely(V result, Throwable cause) {
+    private static <V> String getResultAsStringSafely(ListenableFuture<V> future) {
+        Throwable cause = future.cause();
         if (cause != null) {
             return ExceptionUtils.getStackTrace(cause);
         } else {
-            return String.valueOf(result);
+            return String.valueOf(future.getNow());
         }
     }
 }

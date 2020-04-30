@@ -32,7 +32,7 @@ public class DefaultPromiseTest {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         final Promise<String> promise = FutureUtils.newPromise();
         promise.thenAccept(System.out::println)
-                .whenExceptionally(System.out::println);
+                .addFailedListener(System.out::println);
 
         promise.addListener(f -> {
             System.out.println("Thread : " + Thread.currentThread().getName() + ", value : " + f.getNow());

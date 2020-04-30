@@ -25,7 +25,6 @@ import java.util.*;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -104,9 +103,9 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
 
         // 监听子节点关闭的Listener，可以看做CountDownLatch。
         // 在所有的子节点上监听 它们的关闭事件，当所有的child关闭时，可以获得通知
-        final BiConsumer<Object, Throwable> terminationListener = new ChildrenTerminateListener();
+        final FutureListener<Object> terminationListener = new ChildrenTerminateListener();
         for (EventLoop e : children) {
-            e.terminationFuture().whenComplete(terminationListener);
+            e.terminationFuture().addListener(terminationListener);
         }
 
         // 将子节点数组封装为不可变集合，方便迭代(不允许外部改变持有的线程)
@@ -211,7 +210,7 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
     /**
      * 子节点终结状态监听器
      */
-    private class ChildrenTerminateListener implements BiConsumer<Object, Throwable> {
+    private class ChildrenTerminateListener implements FutureListener<Object> {
 
         /**
          * 已关闭的子节点数量
@@ -223,7 +222,7 @@ public abstract class AbstractFixedEventLoopGroup extends AbstractEventLoopGroup
         }
 
         @Override
-        public void accept(Object o, Throwable throwable) {
+        public void onComplete(ListenableFuture<Object> future) throws Exception {
             if (terminatedChildren.incrementAndGet() == children.length) {
                 try {
                     clean();

@@ -65,9 +65,7 @@ public interface Promise<V> extends FluentFuture<V> {
     /**
      * 将future标记为不可取消状态，它表示计算已经开始，不可以被取消。
      *
-     * @return 1. 如果成功设置为不可取消 或 已经是不可取消状态 则返回true.
-     * 2. 已经进入完成状态(不是被取消进入的完成状态) 返回true。
-     * 否则返回false（其实也就是被取消返回false）。
+     * @return 当且仅当任务已经被取消时返回false。
      */
     boolean setUncancellable();
 
@@ -141,4 +139,15 @@ public interface Promise<V> extends FluentFuture<V> {
     @Override
     Promise<V> whenExceptionallyAsync(@Nonnull Consumer<? super Throwable> action, Executor executor);
 
+    @Override
+    Promise<V> addListener(FutureListener<? super V> listener);
+
+    @Override
+    Promise<V> addFailedListener(Consumer<? super Throwable> action);
+
+    @Override
+    Promise<V> addListener(FutureListener<? super V> listener, Executor executor);
+
+    @Override
+    Promise<V> addFailedListener(Consumer<? super Throwable> action, Executor executor);
 }

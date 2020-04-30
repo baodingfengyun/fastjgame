@@ -77,11 +77,10 @@ public class TimeoutBlockingWaitStrategyFactory implements WaitStrategyFactory {
         @Override
         public long waitFor(long sequence, Sequence cursor, Sequence dependentSequence, SequenceBarrier barrier)
                 throws AlertException, InterruptedException, TimeoutException {
-            long nanos = timeoutInNanos;
-
-            // 阻塞式等待生产者消费
             long availableSequence = cursor.get();
             if (availableSequence < sequence) {
+                // 阻塞式等待生产者消费
+                long nanos = timeoutInNanos;
                 lock.lock();
                 try {
                     while ((availableSequence = cursor.get()) < sequence) {
@@ -114,6 +113,7 @@ public class TimeoutBlockingWaitStrategyFactory implements WaitStrategyFactory {
 
         @Override
         public void signalAllWhenBlocking() {
+            // 如果这里返回false，可能导致消费者丢失信号，消费者仍然可能阻塞，直到超时
             if (signalNeeded.getAndSet(false)) {
                 lock.lock();
                 try {

@@ -63,6 +63,8 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      */
     <U> FluentFuture<U> thenCompose(@Nonnull Function<? super V, ? extends ListenableFuture<U>> fn);
 
+    <U> FluentFuture<U> thenComposeAsync(@Nonnull Function<? super V, ? extends ListenableFuture<U>> fn, Executor executor);
+
     /**
      * {@link #thenCompose(Function)}的特化版本，主要用于消除丑陋的void
      * <p>
@@ -74,6 +76,7 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      */
     <U> FluentFuture<U> thenCompose(@Nonnull Callable<? extends ListenableFuture<U>> fn);
 
+    <U> FluentFuture<U> thenComposeAsync(@Nonnull Callable<? extends ListenableFuture<U>> fn, Executor executor);
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -85,6 +88,8 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      */
     FluentFuture<Void> thenRun(@Nonnull Runnable action);
 
+    FluentFuture<Void> thenRunAsync(@Nonnull Runnable action, Executor executor);
+
     /**
      * 该方法返回一个新的{@code Future}，它的结果由当前{@code Future}驱动。
      * 如果当前{@code Future}执行失败，则返回的{@code Future}将以相同的原因失败，且指定的动作不会执行。
@@ -95,6 +100,8 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      */
     <U> FluentFuture<U> thenCall(@Nonnull Callable<U> fn);
 
+    <U> FluentFuture<U> thenCallAsync(@Nonnull Callable<U> fn, Executor executor);
+
     /**
      * 该方法返回一个新的{@code Future}，它的结果由当前{@code Future}驱动。
      * 如果当前{@code Future}执行失败，则返回的{@code Future}将以相同的原因失败，且指定的动作不会执行。
@@ -103,6 +110,8 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      * {@link CompletionStage#thenAccept(Consumer)}
      */
     FluentFuture<Void> thenAccept(@Nonnull Consumer<? super V> action);
+
+    FluentFuture<Void> thenAcceptAsync(@Nonnull Consumer<? super V> action, Executor executor);
 
     /**
      * 该方法返回一个新的{@code Future}，它的结果由当前{@code Future}驱动。
@@ -113,6 +122,7 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      */
     <U> FluentFuture<U> thenApply(@Nonnull Function<? super V, ? extends U> fn);
 
+    <U> FluentFuture<U> thenApplyAsync(@Nonnull Function<? super V, ? extends U> fn, Executor executor);
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -128,7 +138,11 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      * @param exceptionType 能处理的异常类型
      * @param fallback      异常恢复函数
      */
-    <X extends Throwable> FluentFuture<V> catching(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback);
+    <X extends Throwable>
+    FluentFuture<V> catching(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback);
+
+    <X extends Throwable>
+    FluentFuture<V> catchingAsync(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback, Executor executor);
 
     /**
      * 该方法表示既能处理当前计算的正常结果，又能处理当前结算的异常结果(可以将异常转换为新的结果)，并返回一个新的结果。
@@ -142,6 +156,8 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      * {@link CompletionStage#handle(BiFunction)}
      */
     <U> FluentFuture<U> thenHandle(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn);
+
+    <U> FluentFuture<U> thenHandleAsync(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn, Executor executor);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -157,6 +173,8 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      */
     FluentFuture<V> whenComplete(@Nonnull BiConsumer<? super V, ? super Throwable> action);
 
+    FluentFuture<V> whenCompleteAsync(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor);
+
     /**
      * 该方法返回一个新的{@code Future}，它的结果始终与当前{@code Future}的结果相同。
      * <p>
@@ -169,26 +187,25 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
      */
     FluentFuture<V> whenExceptionally(@Nonnull Consumer<? super Throwable> action);
 
-    // ------------------------------------- 异步版本  --------------------------------------
-
-    <U> FluentFuture<U> thenComposeAsync(@Nonnull Function<? super V, ? extends ListenableFuture<U>> fn, Executor executor);
-
-    <U> FluentFuture<U> thenComposeAsync(@Nonnull Callable<? extends ListenableFuture<U>> fn, Executor executor);
-
-    FluentFuture<Void> thenRunAsync(@Nonnull Runnable action, Executor executor);
-
-    <U> FluentFuture<U> thenCallAsync(@Nonnull Callable<U> fn, Executor executor);
-
-    FluentFuture<Void> thenAcceptAsync(@Nonnull Consumer<? super V> action, Executor executor);
-
-    <U> FluentFuture<U> thenApplyAsync(@Nonnull Function<? super V, ? extends U> fn, Executor executor);
-
-    <X extends Throwable> FluentFuture<V> catchingAsync(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback, Executor executor);
-
-    <U> FluentFuture<U> thenHandleAsync(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn, Executor executor);
-
-    FluentFuture<V> whenCompleteAsync(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor);
-
     FluentFuture<V> whenExceptionallyAsync(@Nonnull Consumer<? super Throwable> action, Executor executor);
 
+    // ------------------------------------- 语法支持  --------------------------------------
+
+    @Override
+    FluentFuture<V> await() throws InterruptedException;
+
+    @Override
+    FluentFuture<V> awaitUninterruptibly();
+
+    @Override
+    FluentFuture<V> addListener(FutureListener<? super V> listener);
+
+    @Override
+    FluentFuture<V> addFailedListener(Consumer<? super Throwable> action);
+
+    @Override
+    FluentFuture<V> addListener(FutureListener<? super V> listener, Executor executor);
+
+    @Override
+    FluentFuture<V> addFailedListener(Consumer<? super Throwable> action, Executor executor);
 }

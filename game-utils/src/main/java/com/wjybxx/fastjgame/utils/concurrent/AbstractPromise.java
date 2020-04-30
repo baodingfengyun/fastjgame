@@ -29,7 +29,7 @@ import static com.wjybxx.fastjgame.utils.ThreadUtils.checkInterrupted;
 import static com.wjybxx.fastjgame.utils.ThreadUtils.recoveryInterrupted;
 
 /**
- * {@link Promise}的模板实现，它负责核心逻辑，{@link Completion}的扩展交给子类处理，避免类太大，分散实现。
+ * {@link Promise}的模板实现，它负责核心逻辑，{@link Completion}的扩展交给子类处理，避免类太大。
  * <p>
  * Q: 为什么用锁实现等待通知？
  * A: 仅仅是为了简单。因为{@code Future}的本意就是不希望用户使用阻塞式API，因此我们不对阻塞API进行优化。
@@ -52,7 +52,6 @@ import static com.wjybxx.fastjgame.utils.ThreadUtils.recoveryInterrupted;
  * date - 2020/3/6
  */
 abstract class AbstractPromise<V> implements Promise<V> {
-
     /**
      * 1毫秒多少纳秒
      */
@@ -66,6 +65,10 @@ abstract class AbstractPromise<V> implements Promise<V> {
      * 表示future关联的任务进入不可取消状态。
      */
     private static final Object UNCANCELLABLE = new Object();
+
+    private static final int SIGNAL_INIT = 0;
+    private static final int SIGNAL_NEEDED = 1;
+    private static final int SIGNAL_NOTIFIED = 2;
 
     /**
      * Future关联的任务的计算结果，它同时也存储者{@code Future}的状态信息。
@@ -86,9 +89,10 @@ abstract class AbstractPromise<V> implements Promise<V> {
     private volatile Completion stack = null;
 
     /**
-     * 是否需要调用{@link #notifyAll()} - 是否有线程阻塞在当前{@code Future}上，减少锁获取和notifyAll调用。
+     * 是否需要调用{@link #notifyAll()} - 是否可能有线程阻塞在当前{@code Future}上，减少锁获取和notifyAll调用。
      */
-    private volatile boolean signalNeeded;
+    @SuppressWarnings("unused")
+    private volatile int signalNeeded;
 
     public AbstractPromise() {
 
@@ -130,16 +134,20 @@ abstract class AbstractPromise<V> implements Promise<V> {
 
     /**
      * 标记为需要通知
+     *
+     * @return 如果标记成功，则返回true，否则返回false。如果失败，通常意味着future已完成。
      */
-    private void markSignalNeeded() {
-        signalNeeded = true;
+    private boolean markSignalNeeded() {
+        return (int) SIGNALNEEDED.compareAndExchange(this, SIGNAL_INIT, SIGNAL_NEEDED) != SIGNAL_NOTIFIED;
     }
 
     /**
-     * 是否需要被通知(是否存在被阻塞的线程)
+     * 标记为已通知
+     *
+     * @return 是否需要通知，如果需要获取锁进行通知，则返回true，否则返回false。如果返回false，意味着没有线程阻塞。
      */
-    private boolean isSignalNeeded() {
-        return signalNeeded;
+    private boolean markSignalNotified() {
+        return (int) SIGNALNEEDED.getAndSet(this, SIGNAL_NOTIFIED) == SIGNAL_NEEDED;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
@@ -297,7 +305,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
     @Override
     public final boolean acceptNow(@Nonnull BiConsumer<? super V, ? super Throwable> action) {
         final Object localResult = result;
-        if (!isDone0(localResult)) {
+        if (isNotDone(localResult)) {
             return false;
         }
 
@@ -318,9 +326,9 @@ abstract class AbstractPromise<V> implements Promise<V> {
     // ------------------------------------------------- 状态迁移 --------------------------------------------
     @Override
     public final boolean setUncancellable() {
-        final Object result = internalUnCancellable();
+        final Object localResult = internalUnCancellable();
         // 到这里result一定不为null，当前为不可取消状态 或 结束状态
-        return result == UNCANCELLABLE || !isCancelled0(result);
+        return localResult == UNCANCELLABLE || !isCancelled0(localResult);
     }
 
     @Override
@@ -453,17 +461,9 @@ abstract class AbstractPromise<V> implements Promise<V> {
         // 检查中断 --- 在执行一个耗时操作之前检查中断是有必要的
         checkInterrupted();
 
-        // 这里总是假设 signalNeeded 的值为 false - 其实也可以读取 signalNeeded 的真实值。
-        boolean marked = false;
-
         synchronized (this) {
-            while (!isDone()) {
-
-                if (!marked) {
-                    markSignalNeeded();
-                    marked = true;
-                }
-
+            // 其实可以不判断isDone()，但是判断isDone可以更早的感知future进入完成状态
+            while (!isDone() && markSignalNeeded()) {
                 this.wait();
             }
         }
@@ -487,17 +487,11 @@ abstract class AbstractPromise<V> implements Promise<V> {
         checkDeadlock();
 
         boolean interrupted = false;
-        boolean marked = false;
 
         try {
             synchronized (this) {
-                while (!isDone()) {
-
-                    if (!marked) {
-                        markSignalNeeded();
-                        marked = true;
-                    }
-
+                // 其实可以不判断isDone()，但是判断isDone可以更早的感知future进入完成状态
+                while (!isDone() && markSignalNeeded()) {
                     try {
                         this.wait();
                     } catch (InterruptedException e) {
@@ -527,20 +521,14 @@ abstract class AbstractPromise<V> implements Promise<V> {
         // 即将等待之前检查中断标记（在耗时操作开始前检查中断是有必要的 -- 要养成习惯）
         checkInterrupted();
 
-        boolean marked = false;
-
         final long endTime = System.nanoTime() + unit.toNanos(timeout);
         synchronized (this) {
-            while (!isDone()) {
+            // 其实可以不判断isDone()，但是判断isDone可以更早的感知future进入完成状态
+            while (!isDone() && markSignalNeeded()) {
                 // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
                 final long remainNano = endTime - System.nanoTime();
                 if (remainNano <= 0) {
                     return false;
-                }
-
-                if (!marked) {
-                    markSignalNeeded();
-                    marked = true;
                 }
 
                 this.wait(remainNano / NANO_PER_MILLISECOND, (int) (remainNano % NANO_PER_MILLISECOND));
@@ -563,21 +551,16 @@ abstract class AbstractPromise<V> implements Promise<V> {
         checkDeadlock();
 
         boolean interrupted = false;
-        boolean marked = false;
 
         final long endTime = System.nanoTime() + unit.toNanos(timeout);
         try {
             synchronized (this) {
-                while (!isDone()) {
+                // 其实可以不判断isDone()，但是判断isDone可以更早的感知future进入完成状态
+                while (!isDone() && markSignalNeeded()) {
                     // 获取锁需要时间，因此应该在获取锁之后计算剩余时间
                     final long remainNano = endTime - System.nanoTime();
                     if (remainNano <= 0) {
                         return false;
-                    }
-
-                    if (!marked) {
-                        markSignalNeeded();
-                        marked = true;
                     }
 
                     try {
@@ -600,19 +583,19 @@ abstract class AbstractPromise<V> implements Promise<V> {
     /**
      * 同步调用模式，表示压栈过程中发现{@code Future}已进入完成状态，从而调用的{@link Completion#tryFire(int)}。
      * 1. 如果在该模式下使下一个{@code Future}进入完成状态，则直接触发目标{@code Future}的完成事件，即调用{@link #postComplete(AbstractPromise)}。
-     * 2. 在该模式，表示首次调用，需要判断是否能立即运行。
+     * 2. 在该模式，在执行前，可能需要抢占执行权限。
      */
     static final int SYNC = 0;
     /**
      * 异步调用模式，表示提交到{@link Executor}之后调用{@link Completion#tryFire(int)}
      * 1. 如果在该模式下使下一个{@code Future}进入完成状态，则直接触发目标{@code Future}的完成事件，即调用{@link #postComplete(AbstractPromise)}。
-     * 2. 在该模式，表示非首次调用，立即运行。
+     * 2. 在该模式，表示已获得执行权限，可立即执行。
      */
     static final int ASYNC = 1;
     /**
      * 嵌套调用模式，表示由{@link #postComplete(AbstractPromise)}中触发调用。
-     * 1. 如果在该模式下使下一个{@code Future}进入完成状态，不直接触发目标{@code Future}的完成事件，而是返回目标{@code Future}由当前{@code Future}代为推送。
-     * 2. 在该模式，表示首次调用，需要判断是否能立即运行。
+     * 1. 如果在该模式下使下一个{@code Future}进入完成状态，不触发目标{@code Future}的完成事件，而是返回目标{@code Future}，由当前{@code Future}代为推送。
+     * 2. 在该模式，在执行前，可能需要抢占执行权限。
      */
     static final int NESTED = -1;
 
@@ -698,6 +681,8 @@ abstract class AbstractPromise<V> implements Promise<V> {
      * - 声明为静态会更清晰易懂
      */
     static void postComplete(AbstractPromise<?> future) {
+        assert future.isDone();
+
         Completion next = null;
         outer:
         while (true) {
@@ -729,7 +714,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
      * 释放等待中的线程
      */
     private void releaseWaiters() {
-        if (isSignalNeeded()) {
+        if (markSignalNotified()) {
             synchronized (this) {
                 notifyAll();
             }
@@ -783,12 +768,14 @@ abstract class AbstractPromise<V> implements Promise<V> {
 
     private static final VarHandle RESULT;
     private static final VarHandle STACK;
+    private static final VarHandle SIGNALNEEDED;
 
     static {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
             RESULT = l.findVarHandle(AbstractPromise.class, "result", Object.class);
             STACK = l.findVarHandle(AbstractPromise.class, "stack", Completion.class);
+            SIGNALNEEDED = l.findVarHandle(AbstractPromise.class, "signalNeeded", int.class);
         } catch (ReflectiveOperationException e) {
             throw new ExceptionInInitializerError(e);
         }
