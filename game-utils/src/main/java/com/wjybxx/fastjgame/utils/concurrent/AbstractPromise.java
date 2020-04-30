@@ -634,6 +634,9 @@ abstract class AbstractPromise<V> implements Promise<V> {
          * 如果tryFire使得另一个{@code Future}进入完成状态，分两种情况：
          * 1. mode指示不要调用{@link #postComplete(AbstractPromise)}方法时，则返回新进入完成状态的{@code Future}。
          * 2. mode指示可以调用{@link #postComplete(AbstractPromise)}方法时，则直接其进入完成状态的事件。
+         * <p>
+         * Q: 为什么没有{@code Future}参数？
+         * A: 因为调用者可能是其它{@link Future}...
          */
         abstract AbstractPromise<?> tryFire(int mode);
 

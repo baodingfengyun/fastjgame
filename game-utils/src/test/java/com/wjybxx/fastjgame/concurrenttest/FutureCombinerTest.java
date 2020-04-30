@@ -62,7 +62,7 @@ public class FutureCombinerTest {
     }
 
     private static void doCombine(FluentFuture<String> aFuture, FluentFuture<String> bFuture, DefaultEventLoop appEventLoop) {
-        new FutureCombiner(appEventLoop)
+        new FutureCombiner()
                 .add(aFuture)
                 .add(bFuture)
                 .finish(FutureUtils.newPromise())

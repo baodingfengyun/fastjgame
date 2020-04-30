@@ -143,10 +143,10 @@ public interface Promise<V> extends FluentFuture<V> {
     Promise<V> addListener(FutureListener<? super V> listener);
 
     @Override
-    Promise<V> addFailedListener(Consumer<? super Throwable> action);
+    Promise<V> addListener(FutureListener<? super V> listener, Executor executor);
 
     @Override
-    Promise<V> addListener(FutureListener<? super V> listener, Executor executor);
+    Promise<V> addFailedListener(Consumer<? super Throwable> action);
 
     @Override
     Promise<V> addFailedListener(Consumer<? super Throwable> action, Executor executor);

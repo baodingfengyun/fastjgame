@@ -23,8 +23,8 @@ package com.wjybxx.fastjgame.utils.concurrent;
  * 一旦该listener通过{@link FluentFuture#addListener(FutureListener)}添加到future上，future上关联的异步操作完成时，就会收到通知。
  *
  * <pre>{@code
- * FluentFuture f = submit(task)
- * f.addListener(future -> doSomething());
+ *      ListenableFuture future = submit(task);
+ *      future.addListener(f -> doSomething(f.getNow()));
  * }</pre>
  *
  * @param <V> Listener期望消费的类型，也是Future生产的类型。

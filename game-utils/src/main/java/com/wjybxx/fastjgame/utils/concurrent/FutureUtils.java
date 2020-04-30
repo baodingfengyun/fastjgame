@@ -29,6 +29,7 @@ public class FutureUtils {
     private FutureUtils() {
 
     }
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * 创建一个{@link Promise}。
@@ -58,6 +59,8 @@ public class FutureUtils {
     public static <V> FluentFuture<V> newFailedFuture(Throwable cause) {
         return new DefaultPromise<>(cause);
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * 将future的结果传输到promise上
@@ -92,6 +95,8 @@ public class FutureUtils {
         }
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     public static <V> Promise<V> fromCompletableFuture(CompletableFuture<V> completableFuture) {
         final Promise<V> promise = new JdkPromise<>(completableFuture);
         completableFuture.whenComplete(new UniRelay<>(promise));
@@ -111,4 +116,5 @@ public class FutureUtils {
             return completableFuture.cancel(mayInterruptIfRunning) && super.cancel(mayInterruptIfRunning);
         }
     }
+
 }

@@ -18,8 +18,8 @@ package com.wjybxx.fastjgame.utils.concurrent;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * {@link FluentFuture}聚合器。
@@ -32,9 +32,9 @@ import java.util.Objects;
  * 当所有的future添加完毕之后，使用者需要调用{@link #finish(Promise)}方法指定接收所有future完成事件的promise。
  *
  * <h3>失败处理</h3>
- * 注意：当且仅当所有的future关联的操作都<b>成功完成</b>时{@link FluentFuture#isCompletedExceptionally() false}，{@link #aggregatePromise}才会表现为成功。
- * 一旦某一个future执行失败，则{@link #aggregatePromise}表现为失败。此外，如果多个future执行失败，
- * 那么{@link #aggregatePromise}最终接收到的{@link #cause}将是不确定的，并且不保证拥有所有的错误信息。
+ * 注意：当且仅当所有的future关联的操作都<b>成功完成</b>时{@link FluentFuture#isCompletedExceptionally() false}，{@link CombinerCompletion#aggregatePromise}才会表现为成功。
+ * 一旦某一个future执行失败，则{@link CombinerCompletion#aggregatePromise}表现为失败。此外，如果多个future执行失败，
+ * 那么{@link CombinerCompletion#aggregatePromise}最终接收到的{@link CombinerCompletion#cause}将是不确定的，并且不保证拥有所有的错误信息。
  *
  * <h3>非线程安全</h3>
  * 该实现不是线程安全的，只允许构造方法指定的{@link EventLoop}添加要监听的future。
@@ -65,17 +65,10 @@ import java.util.Objects;
 @NotThreadSafe
 public class FutureCombiner {
 
-    private final FutureListener<Object> childrenListener = new ChildListener();
-    private final EventLoop appEventLoop;
+    private List<ListenableFuture<?>> futureList = new ArrayList<>(8);
 
-    private int expectedCount;
-    private int doneCount;
+    public FutureCombiner() {
 
-    private Promise<Void> aggregatePromise;
-    private Throwable cause;
-
-    public FutureCombiner(EventLoop appEventLoop) {
-        this.appEventLoop = appEventLoop;
     }
 
     public FutureCombiner addAll(@Nonnull FluentFuture<?>... futures) {
@@ -94,22 +87,9 @@ public class FutureCombiner {
 
     public FutureCombiner add(@Nonnull FluentFuture<?> future) {
         Objects.requireNonNull(future, "future");
-        checkInEventLoop("Adding future must be called from EventLoop thread");
-        checkAddFutureAllowed();
 
-        ++expectedCount;
-        future.addListener(childrenListener, appEventLoop);
+        futureList.add(future);
         return this;
-    }
-
-    private void checkInEventLoop(String msg) {
-        EventLoopUtils.ensureInEventLoop(appEventLoop, msg);
-    }
-
-    private void checkAddFutureAllowed() {
-        if (aggregatePromise != null) {
-            throw new IllegalStateException("Adding futures is not allowed after finished adding");
-        }
     }
 
     /**
@@ -119,44 +99,76 @@ public class FutureCombiner {
      * @return 返回参数，方便直接添加回调。
      */
     public <T extends Promise<Void>> T finish(@Nonnull T aggregatePromise) {
-        Objects.requireNonNull(aggregatePromise, "aggregatePromise");
-        checkInEventLoop("Finish must be called from EventLoop thread");
-        checkFinishAllowed();
+        return combine(futureList, aggregatePromise);
+    }
 
-        this.aggregatePromise = aggregatePromise;
-        if (doneCount == expectedCount) {
-            tryPromise();
+    /**
+     * 清空{@link FutureCombiner}添加监听器，可以用于新的一轮合并。
+     *
+     * @return this
+     */
+    public FutureCombiner reset() {
+        futureList.clear();
+        return this;
+    }
+
+    /**
+     * @param futures          所有要被监听的futures
+     * @param aggregatePromise 用于接收所有future进入完成状态的promise
+     * @return aggregatePromise，方便流式语法操作
+     */
+    public static <T extends Promise<Void>> T combine(Collection<ListenableFuture<?>> futures, @Nonnull T aggregatePromise) {
+        Objects.requireNonNull(aggregatePromise, "aggregatePromise");
+        if (futures.isEmpty()) {
+            throw new IllegalStateException("Non futures");
+        }
+
+        final CombinerCompletion completion = new CombinerCompletion(futures.size(), aggregatePromise);
+        for (ListenableFuture<?> future : futures) {
+            future.addListener(completion);
         }
 
         return aggregatePromise;
     }
 
-    private void checkFinishAllowed() {
-        if (null != this.aggregatePromise) {
-            throw new IllegalStateException("Already finished");
-        }
+    /**
+     * @param futures 所有要被监听的futures
+     * @return promise 用于接收所有future进入完成状态的future
+     */
+    public static FluentFuture<Void> combine(ListenableFuture<?>... futures) {
+        return combine(Arrays.asList(futures), FutureUtils.newPromise());
     }
 
-    private class ChildListener implements FutureListener<Object> {
+    private static class CombinerCompletion implements FutureListener<Object> {
+
+        final int expectedCount;
+        final Promise<Void> aggregatePromise;
+
+        final AtomicInteger doneCount = new AtomicInteger();
+        Throwable cause;
+
+        private CombinerCompletion(int expectedCount, Promise<Void> aggregatePromise) {
+            this.expectedCount = expectedCount;
+            this.aggregatePromise = aggregatePromise;
+        }
 
         @Override
-        public void onComplete(ListenableFuture<Object> future) {
+        public void onComplete(ListenableFuture<Object> future) throws Exception {
             final Throwable throwable = future.cause();
-
             if (throwable != null) {
+                // 它可能被乱序赋值，我们并不需要保证是哪一个
+                // 它的可见性又下面的CAS保证
                 cause = throwable;
             }
 
-            doneCount++;
-
-            if (doneCount == expectedCount && null != aggregatePromise) {
-                tryPromise();
+            if (doneCount.incrementAndGet() == expectedCount) {
+                // 这里能看见其它线程给cause的赋值
+                if (cause == null) {
+                    aggregatePromise.trySuccess(null);
+                } else {
+                    aggregatePromise.tryFailure(cause);
+                }
             }
         }
     }
-
-    private boolean tryPromise() {
-        return cause == null ? aggregatePromise.trySuccess(null) : aggregatePromise.tryFailure(cause);
-    }
-
 }

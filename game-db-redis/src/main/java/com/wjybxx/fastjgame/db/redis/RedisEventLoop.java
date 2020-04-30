@@ -16,8 +16,10 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
-import com.wjybxx.fastjgame.utils.FunctionUtils;
-import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
+import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
 import org.slf4j.Logger;
@@ -235,15 +237,14 @@ public class RedisEventLoop extends UnboundedEventLoop {
     /**
      * 执行一个管道命令，并在完成之后，在指定线程中执行回调逻辑
      *
-     * @param command      待执行的命令
-     * @param appEventLoop 用户线程 - 执行回调的线程
-     * @param flush        是否刷新管道
+     * @param command 待执行的命令
+     * @param flush   是否刷新管道
      */
-    <T, U> FluentFuture<U> call(PipelineCommand<T> command, Function<T, U> decoder, boolean flush, EventLoop appEventLoop) {
+    <T, U> FluentFuture<U> call(PipelineCommand<T> command, Function<T, U> decoder, boolean flush) {
         final Promise<U> promise = FutureUtils.newPromise();
         execute(new PipelineTask<>(command, decoder, flush, promise));
         // 回调到用户线程
-        return promise.whenCompleteAsync(FunctionUtils.emptyBiConsumer(), appEventLoop);
+        return promise;
     }
 
     /**

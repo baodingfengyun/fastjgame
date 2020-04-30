@@ -201,10 +201,10 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
     FluentFuture<V> addListener(FutureListener<? super V> listener);
 
     @Override
-    FluentFuture<V> addFailedListener(Consumer<? super Throwable> action);
+    FluentFuture<V> addListener(FutureListener<? super V> listener, Executor executor);
 
     @Override
-    FluentFuture<V> addListener(FutureListener<? super V> listener, Executor executor);
+    FluentFuture<V> addFailedListener(Consumer<? super Throwable> action);
 
     @Override
     FluentFuture<V> addFailedListener(Consumer<? super Throwable> action, Executor executor);

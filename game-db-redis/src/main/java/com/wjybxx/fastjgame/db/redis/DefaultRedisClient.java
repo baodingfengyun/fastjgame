@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.db.redis;
 
+import com.wjybxx.fastjgame.utils.FunctionUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 
@@ -53,12 +54,14 @@ public class DefaultRedisClient implements RedisClient {
 
     @Override
     public <T, U> FluentFuture<U> call(@Nonnull PipelineCommand<T> command, Function<T, U> decoder) {
-        return redisEventLoop.call(command, decoder, false, appEventLoop);
+        return redisEventLoop.call(command, decoder, false)
+                .whenCompleteAsync(FunctionUtils.emptyBiConsumer(), appEventLoop);
     }
 
     @Override
     public <T, U> FluentFuture<U> callAndFlush(@Nonnull PipelineCommand<T> command, Function<T, U> decoder) {
-        return redisEventLoop.call(command, decoder, true, appEventLoop);
+        return redisEventLoop.call(command, decoder, true)
+                .whenCompleteAsync(FunctionUtils.emptyBiConsumer(), appEventLoop);
     }
 
     @Override
