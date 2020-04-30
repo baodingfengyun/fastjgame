@@ -73,30 +73,6 @@ public abstract class AbstractEventLoop extends AbstractExecutorService implemen
         return 1;
     }
 
-    // -------------------------------------- promise --------------------------------------
-
-    @Nonnull
-    @Override
-    public <V> Promise<V> newPromise() {
-        return new DefaultPromise<>();
-    }
-
-    @Nonnull
-    @Override
-    public <V> FluentFuture<V> newSucceededFuture(@Nullable V result) {
-        final Promise<V> promise = new DefaultPromise<>();
-        promise.trySuccess(result);
-        return promise;
-    }
-
-    @Nonnull
-    @Override
-    public final <V> FluentFuture<V> newFailedFuture(@Nonnull Throwable cause) {
-        final Promise<V> promise = new DefaultPromise<>();
-        promise.tryFailure(cause);
-        return promise;
-    }
-
     // --------------------------------------- 任务提交 ----------------------------------------
     // region 重写 AbstractExecutorService中的部分方法,返回特定的Future类型
     @Nonnull

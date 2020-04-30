@@ -22,8 +22,8 @@ import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
+import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
@@ -129,11 +129,11 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             final RpcRequestMessage requestMessage = (RpcRequestMessage) msg;
             // 创建执行上下文
             final DefaultRpcProcessContext context = new DefaultRpcProcessContext(ctx.session(), requestMessage.getRequestGuid(), requestMessage.isSync());
-            final Promise<?> promise = ctx.netEventLoop().newPromise();
+            final Promise<?> promise = FutureUtils.newPromise();
 
             ctx.appEventLoop().execute(new RpcRequestCommitTask(context, requestMessage.getBody(), promise));
 
-            promise.addListener(new RpcResultListener(context));
+            promise.addListener(new RpcResultListener(context), ctx.netEventLoop());
         } else if (msg instanceof RpcResponseMessage) {
             // 读取到一个Rpc响应消息，提交给应用层
             final RpcResponseMessage responseMessage = (RpcResponseMessage) msg;

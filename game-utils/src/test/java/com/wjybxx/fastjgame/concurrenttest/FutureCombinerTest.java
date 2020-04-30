@@ -65,7 +65,7 @@ public class FutureCombinerTest {
         new FutureCombiner(appEventLoop)
                 .add(aFuture)
                 .add(bFuture)
-                .finish(appEventLoop.newPromise())
+                .finish(FutureUtils.newPromise())
                 .addListener(future -> {
                     System.out.println("Callback Combine, Thread : " + Thread.currentThread().getName());
                     System.out.println("Callback Combine, result " + getResultAsStringSafely(future));

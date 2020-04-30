@@ -32,6 +32,7 @@ import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
 import com.wjybxx.fastjgame.net.ws.WsServerChannelInitializer;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import javax.annotation.Nonnull;
@@ -89,7 +90,7 @@ public class DefaultNetContext implements NetContext {
         final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
         final TCPClientChannelInitializer initializer = new TCPClientChannelInitializer(sessionId, config, netEventLoop);
 
-        final Promise<Session> connectPromise = netEventLoop.newPromise();
+        final Promise<Session> connectPromise = FutureUtils.newPromise();
         netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteAddress, config, initializer, this, connectPromise));
         return connectPromise;
     }
@@ -106,7 +107,7 @@ public class DefaultNetContext implements NetContext {
         final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
         final WsClientChannelInitializer initializer = new WsClientChannelInitializer(sessionId, websocketUrl, config, netEventLoop);
 
-        final Promise<Session> connectPromise = netEventLoop.newPromise();
+        final Promise<Session> connectPromise = FutureUtils.newPromise();
         netEventLoop.post(new ConnectRemoteRequest(sessionId, remoteAddress, config, initializer, this, connectPromise));
         return connectPromise;
     }
@@ -125,7 +126,7 @@ public class DefaultNetContext implements NetContext {
             throw new UnsupportedOperationException();
         }
 
-        final Promise<Session> connectPromise = netEventLoop.newPromise();
+        final Promise<Session> connectPromise = FutureUtils.newPromise();
         netEventLoop.post(new ConnectLocalRequest(sessionId, (DefaultLocalPort) localPort, config, this, connectPromise));
         return connectPromise;
     }

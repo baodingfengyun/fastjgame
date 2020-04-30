@@ -19,6 +19,8 @@ package com.wjybxx.fastjgame.utils.concurrent;
 import javax.annotation.Nonnull;
 
 /**
+ * 建议使用{@link FutureUtils#newPromise()}工厂方法代替构造方法，减少实现类的依赖
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/4/26
@@ -26,14 +28,14 @@ import javax.annotation.Nonnull;
  */
 public class DefaultPromise<V> extends AbstractFluentPromise<V> {
 
-    public DefaultPromise() {
+    protected DefaultPromise() {
     }
 
-    public DefaultPromise(V result) {
+    protected DefaultPromise(V result) {
         super(result);
     }
 
-    public DefaultPromise(@Nonnull Throwable cause) {
+    protected DefaultPromise(@Nonnull Throwable cause) {
         super(cause);
     }
 

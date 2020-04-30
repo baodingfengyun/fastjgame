@@ -16,6 +16,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 
 import javax.annotation.Nonnull;
 
@@ -48,7 +49,7 @@ public class OneWayCommitTask implements RpcProcessContext, CommitTask {
     public void run() {
         // 使用voidPromise是实现单项通知(无返回值调用)的关键
         session.config().dispatcher().post(this, (RpcMethodSpec) message,
-                session.netEventLoop().newPromise());
+                FutureUtils.newPromise());
     }
 
     @Nonnull

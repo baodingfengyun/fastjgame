@@ -43,7 +43,7 @@ import java.util.Objects;
  *      new FutureCombiner(eventLoop)
  *      .add(aFuture)
  *      .add(bFuture)
- *      .finish(eventLoop.newPromise())
+ *      .finish(FutureUtils.newPromise())
  *      .addListener(f -> doSomething(f));
  * }</pre>
  *

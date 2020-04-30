@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.net.exception.RpcSessionNotFoundException;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 
 /**
  * {@link RpcClient}抽象实现，提供{@link RpcClientInvoker}的默认实现和，提供{@link #newSessionNotFoundFuture(RpcServerSpec)}
@@ -29,14 +30,11 @@ import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
  */
 public abstract class AbstractRpcClient implements RpcClient {
 
-    /**
-     * 默认的监听器执行环境，建议为应用线程
-     */
-    protected final EventLoop defaultExecutor;
+    protected final EventLoop appEventLoop;
     protected final RpcClientInvoker invoker;
 
-    public AbstractRpcClient(EventLoop defaultExecutor) {
-        this.defaultExecutor = defaultExecutor;
+    public AbstractRpcClient(EventLoop appEventLoop) {
+        this.appEventLoop=appEventLoop;
         this.invoker = new DefaultRpcClientInvoker();
     }
 
@@ -46,6 +44,6 @@ public abstract class AbstractRpcClient implements RpcClient {
      * @param serverSpec 错误的或不支持的服务描述信息
      */
     protected final <V> FluentFuture<V> newSessionNotFoundFuture(RpcServerSpec serverSpec) {
-        return defaultExecutor.newFailedFuture(new RpcSessionNotFoundException(serverSpec));
+        return FutureUtils.newFailedFuture(new RpcSessionNotFoundException(serverSpec));
     }
 }

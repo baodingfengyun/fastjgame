@@ -55,7 +55,7 @@ public class GlobalEventLoop extends AbstractEventLoop {
     /**
      * 不可以在GlobalEventLoop上等待其关闭
      */
-    private final FluentFuture<?> terminationFuture = newFailedFuture(new UnsupportedOperationException());
+    private final FluentFuture<?> terminationFuture = FutureUtils.newFailedFuture(new UnsupportedOperationException());
 
     private GlobalEventLoop() {
         super(null);

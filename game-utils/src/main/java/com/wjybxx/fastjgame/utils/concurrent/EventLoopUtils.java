@@ -110,14 +110,14 @@ public class EventLoopUtils {
 
     @Nonnull
     public static <V> FluentFuture<V> newSucceededFuture(@Nonnull EventLoop eventLoop, @Nullable V result) {
-        final Promise<V> promise = eventLoop.newPromise();
+        final Promise<V> promise = FutureUtils.newPromise();
         promise.trySuccess(result);
         return promise;
     }
 
     @Nonnull
     public static <V> FluentFuture<V> newFailedFuture(EventLoop eventLoop, @Nonnull Throwable cause) {
-        final Promise<V> promise = eventLoop.newPromise();
+        final Promise<V> promise = FutureUtils.newPromise();
         promise.tryFailure(cause);
         return promise;
     }

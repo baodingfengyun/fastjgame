@@ -19,13 +19,16 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.net.exception.RpcSessionClosedException;
 import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
+import com.wjybxx.fastjgame.utils.FunctionUtils;
 import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 /**
  * @author wjybxx
@@ -50,12 +53,15 @@ public class DefaultRpcClientInvoker implements RpcClientInvoker {
     public <V> FluentFuture<V> call(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request, boolean flush) {
         if (session.isClosed()) {
             // session关闭状态下直接返回
-            return session.appEventLoop().newFailedFuture(RpcSessionClosedException.INSTANCE);
+            return FutureUtils.newFailedFuture(RpcSessionClosedException.INSTANCE);
         }
         // 会话活动的状态下才会发送
-        final Promise<V> promise = session.netEventLoop().newPromise();
-        session.netEventLoop().execute(new RpcRequestWriteTask(session, request, false, session.config().getAsyncRpcTimeoutMs(), promise, flush));
-        return promise;
+        final Promise<V> promise = FutureUtils.newPromise();
+        session.netEventLoop()
+                .execute(new RpcRequestWriteTask(session, request, false, session.config().getAsyncRpcTimeoutMs(), promise, flush));
+
+        // 回调到用户线程
+        return promise.whenCompleteAsync(FunctionUtils.emptyBiConsumer(), session.appEventLoop());
     }
 
     @Nullable
@@ -63,14 +69,15 @@ public class DefaultRpcClientInvoker implements RpcClientInvoker {
     public <V> V syncCall(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request) throws CompletionException {
         if (session.isClosed()) {
             // session关闭状态下直接返回
-            return session.netEventLoop().<V>newFailedFuture(RpcSessionClosedException.INSTANCE)
+            return FutureUtils.<V>newFailedFuture(RpcSessionClosedException.INSTANCE)
                     .getNow();
         }
 
-        final Promise<V> promise = session.netEventLoop().newPromise();
+        final Promise<V> promise = FutureUtils.newPromise();
         final long syncRpcTimeoutMs = session.config().getSyncRpcTimeoutMs();
 
-        session.netEventLoop().execute(new RpcRequestWriteTask(session, request, true, syncRpcTimeoutMs, promise, true));
+        session.netEventLoop()
+                .execute(new RpcRequestWriteTask(session, request, true, syncRpcTimeoutMs, promise, true));
 
         if (!promise.awaitUninterruptibly(syncRpcTimeoutMs, TimeUnit.MILLISECONDS)) {
             promise.tryFailure(RpcTimeoutException.INSTANCE);

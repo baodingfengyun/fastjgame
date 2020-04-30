@@ -88,39 +88,4 @@ public interface EventLoop extends FixedEventLoopGroup {
      */
     boolean inEventLoop();
 
-    /**
-     * 创建一个{@link Promise}。
-     * 用户提交一个任务，执行方持有Promise，用户方持Future，执行方通过Promise赋值，用户通过Future获取结果或监听。
-     * <p>
-     * 注意：最好不要在自己创建的promise上进行阻塞等待，否则可能导致死锁。建议使用{@link FutureListener}获取结果。
-     * 在检测到可能死锁时会抛出{@link BlockingOperationException}。
-     *
-     * @param <V> the type of value
-     * @return Promise
-     */
-    @Nonnull
-    <V> Promise<V> newPromise();
-
-    /**
-     * 创建一个{@link FluentFuture}，该future表示它关联的任务早已正常完成。因此{@link FluentFuture#isCompletedExceptionally()}总是返回false。
-     * 所有添加到该future上的{@link FutureListener}都会立即被通知。并且该future上的所有阻塞方法会立即返回而不会阻塞。
-     *
-     * @param <V>    the type of value
-     * @param result 结果值
-     * @return Future
-     */
-    @Nonnull
-    <V> FluentFuture<V> newSucceededFuture(@Nullable V result);
-
-    /**
-     * 创建一个{@link FluentFuture}，该future表示它关联的任务早已失败。因此{@link FluentFuture#isCompletedExceptionally()}总是返回true。
-     * 所有添加到该future上的{@link FutureListener}都会立即被通知。并且该future上的所有阻塞方法会立即返回而不会阻塞。
-     *
-     * @param <V>   the type of value
-     * @param cause 任务失败的原因
-     * @return Future
-     */
-    @Nonnull
-    <V> FluentFuture<V> newFailedFuture(@Nonnull Throwable cause);
-
 }

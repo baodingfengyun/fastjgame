@@ -27,16 +27,34 @@ import java.util.function.BiConsumer;
 public class FutureUtils {
 
     private FutureUtils() {
+
     }
 
+    /**
+     * 创建一个{@link Promise}。
+     * 用户提交一个任务，执行方持有Promise，用户方持Future，执行方通过Promise赋值，用户通过Future获取结果或监听。
+     */
     public static <V> Promise<V> newPromise() {
         return new DefaultPromise<>();
     }
 
+    /**
+     * 创建一个{@link FluentFuture}，该future表示它关联的任务早已正常完成。因此{@link FluentFuture#isCompletedExceptionally()}总是返回false。
+     * 所有添加到该future上的{@link FutureListener}都会立即被通知。并且该future上的所有阻塞方法会立即返回而不会阻塞。
+     */
     public static <V> FluentFuture<V> newSucceedFuture(V result) {
         return new DefaultPromise<>(result);
     }
 
+    /**
+     * /**
+     * 创建一个{@link FluentFuture}，该future表示它关联的任务早已失败。因此{@link FluentFuture#isCompletedExceptionally()}总是返回true。
+     * 所有添加到该future上的{@link FutureListener}都会立即被通知。并且该future上的所有阻塞方法会立即返回而不会阻塞。
+     *
+     * @param <V>   the type of value
+     * @param cause 任务失败的原因
+     * @return Future
+     */
     public static <V> FluentFuture<V> newFailedFuture(Throwable cause) {
         return new DefaultPromise<>(cause);
     }
