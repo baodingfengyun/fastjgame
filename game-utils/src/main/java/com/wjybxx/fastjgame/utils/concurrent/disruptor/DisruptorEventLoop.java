@@ -356,7 +356,8 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                 ringBuffer.publish(sequence);
 
                 // 确保线程已启动
-                if (!inEventLoop()) {
+                // 如果sequence >= ringBufferSize 表明消费者一定已启动
+                if (sequence < ringBuffer.getBufferSize() && !inEventLoop()) {
                     ensureThreadStarted();
                 }
             }

@@ -169,6 +169,16 @@ public interface ListenableFuture<V> extends Future<V> {
     ListenableFuture<V> addListener(FutureListener<? super V> listener, Executor executor);
 
     /**
+     * 添加一个监听器，一旦{@code Future}进入完成状态，无论正常完成还是异常完成，给定的操作就将被执行。
+     * 如果{@code Future}当前已完成，则立即执行给定的动作。
+     *
+     * @return this
+     */
+    ListenableFuture<V> addListener(BiConsumer<? super V, ? super Throwable> action);
+
+    ListenableFuture<V> addListener(BiConsumer<? super V, ? super Throwable> action, Executor executor);
+
+    /**
      * 添加一个监听器，如果当前{@code Future}由于异常完成，则执行给定的操作。
      * 如果{@code Future}当前已失败，则立即执行给定的动作。
      *

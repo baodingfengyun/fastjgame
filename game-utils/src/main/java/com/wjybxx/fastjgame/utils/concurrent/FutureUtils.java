@@ -72,17 +72,12 @@ public class FutureUtils {
         }
     }
 
-    static class UniRelay<V> implements BiConsumer<V, Throwable>, FutureListener<V> {
+    private static class UniRelay<V> implements BiConsumer<V, Throwable> {
 
         final Promise<V> promise;
 
         UniRelay(Promise<V> promise) {
             this.promise = promise;
-        }
-
-        @Override
-        public void onComplete(ListenableFuture<V> future) throws Exception {
-            future.acceptNow(this);
         }
 
         @Override

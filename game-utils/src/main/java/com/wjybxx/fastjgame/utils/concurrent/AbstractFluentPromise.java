@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -62,7 +63,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     @Override
     public <U> Promise<U> thenComposeAsync(@Nonnull Function<? super V, ? extends ListenableFuture<U>> fn, Executor executor) {
-        return unitComposeApplyStage(executor, fn);
+        return unitComposeApplyStage(Objects.requireNonNull(executor, "executor"), fn);
     }
 
     private <U> Promise<U> unitComposeApplyStage(Executor executor, @Nonnull Function<? super V, ? extends ListenableFuture<U>> fn) {
@@ -78,7 +79,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     @Override
     public <U> Promise<U> thenComposeAsync(@Nonnull Callable<? extends ListenableFuture<U>> fn, Executor executor) {
-        return uniComposeCallStage(executor, fn);
+        return uniComposeCallStage(Objects.requireNonNull(executor, "executor"), fn);
     }
 
     private <U> Promise<U> uniComposeCallStage(Executor executor, @Nonnull Callable<? extends ListenableFuture<U>> fn) {
@@ -94,7 +95,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     @Override
     public Promise<Void> thenRunAsync(@Nonnull Runnable action, Executor executor) {
-        return uniRunStage(executor, action);
+        return uniRunStage(Objects.requireNonNull(executor, "executor"), action);
     }
 
     private Promise<Void> uniRunStage(Executor executor, @Nonnull Runnable action) {
@@ -110,7 +111,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     @Override
     public <U> Promise<U> thenCallAsync(@Nonnull Callable<U> fn, Executor executor) {
-        return uniCallStage(executor, fn);
+        return uniCallStage(Objects.requireNonNull(executor, "executor"), fn);
     }
 
     private <U> Promise<U> uniCallStage(Executor executor, @Nonnull Callable<U> fn) {
@@ -126,7 +127,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     @Override
     public Promise<Void> thenAcceptAsync(@Nonnull Consumer<? super V> action, Executor executor) {
-        return uniAcceptStage(executor, action);
+        return uniAcceptStage(Objects.requireNonNull(executor, "executor"), action);
     }
 
     private Promise<Void> uniAcceptStage(Executor executor, @Nonnull Consumer<? super V> action) {
@@ -142,7 +143,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     @Override
     public <U> Promise<U> thenApplyAsync(@Nonnull Function<? super V, ? extends U> fn, Executor executor) {
-        return uniApplyStage(executor, fn);
+        return uniApplyStage(Objects.requireNonNull(executor, "executor"), fn);
     }
 
     private <U> Promise<U> uniApplyStage(Executor executor, @Nonnull Function<? super V, ? extends U> fn) {
@@ -159,7 +160,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
     @Override
     public <X extends Throwable>
     Promise<V> catchingAsync(@Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback, Executor executor) {
-        return uniCatchingStage(executor, exceptionType, fallback);
+        return uniCatchingStage(Objects.requireNonNull(executor, "executor"), exceptionType, fallback);
     }
 
     private <X extends Throwable> Promise<V> uniCatchingStage(Executor executor, @Nonnull Class<X> exceptionType, @Nonnull Function<? super X, ? extends V> fallback) {
@@ -175,7 +176,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     @Override
     public <U> Promise<U> thenHandleAsync(@Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn, Executor executor) {
-        return uniHandleStage(executor, fn);
+        return uniHandleStage(Objects.requireNonNull(executor, "executor"), fn);
     }
 
     private <U> Promise<U> uniHandleStage(Executor executor, @Nonnull BiFunction<? super V, ? super Throwable, ? extends U> fn) {
@@ -191,7 +192,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     @Override
     public Promise<V> whenCompleteAsync(@Nonnull BiConsumer<? super V, ? super Throwable> action, Executor executor) {
-        return uniWhenCompleteStage(executor, action);
+        return uniWhenCompleteStage(Objects.requireNonNull(executor, "executor"), action);
     }
 
     private Promise<V> uniWhenCompleteStage(Executor executor, @Nonnull BiConsumer<? super V, ? super Throwable> action) {
@@ -207,7 +208,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     @Override
     public Promise<V> whenExceptionallyAsync(@Nonnull Consumer<? super Throwable> action, Executor executor) {
-        return uniWhenExceptionallyStage(executor, action);
+        return uniWhenExceptionallyStage(Objects.requireNonNull(executor, "executor"), action);
     }
 
     private Promise<V> uniWhenExceptionallyStage(Executor executor, @Nonnull Consumer<? super Throwable> action) {
@@ -215,7 +216,6 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         pushCompletion(new UniWhenExceptionally<>(executor, this, promise, action));
         return promise;
     }
-
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -226,15 +226,35 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     @Override
     public Promise<V> addListener(FutureListener<? super V> listener, Executor executor) {
-        return addListener0(executor, listener);
+        return addListener0(Objects.requireNonNull(executor, "executor"), listener);
     }
 
     private Promise<V> addListener0(Executor executor, FutureListener<? super V> listener) {
-        if (listener instanceof AbstractPromise.Completion) {
+        if (listener instanceof Completion) {
             assert executor == null;
             pushCompletion((Completion) listener);
         } else {
             pushCompletion(new ListenWhenComplete<>(executor, this, listener));
+        }
+        return this;
+    }
+
+    @Override
+    public Promise<V> addListener(BiConsumer<? super V, ? super Throwable> action) {
+        return addListener0(null, action);
+    }
+
+    @Override
+    public Promise<V> addListener(BiConsumer<? super V, ? super Throwable> action, Executor executor) {
+        return addListener0(Objects.requireNonNull(executor, "executor"), action);
+    }
+
+    private Promise<V> addListener0(Executor executor, BiConsumer<? super V, ? super Throwable> action) {
+        if (action instanceof Completion) {
+            assert executor == null;
+            pushCompletion((Completion) action);
+        } else {
+            pushCompletion(new ListenWhenComplete2<>(executor, this, action));
         }
         return this;
     }
@@ -246,11 +266,11 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     @Override
     public Promise<V> addFailedListener(Consumer<? super Throwable> action, Executor executor) {
-        return addFailedListener0(executor, action);
+        return addFailedListener0(Objects.requireNonNull(executor, "executor"), action);
     }
 
     private Promise<V> addFailedListener0(Executor executor, Consumer<? super Throwable> action) {
-        if (action instanceof AbstractPromise.Completion) {
+        if (action instanceof Completion) {
             assert executor == null;
             pushCompletion((Completion) action);
         } else {
@@ -271,13 +291,20 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
     /**
      * {@link UniCompletion}表示联合两个{@code Future}，因此它持有一个输入，一个动作，和一个输出。
      * 实现{@link Runnable}接口是为了避免创建不必要的对象，如果需要在另一个线程执行的时候。
+     *
+     * @param <V> 输入值类型
+     * @param <U> 输入值类型
      */
-    static abstract class UniCompletion extends Completion {
+    static abstract class UniCompletion<V, U> extends Completion {
 
         Executor executor;
+        AbstractPromise<V> input;
+        AbstractPromise<U> output;
 
-        UniCompletion(Executor executor) {
+        UniCompletion(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output) {
             this.executor = executor;
+            this.input = input;
+            this.output = output;
         }
 
         /**
@@ -313,24 +340,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    /**
-     * @param <V> 输入值类型
-     * @param <U> 输入值类型
-     */
-    static abstract class AbstractUniCompletion<V, U> extends UniCompletion {
-
-        AbstractPromise<V> input;
-        AbstractPromise<U> output;
-
-        AbstractUniCompletion(Executor executor, AbstractPromise<V> input, AbstractPromise<U> output) {
-            super(executor);
-            this.input = input;
-            this.output = output;
-        }
-
-    }
-
-    static class UniComposeApply<V, U> extends AbstractUniCompletion<V, U> {
+    static class UniComposeApply<V, U> extends UniCompletion<V, U> {
 
         Function<? super V, ? extends ListenableFuture<U>> fn;
 
@@ -417,19 +427,21 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    static class UniRelay<V> extends UniCompletion implements FutureListener<V> {
+    /**
+     * 它较为特殊，并未继承{@link UniCompletion}
+     */
+    static class UniRelay<V> extends Completion implements FutureListener<V> {
 
         ListenableFuture<V> input;
         AbstractPromise<V> output;
 
         UniRelay(ListenableFuture<V> input, AbstractPromise<V> output) {
-            super(null);
             this.input = input;
             this.output = output;
         }
 
         @Override
-        public void onComplete(ListenableFuture<V> future) throws Exception {
+        public void onComplete(ListenableFuture<V> future) {
             tryFire(SYNC);
         }
 
@@ -449,7 +461,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    static class UniComposeCall<V, U> extends AbstractUniCompletion<V, U> {
+    static class UniComposeCall<V, U> extends UniCompletion<V, U> {
 
         Callable<? extends ListenableFuture<U>> fn;
 
@@ -504,7 +516,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniRun<V> extends AbstractUniCompletion<V, Void> {
+    static class UniRun<V> extends UniCompletion<V, Void> {
 
         Runnable action;
 
@@ -548,7 +560,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniCall<V, U> extends AbstractUniCompletion<V, U> {
+    static class UniCall<V, U> extends UniCompletion<V, U> {
 
         Callable<U> fn;
 
@@ -591,7 +603,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniAccept<V> extends AbstractUniCompletion<V, Void> {
+    static class UniAccept<V> extends UniCompletion<V, Void> {
 
         Consumer<? super V> action;
 
@@ -637,7 +649,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniApply<V, U> extends AbstractUniCompletion<V, U> {
+    static class UniApply<V, U> extends UniCompletion<V, U> {
 
         Function<? super V, ? extends U> fn;
 
@@ -681,7 +693,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    static class UniCaching<V, X> extends AbstractUniCompletion<V, V> {
+    static class UniCaching<V, X> extends UniCompletion<V, V> {
 
         Class<X> exceptionType;
         Function<? super X, ? extends V> fallback;
@@ -729,7 +741,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    static class UniHandle<V, U> extends AbstractUniCompletion<V, U> {
+    static class UniHandle<V, U> extends UniCompletion<V, U> {
 
         BiFunction<? super V, ? super Throwable, ? extends U> fn;
 
@@ -780,7 +792,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniWhenComplete<V> extends AbstractUniCompletion<V, V> {
+    static class UniWhenComplete<V> extends UniCompletion<V, V> {
 
         BiConsumer<? super V, ? super Throwable> action;
 
@@ -835,7 +847,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     }
 
-    static class UniWhenExceptionally<V> extends AbstractUniCompletion<V, V> {
+    static class UniWhenExceptionally<V> extends UniCompletion<V, V> {
 
         Consumer<? super Throwable> action;
 
@@ -881,6 +893,8 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         }
 
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     static abstract class ListenCompletion<V> extends Completion {
 
@@ -939,6 +953,50 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
             return null;
         }
     }
+
+    static class ListenWhenComplete2<V> extends ListenCompletion<V> {
+
+        BiConsumer<? super V, ? super Throwable> action;
+
+        ListenWhenComplete2(Executor executor, AbstractPromise<V> input,
+                            BiConsumer<? super V, ? super Throwable> action) {
+            super(executor, input);
+            this.action = action;
+        }
+
+        @Override
+        AbstractPromise<?> tryFire(int mode) {
+
+            try {
+                if (isSyncOrNestedMode(mode) && !claim()) {
+                    return null;
+                }
+
+                AbstractPromise<V> in = input;
+                Object inResult = in.result;
+                Throwable cause;
+                V value;
+
+                if (inResult instanceof AltResult) {
+                    value = null;
+                    cause = ((AltResult) inResult).cause;
+                } else {
+                    value = in.decodeValue(inResult);
+                    cause = null;
+                }
+
+                action.accept(value, cause);
+            } catch (Throwable ex) {
+                logger.warn("ListenWhenComplete2.action.accept caught exception", ex);
+            }
+
+            input = null;
+            action = null;
+
+            return null;
+        }
+    }
+
 
     static class ListenWhenExceptionally<V> extends ListenCompletion<V> {
 
