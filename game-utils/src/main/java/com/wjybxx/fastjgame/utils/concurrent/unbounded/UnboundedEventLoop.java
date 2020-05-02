@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -33,8 +35,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * 事件循环的模板实现。
@@ -83,10 +83,9 @@ public class UnboundedEventLoop extends AbstractEventLoop {
     private final Thread thread;
     /**
      * 线程的生命周期标识。
-     * 未和netty一样使用{@link AtomicIntegerFieldUpdater}，需要更多的理解成本，对于不熟悉的人来说容易用错。
-     * 首先保证正确性，易分析。
      */
-    private final AtomicInteger stateHolder = new AtomicInteger(ST_NOT_STARTED);
+    private volatile int state = ST_NOT_STARTED;
+
     /**
      * 任务队列。
      * Q: 为什么选择{@link ConcurrentLinkedQueue}？
@@ -171,23 +170,9 @@ public class UnboundedEventLoop extends AbstractEventLoop {
     }
     // ------------------------------------------------ 线程生命周期 -------------------------------------
 
-    /**
-     * 确保运行状态至少已到指定状态。
-     * 参考自{@code ThreadPoolExecutor#advanceRunState}
-     *
-     * @param targetState 期望的目标状态， {@link #ST_SHUTTING_DOWN} 或者 {@link #ST_SHUTDOWN}
-     */
-    private void advanceRunState(int targetState) {
-        for (; ; ) {
-            int oldState = stateHolder.get();
-            if (oldState >= targetState || stateHolder.compareAndSet(oldState, targetState))
-                break;
-        }
-    }
-
     @Override
     public final boolean isShuttingDown() {
-        return isShuttingDown0(stateHolder.get());
+        return isShuttingDown0(state);
     }
 
     private static boolean isShuttingDown0(int state) {
@@ -196,7 +181,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
 
     @Override
     public final boolean isShutdown() {
-        return isShutdown0(stateHolder.get());
+        return isShutdown0(state);
     }
 
     private static boolean isShutdown0(int state) {
@@ -205,7 +190,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
 
     @Override
     public final boolean isTerminated() {
-        return stateHolder.get() == ST_TERMINATED;
+        return state == ST_TERMINATED;
     }
 
     @Override
@@ -218,36 +203,48 @@ public class UnboundedEventLoop extends AbstractEventLoop {
         return terminationFuture;
     }
 
+    private int compareAndExchangeState(int expectedState, int targetState) {
+        return (int) STATE.compareAndExchange(this, expectedState, targetState);
+    }
+
     @Override
     public final void shutdown() {
+        int expectedState = state;
         for (; ; ) {
-            int oldState = stateHolder.get();
-            if (isShuttingDown0(oldState)) {
+            if (isShuttingDown0(expectedState)) {
+                // 已被其它线程关闭
                 return;
             }
 
-            if (stateHolder.compareAndSet(oldState, ST_SHUTTING_DOWN)) {
-                // 确保线程可进入终止状态
-                ensureThreadTerminable(oldState);
+            int realState = compareAndExchangeState(expectedState, ST_SHUTTING_DOWN);
+            if (realState == expectedState) {
+                // CAS成功，当前线程负责了关闭
+                ensureThreadTerminable(expectedState);
                 return;
             }
+            // retry
+            expectedState = realState;
         }
     }
 
     @Nonnull
     @Override
     public final List<Runnable> shutdownNow() {
+        int expectedState = state;
         for (; ; ) {
-            int oldState = stateHolder.get();
-            if (isShutdown0(oldState)) {
+            if (isShutdown0(expectedState)) {
+                // 已被其它线程关闭
                 return Collections.emptyList();
             }
 
-            if (stateHolder.compareAndSet(oldState, ST_SHUTDOWN)) {
-                // 确保线程可进入终止状态 - 这里不能操作TaskQueue中的数据，不能打破[多生产者单消费者]的架构
-                ensureThreadTerminable(oldState);
+            int realState = compareAndExchangeState(expectedState, ST_SHUTDOWN);
+            if (expectedState == realState) {
+                // CAS成功，当前线程负责了关闭 - 这里不能操作TaskQueue中的数据，不能打破[多生产者单消费者]的架构
+                ensureThreadTerminable(expectedState);
                 return Collections.emptyList();
             }
+            // retry
+            expectedState = realState;
         }
     }
 
@@ -259,7 +256,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
      */
     private void ensureThreadTerminable(int oldState) {
         if (oldState == ST_NOT_STARTED) {
-            stateHolder.set(ST_TERMINATED);
+            state = ST_TERMINATED;
             terminationFuture.setSuccess(null);
         } else {
             if (!inEventLoop()) {
@@ -329,11 +326,9 @@ public class UnboundedEventLoop extends AbstractEventLoop {
      * 外部线程提交任务后需要保证线程已启动。
      */
     private void ensureStarted() {
-        int state = stateHolder.get();
-        if (state == ST_NOT_STARTED) {
-            if (stateHolder.compareAndSet(ST_NOT_STARTED, ST_STARTED)) {
-                thread.start();
-            }
+        if (state == ST_NOT_STARTED
+                && STATE.compareAndSet(this, ST_NOT_STARTED, ST_STARTED)) {
+            thread.start();
         }
     }
 
@@ -402,6 +397,29 @@ public class UnboundedEventLoop extends AbstractEventLoop {
     }
 
     /**
+     * 确保运行状态至少已到指定状态。
+     * 参考自{@code ThreadPoolExecutor#advanceRunState}
+     *
+     * @param targetState 期望的目标状态， {@link #ST_SHUTTING_DOWN} 或者 {@link #ST_SHUTDOWN}
+     */
+    private void advanceRunState(int targetState) {
+        int expectedState = state;
+        for (; ; ) {
+            if (expectedState >= targetState) {
+                return;
+            }
+
+            int realState = compareAndExchangeState(expectedState, targetState);
+            if (realState >= targetState) {
+                return;
+            }
+
+            // retry
+            expectedState = realState;
+        }
+    }
+
+    /**
      * 工作者线程
      * <p>
      * 两阶段终止模式 --- 在终止前进行清理操作，安全的关闭线程不是一件容易的事情。
@@ -434,7 +452,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
                         logger.error("thread clean caught exception!", e);
                     } finally {
                         // 设置为终止状态
-                        stateHolder.set(ST_TERMINATED);
+                        state = ST_TERMINATED;
                         terminationFuture.setSuccess(null);
                     }
                 }
@@ -497,4 +515,14 @@ public class UnboundedEventLoop extends AbstractEventLoop {
         }
     }
 
+    private static final VarHandle STATE;
+
+    static {
+        try {
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            STATE = l.findVarHandle(UnboundedEventLoop.class, "state", int.class);
+        } catch (ReflectiveOperationException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 }

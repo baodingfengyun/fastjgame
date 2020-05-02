@@ -24,12 +24,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 基于Disruptor的事件循环。
@@ -100,7 +101,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     /**
      * 线程状态
      */
-    private final AtomicInteger stateHolder = new AtomicInteger(ST_NOT_STARTED);
+    private volatile int state = ST_NOT_STARTED;
 
     /**
      * 事件队列
@@ -203,7 +204,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     @Override
     public final boolean isShuttingDown() {
-        return isShuttingDown0(stateHolder.get());
+        return isShuttingDown0(state);
     }
 
     private static boolean isShuttingDown0(int state) {
@@ -212,7 +213,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     @Override
     public final boolean isShutdown() {
-        return isShutdown0(stateHolder.get());
+        return isShutdown0(state);
     }
 
     private static boolean isShutdown0(int state) {
@@ -221,7 +222,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     @Override
     public final boolean isTerminated() {
-        return stateHolder.get() == ST_TERMINATED;
+        return state == ST_TERMINATED;
     }
 
     @Override
@@ -234,36 +235,48 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         return terminationFuture;
     }
 
+    private int compareAndExchangeState(int expectedState, int targetState) {
+        return (int) STATE.compareAndExchange(this, expectedState, targetState);
+    }
+
     @Override
     public final void shutdown() {
+        int expectedState = state;
         for (; ; ) {
-            int oldState = stateHolder.get();
-            if (isShuttingDown0(oldState)) {
+            if (isShuttingDown0(expectedState)) {
+                // 已被其它线程关闭
                 return;
             }
 
-            if (stateHolder.compareAndSet(oldState, ST_SHUTTING_DOWN)) {
-                // 确保线程能够关闭
-                ensureThreadTerminable(oldState);
+            int realState = compareAndExchangeState(expectedState, ST_SHUTTING_DOWN);
+            if (realState == expectedState) {
+                // CAS成功，当前线程负责了关闭
+                ensureThreadTerminable(expectedState);
                 return;
             }
+            // retry
+            expectedState = realState;
         }
     }
 
     @Nonnull
     @Override
     public final List<Runnable> shutdownNow() {
+        int expectedState = state;
         for (; ; ) {
-            int oldState = stateHolder.get();
-            if (isShutdown0(oldState)) {
+            if (isShutdown0(expectedState)) {
+                // 已被其它线程关闭
                 return Collections.emptyList();
             }
 
-            if (stateHolder.compareAndSet(oldState, ST_SHUTDOWN)) {
-                // 确保线程能够关闭 - 这里不能操作ringBuffer中的数据，不能打破[多生产者单消费者]的架构
-                ensureThreadTerminable(oldState);
+            int realState = compareAndExchangeState(expectedState, ST_SHUTDOWN);
+            if (expectedState == realState) {
+                // CAS成功，当前线程负责了关闭 - 这里不能操作ringBuffer中的数据，不能打破[多生产者单消费者]的架构
+                ensureThreadTerminable(expectedState);
                 return Collections.emptyList();
             }
+            // retry
+            expectedState = realState;
         }
     }
 
@@ -276,7 +289,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     private void ensureThreadTerminable(int oldState) {
         if (oldState == ST_NOT_STARTED) {
             // TODO 是否需要启动线程，进行更彻底的清理？
-            stateHolder.set(ST_TERMINATED);
+            state = ST_TERMINATED;
             terminationFuture.setSuccess(null);
         } else {
             // 等待策略的是根据该信号判断EventLoop是否已开始关闭的，因此即使inEventLoop也需要中断，否则可能丢失信号，在waitFor处无法停止
@@ -354,29 +367,13 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * 确保线程已启动
      */
     private void ensureThreadStarted() {
-        int oldState = stateHolder.get();
-        if (oldState == ST_NOT_STARTED) {
-            if (stateHolder.compareAndSet(ST_NOT_STARTED, ST_STARTED)) {
-                thread.start();
-            }
+        if (state == ST_NOT_STARTED
+                && STATE.compareAndSet(this, ST_NOT_STARTED, ST_STARTED)) {
+            thread.start();
         }
     }
 
     // --------------------------------------- 线程管理 ----------------------------------------
-
-    /**
-     * 将运行状态转换为给定目标，或者至少保留给定状态。
-     * 参考自{@code ThreadPoolExecutor#advanceRunState}
-     *
-     * @param targetState 期望的目标状态
-     */
-    private void advanceRunState(int targetState) {
-        for (; ; ) {
-            int oldState = stateHolder.get();
-            if (oldState >= targetState || stateHolder.compareAndSet(oldState, targetState))
-                break;
-        }
-    }
 
     /**
      * 事件循环线程启动时的初始化操作。
@@ -424,6 +421,29 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     }
 
     /**
+     * 将运行状态转换为给定目标，或者至少保留给定状态。
+     * 参考自{@code ThreadPoolExecutor#advanceRunState}
+     *
+     * @param targetState 期望的目标状态
+     */
+    private void advanceRunState(int targetState) {
+        int expectedState = state;
+        for (; ; ) {
+            if (expectedState >= targetState) {
+                return;
+            }
+
+            int realState = compareAndExchangeState(expectedState, targetState);
+            if (realState >= targetState) {
+                return;
+            }
+
+            // retry
+            expectedState = realState;
+        }
+    }
+
+    /**
      * 实现{@link RingBuffer}的消费者，实现基本和{@link BatchEventProcessor}一致。
      * 但解决了两个问题：
      * 1. 生产者调用{@link RingBuffer#next()}时，如果消费者已关闭，则会死锁！为避免死锁不得不使用{@link RingBuffer#tryNext()}，但是那样的代码并不友好。
@@ -467,7 +487,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                         logger.error("thread clean caught exception!", e);
                     } finally {
                         // 设置为终止状态
-                        stateHolder.set(ST_TERMINATED);
+                        state = ST_TERMINATED;
                         terminationFuture.setSuccess(null);
                     }
                 }
@@ -577,5 +597,16 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             this.task = task;
         }
 
+    }
+
+    private static final VarHandle STATE;
+
+    static {
+        try {
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            STATE = l.findVarHandle(DisruptorEventLoop.class, "state", int.class);
+        } catch (ReflectiveOperationException e) {
+            throw new ExceptionInInitializerError(e);
+        }
     }
 }

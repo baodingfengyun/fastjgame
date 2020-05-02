@@ -31,6 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * 适用于那些延迟和吞吐量不那么重要的场景，eg: 日志，网络。
  * <p>
  * 1. 等待期间不会执行{@link DisruptorEventLoop#loopOnce()}，而是在每次超时之后执行一次{@link DisruptorEventLoop#loopOnce()}
+ * 2. 可能不能立即感知新的事件到达，从而产生阻塞。
  * <p>
  * {@link LiteTimeoutBlockingWaitStrategy}
  *
