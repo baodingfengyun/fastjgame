@@ -146,7 +146,7 @@ class ObjectWriterImp implements ObjectWriter {
     }
 
     /**
-     * 读写格式仍然要与{@link EntitySerializerBasedCodec}保持一致
+     * 读写格式仍然要与{@link CustomPojoCodec}保持一致
      */
     @Override
     public <E> void writeEntity(@Nullable E entity, Class<? super E> entitySuperClass) throws Exception {

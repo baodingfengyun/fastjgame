@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @version 1.0
  * date - 2020/2/20
  */
-public class EntitySerializerScanner {
+public class CodecScanner {
 
     private static final Set<String> SCAN_PACKAGES = Set.of("com.wjybxx.fastjgame");
 
@@ -39,21 +39,21 @@ public class EntitySerializerScanner {
      * bean -> beanSerializer (自动生成的beanSerializer 或 手动实现的)
      * 缓存起来，避免大量查找。
      */
-    private static final Map<Class<?>, Class<? extends PojoCodecImpl<?>>> classBeanSerializerMap;
+    private static final Map<Class<?>, Class<? extends PojoCodecImpl<?>>> codecMap;
 
     static {
-        final Set<Class<?>> allSerializerClass = scan();
+        final Set<Class<?>> allCodecClass = scan();
 
-        classBeanSerializerMap = new IdentityHashMap<>(allSerializerClass.size());
+        codecMap = new IdentityHashMap<>(allCodecClass.size());
 
-        mapping(allSerializerClass);
+        mapping(allCodecClass);
     }
 
     private static Set<Class<?>> scan() {
         return SCAN_PACKAGES.stream()
                 .map(scanPackage -> ClassScanner.findClasses(scanPackage,
                         name -> true,
-                        EntitySerializerScanner::isEntitySerializer))
+                        CodecScanner::isEntitySerializer))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toUnmodifiableSet());
     }
@@ -63,29 +63,29 @@ public class EntitySerializerScanner {
     }
 
     @SuppressWarnings("unchecked")
-    private static void mapping(Set<Class<?>> allSerializerClass) {
-        for (Class<?> clazz : allSerializerClass) {
-            final Class<? extends PojoCodecImpl<?>> serializerClass = (Class<? extends PojoCodecImpl<?>>) clazz;
-            final Class<?> entityClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, PojoCodecImpl.class, "T");
+    private static void mapping(Set<Class<?>> allCodecClass) {
+        for (Class<?> clazz : allCodecClass) {
+            final Class<? extends PojoCodecImpl<?>> codecClass = (Class<? extends PojoCodecImpl<?>>) clazz;
+            final Class<?> entityClass = TypeParameterFinder.findTypeParameterUnsafe(codecClass, PojoCodecImpl.class, "T");
 
             if (entityClass == Object.class) {
                 throw new UnsupportedOperationException("SerializerImpl must declare type parameter");
             }
 
             // 需要检测重复，如果出现两个serializer负责一个类的序列化，则用户应该解决
-            if (classBeanSerializerMap.containsKey(entityClass)) {
+            if (codecMap.containsKey(entityClass)) {
                 throw new UnsupportedOperationException(entityClass.getSimpleName() + " has more than one serializer");
             }
 
-            classBeanSerializerMap.put(entityClass, serializerClass);
+            codecMap.put(entityClass, codecClass);
         }
     }
 
     /**
      * 判断一个类是否存在对应的{@link PojoCodecImpl}
      */
-    public static <T> boolean hasSerializer(Class<T> messageClass) {
-        return classBeanSerializerMap.containsKey(messageClass);
+    public static <T> boolean hasCodec(Class<T> messageClass) {
+        return codecMap.containsKey(messageClass);
     }
 
     /**
@@ -95,15 +95,15 @@ public class EntitySerializerScanner {
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    public static <T> Class<? extends PojoCodecImpl<T>> getSerializerClass(Class<T> messageClass) {
-        return (Class<? extends PojoCodecImpl<T>>) classBeanSerializerMap.get(messageClass);
+    public static <T> Class<? extends PojoCodecImpl<T>> getCodecClass(Class<T> messageClass) {
+        return (Class<? extends PojoCodecImpl<T>>) codecMap.get(messageClass);
     }
 
     /**
      * 返回所有的自定义实体类
      */
-    public static Set<Class<?>> getAllCustomEntityClasses() {
-        return Collections.unmodifiableSet(classBeanSerializerMap.keySet());
+    public static Set<Class<?>> getAllCustomCodecClass() {
+        return Collections.unmodifiableSet(codecMap.keySet());
     }
 
 }

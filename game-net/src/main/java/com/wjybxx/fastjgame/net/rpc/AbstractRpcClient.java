@@ -34,7 +34,7 @@ public abstract class AbstractRpcClient implements RpcClient {
     protected final RpcClientInvoker invoker;
 
     public AbstractRpcClient(EventLoop appEventLoop) {
-        this.appEventLoop=appEventLoop;
+        this.appEventLoop = appEventLoop;
         this.invoker = new DefaultRpcClientInvoker();
     }
 

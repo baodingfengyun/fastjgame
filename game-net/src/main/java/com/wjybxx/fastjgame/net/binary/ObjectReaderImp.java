@@ -166,9 +166,9 @@ class ObjectReaderImp implements ObjectReader {
 
         checkSupportReadFields(pojoCodec);
 
-        @SuppressWarnings("unchecked") final EntitySerializerBasedCodec<E> entitySerializerBasedCodec = (EntitySerializerBasedCodec<E>) pojoCodec;
+        @SuppressWarnings("unchecked") final CustomPojoCodec<E> customPojoCodec = (CustomPojoCodec<E>) pojoCodec;
         final E instance = entityFactory.newInstance();
-        entitySerializerBasedCodec.decodeBody(instance, inputStream, codecRegistry);
+        customPojoCodec.decodeBody(instance, inputStream, codecRegistry);
         return instance;
     }
 
@@ -181,7 +181,7 @@ class ObjectReaderImp implements ObjectReader {
     }
 
     private void checkSupportReadFields(PojoCodec<?> pojoCodec) throws IOException {
-        if (!(pojoCodec instanceof EntitySerializerBasedCodec) || !((EntitySerializerBasedCodec<?>) pojoCodec).isSupportReadFields()) {
+        if (!(pojoCodec instanceof CustomPojoCodec) || !((CustomPojoCodec<?>) pojoCodec).isSupportReadFields()) {
             throw new IOException("Unsupported codec, entitySuperClass serializer must implements " +
                     AbstractPojoCodecImpl.class.getName());
         }

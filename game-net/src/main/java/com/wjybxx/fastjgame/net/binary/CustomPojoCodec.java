@@ -25,39 +25,39 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/24
  */
-public class EntitySerializerBasedCodec<T> extends PojoCodec<T> {
+public class CustomPojoCodec<T> extends PojoCodec<T> {
 
-    private final PojoCodecImpl<T> serializer;
+    private final PojoCodecImpl<T> codec;
 
-    public EntitySerializerBasedCodec(byte providerId, int classId, PojoCodecImpl<T> serializer) {
+    public CustomPojoCodec(byte providerId, int classId, PojoCodecImpl<T> codec) {
         super(providerId, classId);
-        this.serializer = serializer;
+        this.codec = codec;
     }
 
     @Override
     protected void encodeBody(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
         final ObjectWriter objectWriter = new ObjectWriterImp(codecRegistry, outputStream);
-        serializer.writeObject(value, objectWriter);
+        codec.writeObject(value, objectWriter);
     }
 
     @Nonnull
     @Override
     public T decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         final ObjectReader objectReader = new ObjectReaderImp(codecRegistry, inputStream);
-        return serializer.readObject(objectReader);
+        return codec.readObject(objectReader);
     }
 
     @Override
     public Class<T> getEncoderClass() {
-        return serializer.getEncoderClass();
+        return codec.getEncoderClass();
     }
 
     boolean isSupportReadFields() {
-        return serializer instanceof AbstractPojoCodecImpl;
+        return codec instanceof AbstractPojoCodecImpl;
     }
 
     void decodeBody(T instance, @Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         final ObjectReader objectReader = new ObjectReaderImp(codecRegistry, inputStream);
-        ((AbstractPojoCodecImpl<T>) serializer).readFields(instance, objectReader);
+        ((AbstractPojoCodecImpl<T>) codec).readFields(instance, objectReader);
     }
 }

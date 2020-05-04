@@ -22,6 +22,9 @@ import javax.annotation.concurrent.Immutable;
 /**
  * 可索引的枚举。
  * 枚举是特殊的值对象，我们要求项目中的所有可序列化的枚举必须实现该接口。
+ * <p>
+ * Q: 名字的由来？
+ * A: 如果一个值对象的索引为数字，我们可以认为它就是枚举。
  *
  * @author wjybxx
  * @version 1.0

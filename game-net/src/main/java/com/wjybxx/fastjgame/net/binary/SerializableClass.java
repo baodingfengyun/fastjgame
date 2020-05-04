@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.utils.dsl.IndexableValue;
 import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
+import com.wjybxx.fastjgame.utils.dsl.IndexableValue;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

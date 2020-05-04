@@ -234,10 +234,10 @@ public class BinarySerializer implements Serializer {
                 }
 
                 // 带有DBEntity和SerializableClass注解的所有类，和手写Serializer的类
-                final Class<? extends PojoCodecImpl<?>> serializerClass = EntitySerializerScanner.getSerializerClass(messageClazz);
+                final Class<? extends PojoCodecImpl<?>> serializerClass = CodecScanner.getCodecClass(messageClazz);
                 if (serializerClass != null) {
-                    final PojoCodecImpl<?> serializer = createSerializerInstance(serializerClass);
-                    codecList.add(new EntitySerializerBasedCodec(providerId, messageMapper.getMessageId(messageClazz), serializer));
+                    final PojoCodecImpl<?> codec = createCodecInstance(serializerClass);
+                    codecList.add(new CustomPojoCodec(providerId, messageMapper.getMessageId(messageClazz), codec));
                     continue;
                 }
 
@@ -252,18 +252,18 @@ public class BinarySerializer implements Serializer {
     }
 
     private static Set<Class<?>> getFilteredSupportedClasses(Predicate<Class<?>> filter) {
-        final Set<Class<?>> allCustomEntityClasses = EntitySerializerScanner.getAllCustomEntityClasses();
+        final Set<Class<?>> allCustomCodecClass = CodecScanner.getAllCustomCodecClass();
         final Set<Class<?>> allProtoBufferClasses = ProtoBufferScanner.getAllProtoBufferClasses();
-        final Set<Class<?>> supportedClassSet = Sets.newHashSetWithExpectedSize(allCustomEntityClasses.size() + allProtoBufferClasses.size());
+        final Set<Class<?>> supportedClassSet = Sets.newHashSetWithExpectedSize(allCustomCodecClass.size() + allProtoBufferClasses.size());
 
-        Stream.concat(allCustomEntityClasses.stream(), allProtoBufferClasses.stream())
+        Stream.concat(allCustomCodecClass.stream(), allProtoBufferClasses.stream())
                 .filter(filter)
                 .forEach(supportedClassSet::add);
         return supportedClassSet;
     }
 
-    private static PojoCodecImpl<?> createSerializerInstance(Class<? extends PojoCodecImpl<?>> serializerClass) throws Exception {
-        final Constructor<? extends PojoCodecImpl<?>> noArgsConstructor = serializerClass.getDeclaredConstructor(ArrayUtils.EMPTY_CLASS_ARRAY);
+    private static PojoCodecImpl<?> createCodecInstance(Class<? extends PojoCodecImpl<?>> codecClass) throws Exception {
+        final Constructor<? extends PojoCodecImpl<?>> noArgsConstructor = codecClass.getDeclaredConstructor(ArrayUtils.EMPTY_CLASS_ARRAY);
         noArgsConstructor.setAccessible(true);
         return noArgsConstructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
     }

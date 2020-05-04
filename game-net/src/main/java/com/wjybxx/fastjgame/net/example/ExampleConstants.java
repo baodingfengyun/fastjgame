@@ -16,7 +16,7 @@
 package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.binary.BinarySerializer;
-import com.wjybxx.fastjgame.net.binary.EntitySerializerScanner;
+import com.wjybxx.fastjgame.net.binary.CodecScanner;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.net.serialization.HashMessageMappingStrategy;
@@ -35,7 +35,7 @@ public final class ExampleConstants {
     /**
      * 测试用例使用的codec
      */
-    public static final JsonSerializer JSON_SERIALIZER = JsonSerializer.newInstance(EntitySerializerScanner.getAllCustomEntityClasses(), new HashMessageMappingStrategy());
+    public static final JsonSerializer JSON_SERIALIZER = JsonSerializer.newInstance(CodecScanner.getAllCustomCodecClass(), new HashMessageMappingStrategy());
     public static final BinarySerializer BINARY_SERIALIZER = BinarySerializer.newInstance(new HashMessageMappingStrategy());
 
     public static final NetEventLoopGroup netEventLoop = new NetEventLoopGroupBuilder()

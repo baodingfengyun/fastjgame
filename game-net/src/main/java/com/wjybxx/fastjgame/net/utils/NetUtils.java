@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.utils;
 
-import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
 import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 import io.netty.channel.Channel;
@@ -29,7 +28,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.net.*;
-import java.net.http.HttpTimeoutException;
 import java.util.Enumeration;
 
 /**

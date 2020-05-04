@@ -25,6 +25,7 @@ package com.wjybxx.fastjgame.utils.dsl;
  * @version 1.0
  * date - 2020/4/19
  */
+@SuppressWarnings("unused")
 public interface Entity {
 
     Object getId();
