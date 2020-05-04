@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/24
  */
-public interface Codec<T> {
+public interface ObjectCodec<T> {
 
     /**
      * 将对象写入输出流

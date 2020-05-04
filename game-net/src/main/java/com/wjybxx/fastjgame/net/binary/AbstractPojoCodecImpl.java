@@ -16,21 +16,21 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.utils.entity.IndexableEntity;
+import com.wjybxx.fastjgame.utils.dsl.IndexableValue;
 
 /**
- * {@link IndexableEntity}之外的serializer会继承该类。
+ * {@link IndexableValue}之外的serializer会继承该类。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/18
  */
-public abstract class AbstractEntitySerializer<T> implements EntitySerializer<T> {
+public abstract class AbstractPojoCodecImpl<T> implements PojoCodecImpl<T> {
 
     @Override
-    public final T readObject(EntityInputStream inputStream) throws Exception {
+    public final T readObject(ObjectReader reader) throws Exception {
         final T instance = newInstance();
-        readFields(instance, inputStream);
+        readFields(instance, reader);
         return instance;
     }
 
@@ -45,5 +45,5 @@ public abstract class AbstractEntitySerializer<T> implements EntitySerializer<T>
      *
      * @param instance 支持子类型
      */
-    public abstract void readFields(T instance, EntityInputStream inputStream) throws Exception;
+    public abstract void readFields(T instance, ObjectReader reader) throws Exception;
 }

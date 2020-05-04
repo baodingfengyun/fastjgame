@@ -23,7 +23,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-public class LongCodec implements Codec<Long> {
+public class LongCodec implements ObjectCodec<Long> {
 
     LongCodec() {
 
@@ -31,7 +31,7 @@ public class LongCodec implements Codec<Long> {
 
     @Override
     public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Long value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(Tag.LONG);
+        outputStream.writeTag(BinaryTag.LONG);
         outputStream.writeLong(value);
     }
 

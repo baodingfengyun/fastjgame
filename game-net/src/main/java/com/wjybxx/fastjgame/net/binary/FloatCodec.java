@@ -23,7 +23,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-public class FloatCodec implements Codec<Float> {
+public class FloatCodec implements ObjectCodec<Float> {
 
     FloatCodec() {
 
@@ -31,7 +31,7 @@ public class FloatCodec implements Codec<Float> {
 
     @Override
     public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Float value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(Tag.FLOAT);
+        outputStream.writeTag(BinaryTag.FLOAT);
         outputStream.writeFloat(value);
     }
 

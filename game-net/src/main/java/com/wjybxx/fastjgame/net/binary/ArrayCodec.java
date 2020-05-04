@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.wjybxx.fastjgame.net.binaryextend.ClassCodec;
-import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
+import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,9 +33,9 @@ import java.util.IdentityHashMap;
  * @version 1.0
  * date - 2020/2/17
  */
-public class ArrayCodec implements Codec<Object> {
+public class ArrayCodec implements ObjectCodec<Object> {
 
-    private static final Class<?> ARRAY_ENCODER_CLASS = Object[].class;
+    private static final Class<?> ARRAY_ENCODER_CLASS = ArrayCodec.class;
 
     private static final int CHILD_SIZE = 9;
 
@@ -43,7 +43,7 @@ public class ArrayCodec implements Codec<Object> {
      * 针对基本类型数组的优化
      */
     private static final IdentityHashMap<Class<?>, ValueArrayCodec<?>> componentType2CodecMapping = new IdentityHashMap<>(CHILD_SIZE);
-    private static final EnumMap<Tag, ValueArrayCodec<?>> tag2CodecMapping = new EnumMap<>(Tag.class);
+    private static final EnumMap<BinaryTag, ValueArrayCodec<?>> tag2CodecMapping = new EnumMap<>(BinaryTag.class);
 
     static {
         register(byte.class, new ByteArrayCodec());
@@ -80,13 +80,13 @@ public class ArrayCodec implements Codec<Object> {
             writeTagAndChildTypeAndLength(outputStream, codec.childType(), length);
             codec.writeValueArray(outputStream, value);
         } else {
-            writeTagAndChildTypeAndLength(outputStream, Tag.UNKNOWN, length);
+            writeTagAndChildTypeAndLength(outputStream, BinaryTag.UNKNOWN, length);
             writeObjectArray(outputStream, value, length, codecRegistry);
         }
     }
 
-    private static void writeTagAndChildTypeAndLength(DataOutputStream outputStream, Tag childType, int length) throws IOException {
-        outputStream.writeTag(Tag.ARRAY);
+    private static void writeTagAndChildTypeAndLength(DataOutputStream outputStream, BinaryTag childType, int length) throws IOException {
+        outputStream.writeTag(BinaryTag.ARRAY);
         outputStream.writeTag(childType);
         // 大端模式固定长度写入主要为了兼容字节数组的扩展
         outputStream.writeFixedInt32(length);
@@ -115,14 +115,14 @@ public class ArrayCodec implements Codec<Object> {
     }
 
     static Object readArray(DataInputStream inputStream, @Nullable Class<?> objectArrayComponentType, CodecRegistry codecRegistry) throws Exception {
-        final Tag childType = inputStream.readTag();
+        final BinaryTag childType = inputStream.readTag();
         final int length = inputStream.readFixedInt32();
 
         return readArrayImp(inputStream, objectArrayComponentType, codecRegistry, childType, length);
     }
 
-    static Object readArrayImp(DataInputStream inputStream, @Nullable Class<?> objectArrayComponentType, CodecRegistry codecRegistry, Tag childType, int length) throws Exception {
-        if (childType != Tag.UNKNOWN) {
+    static Object readArrayImp(DataInputStream inputStream, @Nullable Class<?> objectArrayComponentType, CodecRegistry codecRegistry, BinaryTag childType, int length) throws Exception {
+        if (childType != BinaryTag.UNKNOWN) {
             final ValueArrayCodec<?> codec = tag2CodecMapping.get(childType);
             assert null != codec;
             return codec.readValueArray(inputStream, length);
@@ -149,7 +149,7 @@ public class ArrayCodec implements Codec<Object> {
     }
 
     static void writeByteArray(DataOutputStream outputStream, @Nonnull byte[] bytes, int offset, int length) throws Exception {
-        writeTagAndChildTypeAndLength(outputStream, Tag.BYTE, length);
+        writeTagAndChildTypeAndLength(outputStream, BinaryTag.BYTE, length);
         outputStream.writeBytes(bytes, offset, length);
     }
 
@@ -158,12 +158,12 @@ public class ArrayCodec implements Codec<Object> {
         return ARRAY_ENCODER_CLASS;
     }
 
-    private interface ValueArrayCodec<U> extends NumericalEntity {
+    private interface ValueArrayCodec<U> extends IndexableEnum {
 
         /**
          * 子类标识
          */
-        Tag childType();
+        BinaryTag childType();
 
         /**
          * 写入数组的内容
@@ -185,8 +185,8 @@ public class ArrayCodec implements Codec<Object> {
     private static class ByteArrayCodec implements ValueArrayCodec<byte[]> {
 
         @Override
-        public Tag childType() {
-            return Tag.BYTE;
+        public BinaryTag childType() {
+            return BinaryTag.BYTE;
         }
 
         @Override
@@ -204,8 +204,8 @@ public class ArrayCodec implements Codec<Object> {
     private static class IntArrayCodec implements ValueArrayCodec<int[]> {
 
         @Override
-        public Tag childType() {
-            return Tag.INT;
+        public BinaryTag childType() {
+            return BinaryTag.INT;
         }
 
         @Override
@@ -229,8 +229,8 @@ public class ArrayCodec implements Codec<Object> {
     private static class FloatArrayCodec implements ValueArrayCodec<float[]> {
 
         @Override
-        public Tag childType() {
-            return Tag.FLOAT;
+        public BinaryTag childType() {
+            return BinaryTag.FLOAT;
         }
 
         @Override
@@ -253,8 +253,8 @@ public class ArrayCodec implements Codec<Object> {
     private static class DoubleArrayCodec implements ValueArrayCodec<double[]> {
 
         @Override
-        public Tag childType() {
-            return Tag.DOUBLE;
+        public BinaryTag childType() {
+            return BinaryTag.DOUBLE;
         }
 
         @Override
@@ -277,8 +277,8 @@ public class ArrayCodec implements Codec<Object> {
     private static class LongArrayCodec implements ValueArrayCodec<long[]> {
 
         @Override
-        public Tag childType() {
-            return Tag.LONG;
+        public BinaryTag childType() {
+            return BinaryTag.LONG;
         }
 
         @Override
@@ -301,8 +301,8 @@ public class ArrayCodec implements Codec<Object> {
     private static class ShortArrayCodec implements ValueArrayCodec<short[]> {
 
         @Override
-        public Tag childType() {
-            return Tag.SHORT;
+        public BinaryTag childType() {
+            return BinaryTag.SHORT;
         }
 
         @Override
@@ -325,8 +325,8 @@ public class ArrayCodec implements Codec<Object> {
     private static class CharArrayCodec implements ValueArrayCodec<char[]> {
 
         @Override
-        public Tag childType() {
-            return Tag.CHAR;
+        public BinaryTag childType() {
+            return BinaryTag.CHAR;
         }
 
         @Override
@@ -349,8 +349,8 @@ public class ArrayCodec implements Codec<Object> {
     private static class BooleanArrayCodec implements ValueArrayCodec<boolean[]> {
 
         @Override
-        public Tag childType() {
-            return Tag.BOOLEAN;
+        public BinaryTag childType() {
+            return BinaryTag.BOOLEAN;
         }
 
         @Override
@@ -373,17 +373,17 @@ public class ArrayCodec implements Codec<Object> {
     private static class StringArrayCodec implements ValueArrayCodec<String[]> {
 
         @Override
-        public Tag childType() {
-            return Tag.STRING;
+        public BinaryTag childType() {
+            return BinaryTag.STRING;
         }
 
         @Override
         public void writeValueArray(DataOutputStream outputStream, @Nonnull String[] array) throws Exception {
             for (String value : array) {
                 if (value == null) {
-                    outputStream.writeTag(Tag.NULL);
+                    outputStream.writeTag(BinaryTag.NULL);
                 } else {
-                    outputStream.writeTag(Tag.STRING);
+                    outputStream.writeTag(BinaryTag.STRING);
                     outputStream.writeString(value);
                 }
             }
@@ -393,7 +393,7 @@ public class ArrayCodec implements Codec<Object> {
         public String[] readValueArray(DataInputStream inputStream, int length) throws Exception {
             final String[] result = new String[length];
             for (int index = 0; index < length; index++) {
-                if (inputStream.readTag() == Tag.NULL) {
+                if (inputStream.readTag() == BinaryTag.NULL) {
                     result[index] = null;
                 } else {
                     result[index] = inputStream.readString();

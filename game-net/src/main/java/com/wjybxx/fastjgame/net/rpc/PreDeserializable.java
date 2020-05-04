@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.binary.EntitySerializer;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
  * Q: 它的主要目的？<br>
  * A: 当网关接受到玩家消息之后，会读取为byte[]，而不进行解码操作，这个byte[]要发送到场景服务器等，
  * 我们希望场景服在接收该参数之前，网络层能提前进行解码操作，而不必应用层自己解码。
- * （现在通过手动实现{@link EntitySerializer}的话也可以达到相同目的了）
+ * （现在通过手动实现{@link PojoCodecImpl}的话也可以达到相同目的了）
  *
  * @author wjybxx
  * @version 1.0

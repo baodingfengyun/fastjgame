@@ -67,9 +67,9 @@ public interface DataOutputStream {
     void writeMessage(@Nonnull Message message) throws IOException;
 
     /**
-     * {@link #writeByte(int)}和{@link Tag#getNumber()}的快捷调用
+     * {@link #writeByte(int)}和{@link BinaryTag#getNumber()}的快捷调用
      */
-    void writeTag(Tag tag) throws IOException;
+    void writeTag(BinaryTag tag) throws IOException;
 
     /**
      * 以固定4个字节大端模式写入一个int

@@ -119,7 +119,7 @@ public class CodedDataOutputStream implements DataOutputStream {
     }
 
     @Override
-    public void writeTag(Tag tag) throws IOException {
+    public void writeTag(BinaryTag tag) throws IOException {
         codedOutputStream.writeRawByte(tag.getNumber());
     }
 

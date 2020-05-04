@@ -14,25 +14,19 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.binary;
-
-import javax.annotation.Nullable;
+package com.wjybxx.fastjgame.utils.dsl;
 
 /**
- * 一个局部的{@link ObjectCodec}注册表，它管理着一组{@link ObjectCodec}
+ * 实体，与DDD中的实体概念保持一致。
+ * <p>
+ * 一个实体拥有唯一的标识{@link #getId()}，如果实体具有相同的类型和标识，则认为是相等的。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/24
+ * date - 2020/4/19
  */
-public interface CodecProvider {
+public interface Entity {
 
-    /**
-     * 获取指定类class对应的编解码器
-     *
-     * @return 如果不支持该类型，则返回null
-     */
-    @Nullable
-    <T> ObjectCodec<T> getCodec(Class<T> clazz);
+    Object getId();
 
 }

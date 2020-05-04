@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
-import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
+import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
+import com.wjybxx.fastjgame.utils.dsl.IndexableEnumMapper;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
@@ -41,7 +41,7 @@ public class EnumUtils {
     }
 
     /**
-     * 查找指定数字的数字枚举
+     * 查找指定数字的枚举
      *
      * @param values 数字枚举集合
      * @param number 要查找的数字
@@ -49,7 +49,7 @@ public class EnumUtils {
      * @return T
      */
     @Nullable
-    public static <T extends NumericalEntity> T forNumber(T[] values, int number) {
+    public static <T extends IndexableEnum> T forNumber(T[] values, int number) {
         for (T t : values) {
             if (t.getNumber() == number) {
                 return t;
@@ -121,7 +121,7 @@ public class EnumUtils {
      * @param <T>    枚举类型
      * @return unmodifiable
      */
-    public static <T extends NumericalEntity> NumericalEntityMapper<T> mapping(final T[] values) {
+    public static <T extends IndexableEnum> IndexableEnumMapper<T> mapping(final T[] values) {
         return mapping(values, false);
     }
 
@@ -133,9 +133,9 @@ public class EnumUtils {
      * @param <T>       枚举类型
      * @return unmodifiable
      */
-    public static <T extends NumericalEntity> NumericalEntityMapper<T> mapping(final T[] values, final boolean fastQuery) {
+    public static <T extends IndexableEnum> IndexableEnumMapper<T> mapping(final T[] values, final boolean fastQuery) {
         if (values.length == 0) {
-            @SuppressWarnings("unchecked") final NumericalEntityMapper<T> mapper = (NumericalEntityMapper<T>) EmptyMapper.INSTANCE;
+            @SuppressWarnings("unchecked") final IndexableEnumMapper<T> mapper = (IndexableEnumMapper<T>) EmptyMapper.INSTANCE;
             return mapper;
         }
 
@@ -149,12 +149,12 @@ public class EnumUtils {
         }
 
         final int minNumber = Arrays.stream(values)
-                .mapToInt(NumericalEntity::getNumber)
+                .mapToInt(IndexableEnum::getNumber)
                 .min()
                 .getAsInt();
 
         final int maxNumber = Arrays.stream(values)
-                .mapToInt(NumericalEntity::getNumber)
+                .mapToInt(IndexableEnum::getNumber)
                 .max()
                 .getAsInt();
 
@@ -167,7 +167,7 @@ public class EnumUtils {
         }
     }
 
-    private static <T extends NumericalEntity> boolean isArrayAvailable(int minNumber, int maxNumber, int length, boolean fastQuery) {
+    private static <T extends IndexableEnum> boolean isArrayAvailable(int minNumber, int maxNumber, int length, boolean fastQuery) {
         if (ArrayBasedEnumMapper.matchDefaultFactor(minNumber, maxNumber, length)) {
             return true;
         }
@@ -177,7 +177,7 @@ public class EnumUtils {
         return false;
     }
 
-    private static class EmptyMapper<T extends NumericalEntity> implements NumericalEntityMapper<T> {
+    private static class EmptyMapper<T extends IndexableEnum> implements IndexableEnumMapper<T> {
 
         private static final EmptyMapper<?> INSTANCE = new EmptyMapper<>();
         private static final Object[] EMPTY_ARRAY = new Object[0];
@@ -202,7 +202,7 @@ public class EnumUtils {
      * 基于数组的映射，对于数量少的枚举效果好；
      * (可能存在一定空间浪费，空间换时间，如果数字基本连续，那么空间利用率很好)
      */
-    private static class ArrayBasedEnumMapper<T extends NumericalEntity> implements NumericalEntityMapper<T> {
+    private static class ArrayBasedEnumMapper<T extends IndexableEnum> implements IndexableEnumMapper<T> {
 
         private static final float DEFAULT_FACTOR = 0.5f;
         private static final float MIN_FACTOR = 0.25f;
@@ -269,7 +269,7 @@ public class EnumUtils {
      * 基于map的映射。
      * 对于枚举值较多或数字取值范围散乱的枚举适合。
      */
-    private static class MapBasedMapper<T extends NumericalEntity> implements NumericalEntityMapper<T> {
+    private static class MapBasedMapper<T extends IndexableEnum> implements IndexableEnumMapper<T> {
 
         private final T[] values;
         private final Int2ObjectMap<T> mapping;

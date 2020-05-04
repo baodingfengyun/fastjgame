@@ -23,14 +23,14 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-public class CharCodec implements Codec<Character> {
+public class CharCodec implements ObjectCodec<Character> {
 
     CharCodec() {
     }
 
     @Override
     public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Character value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(Tag.CHAR);
+        outputStream.writeTag(BinaryTag.CHAR);
         outputStream.writeChar(value);
     }
 

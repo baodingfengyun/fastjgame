@@ -14,25 +14,35 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.binary;
+package com.wjybxx.fastjgame.utils.dsl;
 
 import javax.annotation.Nullable;
 
 /**
- * 一个局部的{@link ObjectCodec}注册表，它管理着一组{@link ObjectCodec}
+ * 枚举值映射
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/24
+ * date - 2019/6/4 15:08
+ * github - https://github.com/hl845740757
  */
-public interface CodecProvider {
+public interface IndexableEnumMapper<T extends IndexableEnum> {
 
     /**
-     * 获取指定类class对应的编解码器
+     * 通过数字找到对应的枚举
      *
-     * @return 如果不支持该类型，则返回null
+     * @param number 枚举的唯一编号
+     * @return T 如果不存在，则返回null，而不是抛出异常
      */
     @Nullable
-    <T> ObjectCodec<T> getCodec(Class<T> clazz);
+    T forNumber(int number);
+
+    /**
+     * 获取映射的所有枚举实例。
+     * (不可以修改数组内容，否则可能导致并发错误)
+     *
+     * @return array
+     */
+    T[] values();
 
 }

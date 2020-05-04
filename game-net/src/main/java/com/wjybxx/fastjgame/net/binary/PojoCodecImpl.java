@@ -20,11 +20,11 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.IntFunction;
 
 /**
- * 实体类序列化工具类，每一个{@link EntitySerializer}只负责一个固定类型的解析。
+ * 实体类序列化工具类，每一个{@link PojoCodecImpl}只负责一个固定类型的解析。
  * (生成的代码会实现该接口)
  * <br>---------------------------------如何扩展------------------------<br>
  * 1. 序列化实现会通过泛型参数获取负责序列化的类型，因此只要进行了实现，就可以被自动加入。
- * 2. 一般而言，建议使用注解{@link SerializableClass}，并遵循相关规范，由注解处理器生成的类负责解析，而不是手写实现{@link EntitySerializer}。
+ * 2. 一般而言，建议使用注解{@link SerializableClass}，并遵循相关规范，由注解处理器生成的类负责解析，而不是手写实现{@link PojoCodecImpl}。
  * 一旦手写实现，必须持久的进行维护。
  *
  * <br>-------------------------------什么时候手写实现？-----------------------<br>
@@ -35,7 +35,7 @@ import java.util.function.IntFunction;
  * 1. 必须保证线程安全，最好是无状态的。
  * 2. 最好实现为目标类的静态内部类，且最好是private级别，不要暴露给外层。
  * 3. 必须有一个无参构造方法(可以private)。
- * 4. 必须使用{@link EntityInputStream#readMap(IntFunction)}{@link EntityInputStream#readCollection(IntFunction)}
+ * 4. 必须使用{@link ObjectReader#readMap(IntFunction)}{@link ObjectReader#readCollection(IntFunction)}
  * 去读取map和collection，否则可能由于多态问题赋值失败。
  *
  * <br>-------------------------------如何实现多态解析----------------------<br>
@@ -43,8 +43,8 @@ import java.util.function.IntFunction;
  * 1. 必须手写实现。
  * 2. 必须采用组合方式，将要多态处理的类作为成员字段。
  * 3. 使用特定方法进行读写
- * {@link EntityInputStream#readEntity(EntityFactory, Class)}
- * {@link EntityOutputStream#writeEntity(Object, Class)}
+ * {@link ObjectReader#readEntity(EntityFactory, Class)}
+ * {@link ObjectWriter#writeEntity(Object, Class)}
  * PS: 其实Map和Collection的处理就是例子。
  *
  * @param <T> 要序列化的bean的类型
@@ -54,18 +54,18 @@ import java.util.function.IntFunction;
  * github - https://github.com/hl845740757
  */
 @ThreadSafe
-public interface EntitySerializer<T> {
+public interface PojoCodecImpl<T> {
 
     /**
      * 获取负责编解码的类对象
      */
-    Class<T> getEntityClass();
+    Class<T> getEncoderClass();
 
     /**
      * 从输入流中解析指定对象。
      * 它应该创建对象，并反序列化该类及其所有超类定义的所有要序列化的字段。
      */
-    T readObject(EntityInputStream inputStream) throws Exception;
+    T readObject(ObjectReader reader) throws Exception;
 
     /**
      * 将对象写入输出流。
@@ -73,6 +73,6 @@ public interface EntitySerializer<T> {
      *
      * @param instance 支持子类型
      */
-    void writeObject(T instance, EntityOutputStream outputStream) throws Exception;
+    void writeObject(T instance, ObjectWriter writer) throws Exception;
 
 }

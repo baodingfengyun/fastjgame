@@ -14,35 +14,37 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.binary;
+package com.wjybxx.fastjgame.utils.dsl;
 
 import javax.annotation.Nonnull;
+import javax.annotation.concurrent.Immutable;
 
 /**
+ * 可索引的枚举。
+ * 枚举是特殊的值对象，我们要求项目中的所有可序列化的枚举必须实现该接口。
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/17
+ * date - 2019/6/4 13:35
+ * github - https://github.com/hl845740757
  */
-public class StringCodec implements ObjectCodec<String> {
+@Immutable
+public interface IndexableEnum extends IndexableValue<Integer> {
 
-    StringCodec() {
+    /**
+     * 获取枚举值的数字。
+     * 注意：持久化会使用该数字，因此该值必须是稳定的，不建议使用{@link Enum#ordinal()}。
+     */
+    int getNumber();
 
-    }
-
-    @Override
-    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull String value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(BinaryTag.STRING);
-        outputStream.writeString(value);
-    }
-
+    /**
+     * @deprecated use {@link #getNumber()} instead
+     */
     @Nonnull
+    @Deprecated
     @Override
-    public String decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return inputStream.readString();
+    default Integer getIndex() {
+        return getNumber();
     }
 
-    @Override
-    public Class<?> getEncoderClass() {
-        return String.class;
-    }
 }

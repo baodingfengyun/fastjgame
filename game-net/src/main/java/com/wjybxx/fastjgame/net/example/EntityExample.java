@@ -150,29 +150,29 @@ public class EntityExample {
 
 
     @SuppressWarnings("unused")
-    public static class ChildBeanSerializer implements EntitySerializer<ChildBean> {
+    public static class ChildBeanCodec implements PojoCodecImpl<ChildBean> {
 
         @Override
-        public Class<ChildBean> getEntityClass() {
+        public Class<ChildBean> getEncoderClass() {
             return ChildBean.class;
         }
 
         @Override
-        public ChildBean readObject(EntityInputStream inputStream) throws Exception {
-            final boolean isChild1 = inputStream.readBoolean();
+        public ChildBean readObject(ObjectReader reader) throws Exception {
+            final boolean isChild1 = reader.readBoolean();
             final Parent parent;
             if (isChild1) {
-                parent = inputStream.readEntity(Child1::new, Parent.class);
+                parent = reader.readEntity(Child1::new, Parent.class);
             } else {
-                parent = inputStream.readEntity(Child2::new, Parent.class);
+                parent = reader.readEntity(Child2::new, Parent.class);
             }
             return new ChildBean(parent, isChild1);
         }
 
         @Override
-        public void writeObject(ChildBean instance, EntityOutputStream outputStream) throws Exception {
-            outputStream.writeBoolean(instance.isDecodeAsChild1());
-            outputStream.writeEntity(instance.parent, Parent.class);
+        public void writeObject(ChildBean instance, ObjectWriter writer) throws Exception {
+            writer.writeBoolean(instance.isDecodeAsChild1());
+            writer.writeEntity(instance.parent, Parent.class);
         }
     }
 }

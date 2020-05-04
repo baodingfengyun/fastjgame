@@ -30,7 +30,7 @@ import java.util.function.IntFunction;
  * @version 1.0
  * date - 2020/2/17
  */
-public class MapCodec implements Codec<Map<?, ?>> {
+public class MapCodec implements ObjectCodec<Map<?, ?>> {
 
     MapCodec() {
     }
@@ -47,7 +47,7 @@ public class MapCodec implements Codec<Map<?, ?>> {
     }
 
     static void encodeMap(@Nonnull DataOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(Tag.MAP);
+        outputStream.writeTag(BinaryTag.MAP);
         outputStream.writeInt(value.size());
         if (value.size() == 0) {
             return;

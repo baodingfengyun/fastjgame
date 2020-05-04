@@ -21,7 +21,7 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * 它对应于{@link Tag}中的9种基础数据类型
+ * 它对应于{@link BinaryTag}中的9种基础数据类型
  *
  * @author wjybxx
  * @version 1.0
@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class ValueCodecProvider implements CodecProvider {
 
-    private final Map<Class<?>, Codec<?>> codecMap = new IdentityHashMap<>(9);
+    private final Map<Class<?>, ObjectCodec<?>> codecMap = new IdentityHashMap<>(9);
 
     ValueCodecProvider() {
         addCodecs();
@@ -47,14 +47,14 @@ public class ValueCodecProvider implements CodecProvider {
         addCodec(new StringCodec());
     }
 
-    private void addCodec(Codec<?> codec) {
+    private void addCodec(ObjectCodec<?> codec) {
         codecMap.put(codec.getEncoderClass(), codec);
     }
 
     @SuppressWarnings("unchecked")
     @Nullable
     @Override
-    public <T> Codec<T> getCodec(Class<T> clazz) {
-        return (Codec<T>) codecMap.get(clazz);
+    public <T> ObjectCodec<T> getCodec(Class<T> clazz) {
+        return (ObjectCodec<T>) codecMap.get(clazz);
     }
 }

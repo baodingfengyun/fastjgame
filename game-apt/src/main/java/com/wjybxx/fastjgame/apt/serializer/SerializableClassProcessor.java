@@ -37,7 +37,7 @@ import java.util.*;
 
 /**
  * 1. 对于普通类：必须包含无参构造方法，且field注解的number必须在 0-65535之间
- * 2. 对于枚举：必须实现 NumericalEnum 接口，且提供非private的forNumber方法
+ * 2. 对于枚举：必须实现 indexableEnum 接口，且提供非private的forNumber方法
  *
  * @author wjybxx
  * @version 1.0
@@ -51,10 +51,10 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.SerializableClass";
     private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.SerializableField";
 
-    private static final String SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.EntitySerializer";
-    private static final String ABSTRACT_SERIALIZER_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.AbstractEntitySerializer";
+    private static final String CODEC_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.PojoCodecImpl";
+    private static final String ABSTRACT_CODEC_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.AbstractPojoCodecImpl";
 
-    private static final String GET_ENTITY_CLASS_METHOD_NAME = "getEntityClass";
+    private static final String GET_ENCODER_CLASS_METHOD_NAME = "getEncoderClass";
     private static final String WRITE_OBJECT_METHOD_NAME = "writeObject";
     private static final String READ_OBJECT_METHOD_NAME = "readObject";
 
@@ -74,12 +74,12 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     private DeclaredType dbFieldDeclaredType;
     private DeclaredType impDeclaredType;
 
-    private DeclaredType numericalEnumDeclaredType;
-    private DeclaredType indexableEntityDeclaredType;
+    private DeclaredType indexableEnumDeclaredType;
+    private DeclaredType indexableValueDeclaredType;
 
     TypeElement serializerTypeElement;
     // 要覆盖的方法缓存，减少大量查询
-    private ExecutableElement getEntityClassMethod;
+    private ExecutableElement getEncoderClassMethod;
     private ExecutableElement writeObjectMethod;
     private ExecutableElement readObjectMethod;
 
@@ -111,15 +111,15 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         dbFieldDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(DBEntityProcessor.DB_FIELD_CANONICAL_NAME));
         impDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(DBEntityProcessor.IMPL_CANONICAL_NAME));
 
-        numericalEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.NUMBER_ENUM_CANONICAL_NAME));
-        indexableEntityDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_ENTITY_CANONICAL_NAME));
+        indexableEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_ENUM_CANONICAL_NAME));
+        indexableValueDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_VALUE_CANONICAL_NAME));
 
-        serializerTypeElement = elementUtils.getTypeElement(SERIALIZER_CANONICAL_NAME);
-        getEntityClassMethod = AutoUtils.findMethodByName(serializerTypeElement, GET_ENTITY_CLASS_METHOD_NAME);
+        serializerTypeElement = elementUtils.getTypeElement(CODEC_CANONICAL_NAME);
+        getEncoderClassMethod = AutoUtils.findMethodByName(serializerTypeElement, GET_ENCODER_CLASS_METHOD_NAME);
         writeObjectMethod = AutoUtils.findMethodByName(serializerTypeElement, WRITE_OBJECT_METHOD_NAME);
         readObjectMethod = AutoUtils.findMethodByName(serializerTypeElement, READ_OBJECT_METHOD_NAME);
 
-        abstractSerializerTypeElement = elementUtils.getTypeElement(ABSTRACT_SERIALIZER_CANONICAL_NAME);
+        abstractSerializerTypeElement = elementUtils.getTypeElement(ABSTRACT_CODEC_CANONICAL_NAME);
         newInstanceMethod = AutoUtils.findMethodByName(abstractSerializerTypeElement, NEW_INSTANCE_METHOD_NAME);
         readFieldsMethod = AutoUtils.findMethodByName(abstractSerializerTypeElement, READ_FIELDS_METHOD_NAME);
 
@@ -160,14 +160,14 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
             return;
         }
 
-        if (isNumericalEnum(typeElement)) {
-            // NumericalEnum是IndexableEntity的子类，需要放在前面检查
-            checkNumericalEnum(typeElement);
+        if (isindexableEnum(typeElement)) {
+            // indexableEnum是IndexableValue的子类，需要放在前面检查
+            checkindexableEnum(typeElement);
             return;
         }
 
-        if (isIndexableEntity(typeElement)) {
-            checkIndexableEntity(typeElement);
+        if (isIndexableValue(typeElement)) {
+            checkIndexableValue(typeElement);
             return;
         }
 
@@ -183,25 +183,25 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     }
 
     /**
-     * 检查枚举 - 要序列化的枚举，必须实现 NumericalEnum 接口，否则无法序列化，或自己手写serializer。
+     * 检查枚举 - 要序列化的枚举，必须实现 indexableEnum 接口，否则无法序列化，或自己手写serializer。
      */
     private void checkEnum(TypeElement typeElement) {
-        if (!isNumericalEnum(typeElement)) {
+        if (!isindexableEnum(typeElement)) {
             messager.printMessage(Diagnostic.Kind.ERROR,
-                    "serializable enum must implement " + numericalEnumDeclaredType.asElement().getSimpleName(),
+                    "serializable enum must implement " + indexableEnumDeclaredType.asElement().getSimpleName(),
                     typeElement);
         }
-        checkNumericalEnum(typeElement);
+        checkindexableEnum(typeElement);
     }
 
-    private boolean isNumericalEnum(TypeElement typeElement) {
-        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeElement.asType(), numericalEnumDeclaredType);
+    private boolean isindexableEnum(TypeElement typeElement) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeElement.asType(), indexableEnumDeclaredType);
     }
 
     /**
-     * 检查 NumericalEnum 的子类是否有forNumber方法
+     * 检查 indexableEnum 的子类是否有forNumber方法
      */
-    private void checkNumericalEnum(TypeElement typeElement) {
+    private void checkindexableEnum(TypeElement typeElement) {
         if (!containStaticNotPrivateForNumberMethod(typeElement)) {
             messager.printMessage(Diagnostic.Kind.ERROR,
                     String.format("%s must contains a not private 'static %s forNumber(int)' method!", typeElement.getSimpleName(), typeElement.getSimpleName()),
@@ -224,14 +224,14 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 .anyMatch(method -> method.getParameters().get(0).asType().getKind() == TypeKind.INT);
     }
 
-    private boolean isIndexableEntity(TypeElement typeElement) {
-        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeElement.asType(), indexableEntityDeclaredType);
+    private boolean isIndexableValue(TypeElement typeElement) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeElement.asType(), indexableValueDeclaredType);
     }
 
     /**
      * 检查可索引的实体，检查是否有forIndex方法
      */
-    private void checkIndexableEntity(TypeElement typeElement) {
+    private void checkIndexableValue(TypeElement typeElement) {
         if (!containsGetIndexMethod(typeElement)) {
             messager.printMessage(Diagnostic.Kind.ERROR, "can't find getIndex() method", typeElement);
             return;
@@ -444,12 +444,12 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     // ----------------------------------------------- 辅助类生成 -------------------------------------------
 
     private void generateSerializer(TypeElement typeElement) {
-        if (isNumericalEnum(typeElement)) {
-            new NumericalEntitySerializerGenerator(this, typeElement).execute();
-        } else if (isIndexableEntity(typeElement)) {
-            new IndexableEntitySerializerGenerator(this, typeElement).execute();
+        if (isindexableEnum(typeElement)) {
+            new IndexableEnumCodecGenerator(this, typeElement).execute();
+        } else if (isIndexableValue(typeElement)) {
+            new IndexableValueCodecGenerator(this, typeElement).execute();
         } else {
-            new DefaultSerializerGenerator(this, typeElement).execute();
+            new DefaultCodecGenerator(this, typeElement).execute();
         }
     }
 
@@ -470,8 +470,8 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     /**
      * 创建返回负责被序列化的类对象的方法
      */
-    MethodSpec newGetEntityMethod(DeclaredType superDeclaredType) {
-        return MethodSpec.overriding(getEntityClassMethod, superDeclaredType, typeUtils)
+    MethodSpec newGetEncoderClassMethod(DeclaredType superDeclaredType) {
+        return MethodSpec.overriding(getEncoderClassMethod, superDeclaredType, typeUtils)
                 .addStatement("return $T.class", TypeName.get(superDeclaredType.getTypeArguments().get(0)))
                 .build();
     }
@@ -479,7 +479,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     /**
      * 获取class对应的序列化工具类的类名
      */
-    static String getSerializerClassName(TypeElement typeElement) {
-        return typeElement.getSimpleName().toString() + "Serializer";
+    static String getCodecClassName(TypeElement typeElement) {
+        return typeElement.getSimpleName().toString() + "Codec";
     }
 }

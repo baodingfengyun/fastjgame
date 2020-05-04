@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.utils.EnumUtils;
-import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
-import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
+import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
+import com.wjybxx.fastjgame.utils.dsl.IndexableEnumMapper;
 
 import javax.annotation.Nonnull;
 
@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
  * date - 2019/7/31
  * github - https://github.com/hl845740757
  */
-public enum RpcErrorCode implements NumericalEntity {
+public enum RpcErrorCode implements IndexableEnum {
 
     /**
      * 成功
@@ -89,7 +89,7 @@ public enum RpcErrorCode implements NumericalEntity {
     /**
      * number到枚举的映射
      */
-    private static final NumericalEntityMapper<RpcErrorCode> mapper = EnumUtils.mapping(values());
+    private static final IndexableEnumMapper<RpcErrorCode> mapper = EnumUtils.mapping(values());
 
     @Nonnull
     public static RpcErrorCode forNumber(int number) {

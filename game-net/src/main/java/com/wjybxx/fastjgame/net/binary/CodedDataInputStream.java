@@ -107,8 +107,8 @@ public class CodedDataInputStream implements DataInputStream {
     }
 
     @Override
-    public Tag readTag() throws IOException {
-        return Tag.forNumber(codedInputStream.readRawByte());
+    public BinaryTag readTag() throws IOException {
+        return BinaryTag.forNumber(codedInputStream.readRawByte());
     }
 
     @Override

@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.binary.EntityInputStream;
-import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
-import com.wjybxx.fastjgame.net.binary.EntitySerializer;
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -44,8 +44,8 @@ import java.lang.annotation.Target;
  * 思考了2-3个小时，没着急下手，最后想到这个注解，如果目标方法的参数是{@link byte[]}，且带有该注解，那么生成的代理将该参数类型替换为{@link Object}，并在写入
  * 网络之前，将所有带该注解的参数序列化为字节数组。该解决方案更加通用。
  * <p>
- * 普通对象如果期望使用延迟序列化特性或提前反序列化特性，请自己实现{@link EntitySerializer}。
- * 并通过使用{@link EntityOutputStream#writeLazySerializeObject(Object)}和{@link EntityInputStream#readPreDeserializeObject()}实现。
+ * 普通对象如果期望使用延迟序列化特性或提前反序列化特性，请自己实现{@link PojoCodecImpl}。
+ * 并通过使用{@link ObjectWriter#writeLazySerializeObject(Object)}和{@link ObjectReader#readPreDeserializeObject()}实现。
  * 可参考{@link DefaultRpcMethodSpec}。
  *
  * @author wjybxx

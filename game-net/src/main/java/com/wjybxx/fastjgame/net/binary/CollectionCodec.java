@@ -30,7 +30,7 @@ import java.util.function.IntFunction;
  * @version 1.0
  * date - 2020/2/17
  */
-public class CollectionCodec implements Codec<Collection<?>> {
+public class CollectionCodec implements ObjectCodec<Collection<?>> {
 
     CollectionCodec() {
     }
@@ -47,7 +47,7 @@ public class CollectionCodec implements Codec<Collection<?>> {
     }
 
     static void encodeCollection(@Nonnull DataOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(Tag.COLLECTION);
+        outputStream.writeTag(BinaryTag.COLLECTION);
         outputStream.writeInt(value.size());
         if (value.size() == 0) {
             return;

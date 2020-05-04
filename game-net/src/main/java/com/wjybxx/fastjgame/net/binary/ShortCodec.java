@@ -23,14 +23,14 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-public class ShortCodec implements Codec<Short> {
+public class ShortCodec implements ObjectCodec<Short> {
 
     ShortCodec() {
     }
 
     @Override
     public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Short value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(Tag.SHORT);
+        outputStream.writeTag(BinaryTag.SHORT);
         outputStream.writeShort(value);
     }
 

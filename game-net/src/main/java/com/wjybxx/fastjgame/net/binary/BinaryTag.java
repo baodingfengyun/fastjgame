@@ -18,8 +18,8 @@ package com.wjybxx.fastjgame.net.binary;
 
 
 import com.wjybxx.fastjgame.utils.EnumUtils;
-import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
-import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
+import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
+import com.wjybxx.fastjgame.utils.dsl.IndexableEnumMapper;
 
 import java.util.Collection;
 import java.util.Map;
@@ -36,7 +36,7 @@ import java.util.Map;
  * date - 2019/8/17
  * github - https://github.com/hl845740757
  */
-public enum Tag implements NumericalEntity {
+public enum BinaryTag implements IndexableEnum {
 
     /**
      * NULL
@@ -118,13 +118,13 @@ public enum Tag implements NumericalEntity {
 
     private final int number;
 
-    Tag(int number) {
+    BinaryTag(int number) {
         this.number = number;
     }
 
-    private static final NumericalEntityMapper<Tag> mapper = EnumUtils.mapping(values(), true);
+    private static final IndexableEnumMapper<BinaryTag> mapper = EnumUtils.mapping(values(), true);
 
-    public static Tag forNumber(int number) {
+    public static BinaryTag forNumber(int number) {
         return mapper.forNumber(number);
     }
 

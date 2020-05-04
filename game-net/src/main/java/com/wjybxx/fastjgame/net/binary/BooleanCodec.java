@@ -23,7 +23,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-public class BooleanCodec implements Codec<Boolean> {
+public class BooleanCodec implements ObjectCodec<Boolean> {
 
     BooleanCodec() {
 
@@ -31,7 +31,7 @@ public class BooleanCodec implements Codec<Boolean> {
 
     @Override
     public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Boolean value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(Tag.BOOLEAN);
+        outputStream.writeTag(BinaryTag.BOOLEAN);
         outputStream.writeBoolean(value);
     }
 

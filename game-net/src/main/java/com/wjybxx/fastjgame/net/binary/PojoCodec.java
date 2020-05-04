@@ -28,7 +28,7 @@ import java.io.IOException;
  * @version 1.0
  * date - 2020/2/25
  */
-public abstract class PojoCodec<T> implements Codec<T> {
+public abstract class PojoCodec<T> implements ObjectCodec<T> {
 
     private final byte providerId;
     private final int classId;
@@ -40,7 +40,7 @@ public abstract class PojoCodec<T> implements Codec<T> {
 
     @Override
     public final void encode(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(Tag.POJO);
+        outputStream.writeTag(BinaryTag.POJO);
         outputStream.writeByte(providerId);
         // 大端模式写入classId，是为了当与客户端之间使用protoBuffer通信时，方便客户端解析，
         outputStream.writeFixedInt32(classId);

@@ -21,9 +21,9 @@ import com.wjybxx.fastjgame.db.annotation.Impl;
 import com.wjybxx.fastjgame.net.binary.SerializableClass;
 import com.wjybxx.fastjgame.net.binary.SerializableField;
 import com.wjybxx.fastjgame.utils.EnumUtils;
-import com.wjybxx.fastjgame.utils.entity.IndexableEntity;
-import com.wjybxx.fastjgame.utils.entity.NumericalEntity;
-import com.wjybxx.fastjgame.utils.entity.NumericalEntityMapper;
+import com.wjybxx.fastjgame.utils.dsl.IndexableValue;
+import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
+import com.wjybxx.fastjgame.utils.dsl.IndexableEnumMapper;
 import com.wjybxx.fastjgame.utils.misc.IntPair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -74,7 +74,7 @@ public final class ExampleMessages {
     }
 
     @SerializableClass
-    public static class SceneConfig implements IndexableEntity<IntPair> {
+    public static class SceneConfig implements IndexableValue<IntPair> {
 
         private final int type;
         private final int id;
@@ -662,7 +662,7 @@ public final class ExampleMessages {
     }
 
     @SerializableClass
-    public enum Profession implements NumericalEntity {
+    public enum Profession implements IndexableEnum {
         CODER(1),
         TEACHER(2),
         ;
@@ -673,7 +673,7 @@ public final class ExampleMessages {
             this.number = number;
         }
 
-        private static NumericalEntityMapper<Profession> mapper = EnumUtils.mapping(values());
+        private static IndexableEnumMapper<Profession> mapper = EnumUtils.mapping(values());
 
         @Override
         public int getNumber() {

@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.binary;
 import javax.annotation.Nonnull;
 
 /**
- * 封装{@link EntitySerializer}
+ * 封装{@link PojoCodecImpl}
  *
  * @author wjybxx
  * @version 1.0
@@ -27,37 +27,37 @@ import javax.annotation.Nonnull;
  */
 public class EntitySerializerBasedCodec<T> extends PojoCodec<T> {
 
-    private final EntitySerializer<T> serializer;
+    private final PojoCodecImpl<T> serializer;
 
-    public EntitySerializerBasedCodec(byte providerId, int classId, EntitySerializer<T> serializer) {
+    public EntitySerializerBasedCodec(byte providerId, int classId, PojoCodecImpl<T> serializer) {
         super(providerId, classId);
         this.serializer = serializer;
     }
 
     @Override
     protected void encodeBody(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
-        final EntityOutputStream entityOutputStream = new EntityOutputStreamImp(codecRegistry, outputStream);
-        serializer.writeObject(value, entityOutputStream);
+        final ObjectWriter objectWriter = new ObjectWriterImp(codecRegistry, outputStream);
+        serializer.writeObject(value, objectWriter);
     }
 
     @Nonnull
     @Override
     public T decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        final EntityInputStream entityInputStream = new EntityInputStreamImp(codecRegistry, inputStream);
-        return serializer.readObject(entityInputStream);
+        final ObjectReader objectReader = new ObjectReaderImp(codecRegistry, inputStream);
+        return serializer.readObject(objectReader);
     }
 
     @Override
     public Class<T> getEncoderClass() {
-        return serializer.getEntityClass();
+        return serializer.getEncoderClass();
     }
 
     boolean isSupportReadFields() {
-        return serializer instanceof AbstractEntitySerializer;
+        return serializer instanceof AbstractPojoCodecImpl;
     }
 
     void decodeBody(T instance, @Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        final EntityInputStream entityInputStream = new EntityInputStreamImp(codecRegistry, inputStream);
-        ((AbstractEntitySerializer<T>) serializer).readFields(instance, entityInputStream);
+        final ObjectReader objectReader = new ObjectReaderImp(codecRegistry, inputStream);
+        ((AbstractPojoCodecImpl<T>) serializer).readFields(instance, objectReader);
     }
 }

@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 
-import com.wjybxx.fastjgame.net.binary.EntityInputStream;
-import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
-import com.wjybxx.fastjgame.net.binary.EntitySerializer;
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
@@ -97,26 +97,26 @@ public class DefaultRpcMethodSpec<V> implements RpcMethodSpec<V> {
      * 负责{@link DefaultRpcMethodSpec}的序列化工作 - 会被自动扫描到。
      */
     @SuppressWarnings({"unused"})
-    private static class RpcMethodSpecSerializer implements EntitySerializer<DefaultRpcMethodSpec<?>> {
+    private static class RpcMethodSpecCodec implements PojoCodecImpl<DefaultRpcMethodSpec<?>> {
 
         @SuppressWarnings("unchecked")
         @Override
-        public Class<DefaultRpcMethodSpec<?>> getEntityClass() {
+        public Class<DefaultRpcMethodSpec<?>> getEncoderClass() {
             return (Class) DefaultRpcMethodSpec.class;
         }
 
         @Override
-        public DefaultRpcMethodSpec<?> readObject(EntityInputStream inputStream) throws Exception {
-            final short serviceId = inputStream.readShort();
-            final short methodId = inputStream.readShort();
-            final int preIndexes = inputStream.readInt();
+        public DefaultRpcMethodSpec<?> readObject(ObjectReader reader) throws Exception {
+            final short serviceId = reader.readShort();
+            final short methodId = reader.readShort();
+            final int preIndexes = reader.readInt();
 
-            final List<Object> methodParams = doPreDeserialize(inputStream, preIndexes);
+            final List<Object> methodParams = doPreDeserialize(reader, preIndexes);
 
             return new DefaultRpcMethodSpec<>(serviceId, methodId, methodParams, 0, 0);
         }
 
-        private List<Object> doPreDeserialize(EntityInputStream inputStream, int preIndexes) throws Exception {
+        private List<Object> doPreDeserialize(ObjectReader inputStream, int preIndexes) throws Exception {
             final int size = inputStream.readInt();
             final ArrayList<Object> methodParams = new ArrayList<>(size);
 
@@ -133,15 +133,15 @@ public class DefaultRpcMethodSpec<V> implements RpcMethodSpec<V> {
         }
 
         @Override
-        public void writeObject(DefaultRpcMethodSpec<?> instance, EntityOutputStream outputStream) throws Exception {
-            outputStream.writeShort(instance.getServiceId());
-            outputStream.writeShort(instance.getMethodId());
-            outputStream.writeInt(instance.getPreIndexes());
+        public void writeObject(DefaultRpcMethodSpec<?> instance, ObjectWriter writer) throws Exception {
+            writer.writeShort(instance.getServiceId());
+            writer.writeShort(instance.getMethodId());
+            writer.writeInt(instance.getPreIndexes());
 
-            doLazySerialize(outputStream, instance.getMethodParams(), instance.getLazyIndexes());
+            doLazySerialize(writer, instance.getMethodParams(), instance.getLazyIndexes());
         }
 
-        private void doLazySerialize(EntityOutputStream outputStream, final List<Object> methodParams, final int lazyIndexes) throws Exception {
+        private void doLazySerialize(ObjectWriter outputStream, final List<Object> methodParams, final int lazyIndexes) throws Exception {
             final int size = methodParams.size();
             outputStream.writeInt(size);
 

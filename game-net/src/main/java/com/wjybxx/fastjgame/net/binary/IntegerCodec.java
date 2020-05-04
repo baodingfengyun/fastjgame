@@ -23,7 +23,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-public class IntegerCodec implements Codec<Integer> {
+public class IntegerCodec implements ObjectCodec<Integer> {
 
     IntegerCodec() {
 
@@ -31,7 +31,7 @@ public class IntegerCodec implements Codec<Integer> {
 
     @Override
     public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Integer value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(Tag.INT);
+        outputStream.writeTag(BinaryTag.INT);
         outputStream.writeInt(value);
     }
 

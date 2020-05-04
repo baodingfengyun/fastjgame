@@ -21,7 +21,7 @@ import javax.annotation.Nonnull;
 /**
  * 一个字节就占用一个字节 - 不需要使用int32的格式
  */
-public class ByteCodec implements Codec<Byte> {
+public class ByteCodec implements ObjectCodec<Byte> {
 
     ByteCodec() {
 
@@ -29,7 +29,7 @@ public class ByteCodec implements Codec<Byte> {
 
     @Override
     public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Byte value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(Tag.BYTE);
+        outputStream.writeTag(BinaryTag.BYTE);
         outputStream.writeByte(value);
     }
 

@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * {@link EntitySerializer}的扫描器，会扫描指定包下所有的serializer并加入集合。
+ * {@link PojoCodecImpl}的扫描器，会扫描指定包下所有的serializer并加入集合。
  *
  * @author wjybxx
  * @version 1.0
@@ -39,7 +39,7 @@ public class EntitySerializerScanner {
      * bean -> beanSerializer (自动生成的beanSerializer 或 手动实现的)
      * 缓存起来，避免大量查找。
      */
-    private static final Map<Class<?>, Class<? extends EntitySerializer<?>>> classBeanSerializerMap;
+    private static final Map<Class<?>, Class<? extends PojoCodecImpl<?>>> classBeanSerializerMap;
 
     static {
         final Set<Class<?>> allSerializerClass = scan();
@@ -59,14 +59,14 @@ public class EntitySerializerScanner {
     }
 
     private static boolean isEntitySerializer(Class<?> c) {
-        return !Modifier.isAbstract(c.getModifiers()) && EntitySerializer.class.isAssignableFrom(c);
+        return !Modifier.isAbstract(c.getModifiers()) && PojoCodecImpl.class.isAssignableFrom(c);
     }
 
     @SuppressWarnings("unchecked")
     private static void mapping(Set<Class<?>> allSerializerClass) {
         for (Class<?> clazz : allSerializerClass) {
-            final Class<? extends EntitySerializer<?>> serializerClass = (Class<? extends EntitySerializer<?>>) clazz;
-            final Class<?> entityClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, EntitySerializer.class, "T");
+            final Class<? extends PojoCodecImpl<?>> serializerClass = (Class<? extends PojoCodecImpl<?>>) clazz;
+            final Class<?> entityClass = TypeParameterFinder.findTypeParameterUnsafe(serializerClass, PojoCodecImpl.class, "T");
 
             if (entityClass == Object.class) {
                 throw new UnsupportedOperationException("SerializerImpl must declare type parameter");
@@ -82,7 +82,7 @@ public class EntitySerializerScanner {
     }
 
     /**
-     * 判断一个类是否存在对应的{@link EntitySerializer}
+     * 判断一个类是否存在对应的{@link PojoCodecImpl}
      */
     public static <T> boolean hasSerializer(Class<T> messageClass) {
         return classBeanSerializerMap.containsKey(messageClass);
@@ -95,8 +95,8 @@ public class EntitySerializerScanner {
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    public static <T> Class<? extends EntitySerializer<T>> getSerializerClass(Class<T> messageClass) {
-        return (Class<? extends EntitySerializer<T>>) classBeanSerializerMap.get(messageClass);
+    public static <T> Class<? extends PojoCodecImpl<T>> getSerializerClass(Class<T> messageClass) {
+        return (Class<? extends PojoCodecImpl<T>>) classBeanSerializerMap.get(messageClass);
     }
 
     /**

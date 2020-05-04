@@ -62,9 +62,9 @@ public interface DataInputStream {
     <T> T readMessage(@Nonnull Parser<T> parser) throws IOException;
 
     /**
-     * {@link Tag#forNumber(int)}和{@link #readByte()}的快捷调用。
+     * {@link BinaryTag#forNumber(int)}和{@link #readByte()}的快捷调用。
      */
-    Tag readTag() throws IOException;
+    BinaryTag readTag() throws IOException;
 
     /**
      * 读取4个字节，并以大端模式读取为int

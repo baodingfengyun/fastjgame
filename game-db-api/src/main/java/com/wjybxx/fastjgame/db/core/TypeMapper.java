@@ -14,25 +14,39 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.binary;
+package com.wjybxx.fastjgame.db.core;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 
 /**
- * 一个局部的{@link ObjectCodec}注册表，它管理着一组{@link ObjectCodec}
+ * 类型映射器。
+ * 一个类型{@link Class}的名字和唯一标识应尽量是稳定的，否则在持久化和序列化方面会面临问题。
+ * <p>
+ * 子类实现必须是不可变的，方便安全的共享，避免产生不必要的竞争。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/24
+ * date - 2020/4/20
  */
-public interface CodecProvider {
+@Immutable
+public interface TypeMapper {
 
     /**
-     * 获取指定类class对应的编解码器
-     *
-     * @return 如果不支持该类型，则返回null
+     * 通过类型获取标识符
      */
     @Nullable
-    <T> ObjectCodec<T> getCodec(Class<T> clazz);
+    TypeIdentifier ofType(Class<?> type);
+
+    /**
+     * 通过类型的数字id找到类型信息
+     */
+    @Nullable
+    TypeIdentifier ofNumber(long number);
+
+    /**
+     * 通过类型的名字找到类型信息
+     */
+    TypeIdentifier ofName(String name);
 
 }

@@ -29,7 +29,7 @@ import java.util.Map;
  * date - 2020/1/13
  * github - https://github.com/hl845740757
  */
-public interface EntityOutputStream {
+public interface ObjectWriter {
 
     void writeInt(int value) throws Exception;
 

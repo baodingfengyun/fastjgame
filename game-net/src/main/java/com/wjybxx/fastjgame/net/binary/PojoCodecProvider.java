@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
 
 /**
  * 该接口同时支持编码和解码。
- * 它对应{@link Tag}中的POJO类型
+ * 它对应{@link BinaryTag}中的POJO类型
  *
  * @author wjybxx
  * @version 1.0
@@ -47,5 +47,6 @@ public interface PojoCodecProvider extends CodecProvider {
      */
     @Nullable
     PojoCodec<?> getPojoCodec(int classId);
+
 }
 

@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.binaryextend;
 
-import com.wjybxx.fastjgame.net.binary.EntityInputStream;
-import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
-import com.wjybxx.fastjgame.net.binary.EntitySerializer;
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
 import com.wjybxx.fastjgame.utils.misc.Range;
 
 /**
@@ -27,23 +27,23 @@ import com.wjybxx.fastjgame.utils.misc.Range;
  * date - 2020/4/12
  */
 @SuppressWarnings("unused")
-public class RangeSerializer implements EntitySerializer<Range> {
+public class RangeCodec implements PojoCodecImpl<Range> {
 
     @Override
-    public Class<Range> getEntityClass() {
+    public Class<Range> getEncoderClass() {
         return Range.class;
     }
 
     @Override
-    public Range readObject(EntityInputStream inputStream) throws Exception {
-        final int start = inputStream.readInt();
-        final int end = inputStream.readInt();
+    public Range readObject(ObjectReader reader) throws Exception {
+        final int start = reader.readInt();
+        final int end = reader.readInt();
         return new Range(start, end);
     }
 
     @Override
-    public void writeObject(Range instance, EntityOutputStream outputStream) throws Exception {
-        outputStream.writeInt(instance.start);
-        outputStream.writeInt(instance.end);
+    public void writeObject(Range instance, ObjectWriter writer) throws Exception {
+        writer.writeInt(instance.start);
+        writer.writeInt(instance.end);
     }
 }

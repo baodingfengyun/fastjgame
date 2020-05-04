@@ -81,12 +81,12 @@ public class ProtoBufSerializePerformanceTest {
         final Parser<p_test.p_testMsg> parser = msg.getParserForType();
 
         final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(buffer);
-        codedOutputStream.writeSInt32NoTag(messageMapper.getMessageId(msg.getClass()));
+        codedOutputStream.writeInt32NoTag(messageMapper.getMessageId(msg.getClass()));
         msg.writeTo(codedOutputStream);
         System.out.println(" encode result bytes = " + codedOutputStream.getTotalBytesWritten());
 
         final CodedInputStream inputStream = CodedInputStream.newInstance(buffer, 0, codedOutputStream.getTotalBytesWritten());
-        inputStream.readSInt32();
+        inputStream.readInt32();
         final Object decodeMsg = parser.parseFrom(inputStream);
         System.out.println(" codec equals result = " + msg.equals(decodeMsg));
     }
@@ -95,12 +95,12 @@ public class ProtoBufSerializePerformanceTest {
         final long start = System.currentTimeMillis();
         for (int index = 0; index < loopTimes; index++) {
             final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(buffer);
-            codedOutputStream.writeSInt32NoTag(messageMapper.getMessageId(msg.getClass()));
+            codedOutputStream.writeInt32NoTag(messageMapper.getMessageId(msg.getClass()));
             msg.writeTo(codedOutputStream);
 
             // 这里需要简单模拟下解码过程
             final CodedInputStream inputStream = CodedInputStream.newInstance(buffer, 0, codedOutputStream.getTotalBytesWritten());
-            final int messageId = inputStream.readSInt32();
+            final int messageId = inputStream.readInt32();
             final Class<?> messageClass = messageMapper.getMessageClass(messageId);
             final Parser<?> parser = parserMap.get(messageClass);
             final Object decodeMsg = parser.parseFrom(inputStream);

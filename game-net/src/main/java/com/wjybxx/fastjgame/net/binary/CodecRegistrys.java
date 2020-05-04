@@ -63,9 +63,9 @@ public class CodecRegistrys {
         }
 
         @Override
-        public <T> Codec<T> get(Class<T> clazz) {
+        public <T> ObjectCodec<T> get(Class<T> clazz) {
             for (CodecProvider codecProvider : codecProviders) {
-                final Codec<T> codec = codecProvider.getCodec(clazz);
+                final ObjectCodec<T> codec = codecProvider.getCodec(clazz);
                 if (codec != null) {
                     return codec;
                 }
@@ -93,17 +93,17 @@ public class CodecRegistrys {
         }
 
         @Override
-        public Codec<Object> getArrayCodec() {
+        public ObjectCodec<Object> getArrayCodec() {
             return containerCodecProvider.getArrayCodec();
         }
 
         @Override
-        public Codec<Map<?, ?>> getMapCodec() {
+        public ObjectCodec<Map<?, ?>> getMapCodec() {
             return containerCodecProvider.getMapCodec();
         }
 
         @Override
-        public Codec<Collection<?>> getCollectionCodec() {
+        public ObjectCodec<Collection<?>> getCollectionCodec() {
             return containerCodecProvider.getCollectionCodec();
         }
     }

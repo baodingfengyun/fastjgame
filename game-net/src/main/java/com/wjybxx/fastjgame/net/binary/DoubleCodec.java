@@ -23,14 +23,14 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-public class DoubleCodec implements Codec<Double> {
+public class DoubleCodec implements ObjectCodec<Double> {
 
     DoubleCodec() {
     }
 
     @Override
     public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Double value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(Tag.DOUBLE);
+        outputStream.writeTag(BinaryTag.DOUBLE);
         outputStream.writeDouble(value);
     }
 

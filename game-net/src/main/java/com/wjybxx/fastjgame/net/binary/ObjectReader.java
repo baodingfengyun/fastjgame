@@ -30,7 +30,7 @@ import java.util.function.IntFunction;
  * date - 2020/1/13
  * github - https://github.com/hl845740757
  */
-public interface EntityInputStream {
+public interface ObjectReader {
 
     int readInt() throws Exception;
 
@@ -88,7 +88,7 @@ public interface EntityInputStream {
      *
      * @param entityFactory    真正的实体创建工厂
      * @param entitySuperClass 实体对象的指定超类型。
-     *                         注意：该超类型必须对应一个{@link AbstractEntitySerializer}
+     *                         注意：该超类型必须对应一个{@link AbstractPojoCodecImpl}
      */
     @Nullable
     <E> E readEntity(EntityFactory<E> entityFactory, Class<? super E> entitySuperClass) throws Exception;

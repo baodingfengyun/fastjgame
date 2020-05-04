@@ -148,20 +148,20 @@ public class BinarySerializer implements Serializer {
 
     static <T> void encodeObject(DataOutputStream outputStream, @Nullable T value, CodecRegistry codecRegistry) throws Exception {
         if (null == value) {
-            outputStream.writeTag(Tag.NULL);
+            outputStream.writeTag(BinaryTag.NULL);
         } else {
-            @SuppressWarnings("unchecked") final Codec<T> codec = (Codec<T>) codecRegistry.get(value.getClass());
+            @SuppressWarnings("unchecked") final ObjectCodec<T> codec = (ObjectCodec<T>) codecRegistry.get(value.getClass());
             codec.encode(outputStream, value, codecRegistry);
         }
     }
 
     @SuppressWarnings("unchecked")
     static <T> T decodeObject(DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        final Tag tag = inputStream.readTag();
+        final BinaryTag tag = inputStream.readTag();
         return (T) decodeObjectImp(tag, inputStream, codecRegistry);
     }
 
-    static Object decodeObjectImp(Tag tag, DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+    static Object decodeObjectImp(BinaryTag tag, DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
         switch (tag) {
             case NULL:
                 return null;
@@ -234,9 +234,9 @@ public class BinarySerializer implements Serializer {
                 }
 
                 // 带有DBEntity和SerializableClass注解的所有类，和手写Serializer的类
-                final Class<? extends EntitySerializer<?>> serializerClass = EntitySerializerScanner.getSerializerClass(messageClazz);
+                final Class<? extends PojoCodecImpl<?>> serializerClass = EntitySerializerScanner.getSerializerClass(messageClazz);
                 if (serializerClass != null) {
-                    final EntitySerializer<?> serializer = createSerializerInstance(serializerClass);
+                    final PojoCodecImpl<?> serializer = createSerializerInstance(serializerClass);
                     codecList.add(new EntitySerializerBasedCodec(providerId, messageMapper.getMessageId(messageClazz), serializer));
                     continue;
                 }
@@ -262,8 +262,8 @@ public class BinarySerializer implements Serializer {
         return supportedClassSet;
     }
 
-    private static EntitySerializer<?> createSerializerInstance(Class<? extends EntitySerializer<?>> serializerClass) throws Exception {
-        final Constructor<? extends EntitySerializer<?>> noArgsConstructor = serializerClass.getDeclaredConstructor(ArrayUtils.EMPTY_CLASS_ARRAY);
+    private static PojoCodecImpl<?> createSerializerInstance(Class<? extends PojoCodecImpl<?>> serializerClass) throws Exception {
+        final Constructor<? extends PojoCodecImpl<?>> noArgsConstructor = serializerClass.getDeclaredConstructor(ArrayUtils.EMPTY_CLASS_ARRAY);
         noArgsConstructor.setAccessible(true);
         return noArgsConstructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
     }

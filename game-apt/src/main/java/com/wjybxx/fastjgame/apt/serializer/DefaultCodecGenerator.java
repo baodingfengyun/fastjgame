@@ -37,7 +37,7 @@ import java.util.List;
  * @version 1.0
  * date - 2020/2/18
  */
-class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProcessor> {
+class DefaultCodecGenerator extends AbstractGenerator<SerializableClassProcessor> {
 
     private static final String READ_BYTES_METHOD_NAME = "readBytes";
     private static final String READ_COLLECTION_METHOD_NAME = "readCollection";
@@ -69,7 +69,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
 
     private List<? extends Element> allFieldsAndMethodWithInherit;
 
-    DefaultSerializerGenerator(SerializableClassProcessor processor, TypeElement typeElement) {
+    DefaultCodecGenerator(SerializableClassProcessor processor, TypeElement typeElement) {
         super(processor, typeElement);
     }
 
@@ -84,10 +84,10 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
         superDeclaredType = typeUtils.getDeclaredType(processor.abstractSerializerTypeElement, typeUtils.erasure(typeElement.asType()));
 
-        typeBuilder = TypeSpec.classBuilder(SerializableClassProcessor.getSerializerClassName(typeElement));
+        typeBuilder = TypeSpec.classBuilder(SerializableClassProcessor.getCodecClassName(typeElement));
         staticCodeBlockBuilder = CodeBlock.builder();
 
-        getEntityMethod = newGetEntityMethodBuilder();
+        getEntityMethod = newGetEncoderClassMethodBuilder();
         newInstanceMethodBuilder = newInstanceMethodBuilder();
         readFieldsMethodBuilder = newReadFieldsMethodBuilder();
         writeObjectMethodBuilder = newWriteObjectMethodBuilder();
@@ -170,7 +170,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     private void addWriteStatement(VariableElement variableElement) {
         final String getterName = getGetterName(variableElement);
         final String writeMethodName = getWriteMethodName(variableElement);
-        writeObjectMethodBuilder.addStatement("outputStream.$L(instance.$L())", writeMethodName, getterName);
+        writeObjectMethodBuilder.addStatement("writer.$L(instance.$L())", writeMethodName, getterName);
     }
 
     private String getGetterName(VariableElement variableElement) {
@@ -232,7 +232,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     }
 
     private void readBySetter(VariableElement variableElement) {
-        // 包含非private的setter方法 instance.setId(inputStream.readInt())
+        // 包含非private的setter方法 instance.setId(reader.readInt())
         final String setterName = getSetterName(variableElement);
         List<Object> params = new ArrayList<>(8);
         StringBuilder readFormat = new StringBuilder("instance.$L(");
@@ -258,7 +258,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
             appendReadArrayStatement(variableElement, readFormat, params);
         } else {
             final String readMethodName = getReadMethodName(variableElement);
-            readFormat.append("inputStream.$L()");
+            readFormat.append("reader.$L()");
             params.add(readMethodName);
         }
     }
@@ -276,14 +276,14 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
 
             final TypeName enumSetRawTypeName = ClassName.get(processor.enumSetRawTypeMirror);
 
-            readFormat.append("inputStream.$L(size -> $T.noneOf($T.class))");
+            readFormat.append("reader.$L(size -> $T.noneOf($T.class))");
             params.add(READ_COLLECTION_METHOD_NAME);
             params.add(enumSetRawTypeName);
             params.add(elementRawTypeName);
         } else {
             final TypeName impTypeName = TypeName.get(typeUtils.erasure(impTypeMirror));
 
-            readFormat.append("inputStream.$L($T::new)");
+            readFormat.append("reader.$L($T::new)");
             params.add(READ_COLLECTION_METHOD_NAME);
             params.add(impTypeName);
         }
@@ -320,14 +320,14 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
 
             final TypeName enumMapRawTypeName = ClassName.get(processor.enumMapRawTypeMirror);
 
-            readFormat.append("inputStream.$L(size -> new $T<>($T.class))");
+            readFormat.append("reader.$L(size -> new $T<>($T.class))");
             params.add(READ_MAP_METHOD_NAME);
             params.add(enumMapRawTypeName);
             params.add(keyRawTypeName);
         } else {
             final TypeName impTypeName = TypeName.get(typeUtils.erasure(impTypeMirror));
 
-            readFormat.append("inputStream.$L($T::new)");
+            readFormat.append("reader.$L($T::new)");
             params.add(READ_MAP_METHOD_NAME);
             params.add(impTypeName);
         }
@@ -336,7 +336,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
     private void appendReadArrayStatement(VariableElement variableElement, StringBuilder readFormat, List<Object> params) {
         final TypeName componentTypeName = TypeName.get(AutoUtils.getComponentType(variableElement.asType()));
 
-        readFormat.append("inputStream.$L($T.class)");
+        readFormat.append("reader.$L($T.class)");
         params.add(READ_ARRAY_METHOD_NAME);
         params.add(componentTypeName);
     }
@@ -369,7 +369,7 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         staticCodeBlockBuilder.addStatement("$L = $T.getDeclaredField($T.class ,$S)", reflectFieldName, AptReflectUtils.class,
                 fieldDeclaredClassTypeName, fieldName);
 
-        // 反射赋值 r_field_id.set(instance, inputStream.readInt())
+        // 反射赋值 r_field_id.set(instance, reader.readInt())
         StringBuilder readFormat = new StringBuilder("$L.set(instance, ");
         List<Object> params = new ArrayList<>(8);
         params.add(reflectFieldName);
@@ -379,8 +379,8 @@ class DefaultSerializerGenerator extends AbstractGenerator<SerializableClassProc
         readFieldsMethodBuilder.addStatement(readFormat.toString(), params.toArray());
     }
 
-    private MethodSpec newGetEntityMethodBuilder() {
-        return processor.newGetEntityMethod(superDeclaredType);
+    private MethodSpec newGetEncoderClassMethodBuilder() {
+        return processor.newGetEncoderClassMethod(superDeclaredType);
     }
 
     private MethodSpec.Builder newInstanceMethodBuilder() {

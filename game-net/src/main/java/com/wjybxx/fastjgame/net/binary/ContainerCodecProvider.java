@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * 它对应于{@link Tag}中的3中容器类型
+ * 它对应于{@link BinaryTag}中的3中容器类型
  *
  * @author wjybxx
  * @version 1.0
@@ -40,17 +40,17 @@ public class ContainerCodecProvider implements CodecProvider {
     @SuppressWarnings("unchecked")
     @Nullable
     @Override
-    public <T> Codec<T> getCodec(Class<T> clazz) {
+    public <T> ObjectCodec<T> getCodec(Class<T> clazz) {
         if (Collection.class.isAssignableFrom(clazz)) {
-            return (Codec<T>) collectionCodec;
+            return (ObjectCodec<T>) collectionCodec;
         }
 
         if (Map.class.isAssignableFrom(clazz)) {
-            return (Codec<T>) mapCodec;
+            return (ObjectCodec<T>) mapCodec;
         }
 
         if (clazz.isArray()) {
-            return (Codec<T>) arrayCodec;
+            return (ObjectCodec<T>) arrayCodec;
         }
         return null;
     }

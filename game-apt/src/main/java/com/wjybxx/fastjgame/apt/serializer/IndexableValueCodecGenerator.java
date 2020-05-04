@@ -26,20 +26,22 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 
-import static com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor.getSerializerClassName;
-import static com.wjybxx.fastjgame.apt.utils.BeanUtils.FOR_NUMBER_METHOD_NAME;
-import static com.wjybxx.fastjgame.apt.utils.BeanUtils.GET_NUMBER_METHOD_NAME;
+import static com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor.getCodecClassName;
+import static com.wjybxx.fastjgame.apt.utils.BeanUtils.FOR_INDEX_METHOD_NAME;
+import static com.wjybxx.fastjgame.apt.utils.BeanUtils.GET_INDEX_METHOD_NAME;
 
 /**
- * 可数值化的实体serializer实现
+ * Q: 为何没有为该类寻找特定的读写方法，使用{@code readObject} {@code writeObject}
+ * A: 如果索引是一个int值，那么应该实现 {@link com.wjybxx.fastjgame.apt.utils.BeanUtils#INDEXABLE_ENUM_CANONICAL_NAME}接口。
+ * 如果是多个int值，应该创建一个独立的bean。不推荐使用long和string做索引。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/18
  */
-class NumericalEntitySerializerGenerator extends AbstractGenerator<SerializableClassProcessor> {
+class IndexableValueCodecGenerator extends AbstractGenerator<SerializableClassProcessor> {
 
-    NumericalEntitySerializerGenerator(SerializableClassProcessor processor, TypeElement typeElement) {
+    IndexableValueCodecGenerator(SerializableClassProcessor processor, TypeElement typeElement) {
         super(processor, typeElement);
     }
 
@@ -48,28 +50,28 @@ class NumericalEntitySerializerGenerator extends AbstractGenerator<SerializableC
         final TypeName instanceRawTypeName = TypeName.get(typeUtils.erasure(typeElement.asType()));
         final DeclaredType superDeclaredType = typeUtils.getDeclaredType(processor.serializerTypeElement, typeUtils.erasure(typeElement.asType()));
 
+        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getCodecClassName(typeElement));
+
         // 获取实例方法
-        final MethodSpec getEntityMethod = processor.newGetEntityMethod(superDeclaredType);
+        final MethodSpec getEncoderClassMethod = processor.newGetEncoderClassMethod(superDeclaredType);
 
-        // 写入number即可 outputStream.writeObject(WireType.INT, instance.getNumber())
+        // 写入索引即可 outputStream.writeObject(instance.getIndex())
         final MethodSpec.Builder writeMethodBuilder = processor.newWriteMethodBuilder(superDeclaredType);
-        writeMethodBuilder.addStatement("outputStream.writeInt(instance.$L())", GET_NUMBER_METHOD_NAME);
+        writeMethodBuilder.addStatement("writer.writeObject(instance.$L())", GET_INDEX_METHOD_NAME);
 
-        // 读取number即可 return A.forNumber(inputStream.readObject(WireType.INT))
+        // 读取索引即可 return A.forIndex(InputStream.readObject());
         final MethodSpec.Builder readMethodBuilder = processor.newReadObjectMethodBuilder(superDeclaredType);
-        readMethodBuilder.addStatement("return $T.$L(inputStream.readInt())", instanceRawTypeName, FOR_NUMBER_METHOD_NAME);
+        readMethodBuilder.addStatement("return $T.$L(reader.readObject())", instanceRawTypeName, FOR_INDEX_METHOD_NAME);
 
-        final TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(getSerializerClassName(typeElement));
         typeBuilder.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(AutoUtils.SUPPRESS_UNCHECKED_ANNOTATION)
                 .addAnnotation(processorInfoAnnotation)
                 .addSuperinterface(TypeName.get(superDeclaredType))
-                .addMethod(getEntityMethod)
+                .addMethod(getEncoderClassMethod)
                 .addMethod(writeMethodBuilder.build())
                 .addMethod(readMethodBuilder.build());
 
         // 写入文件
         AutoUtils.writeToFile(typeElement, typeBuilder, elementUtils, messager, filer);
     }
-
 }

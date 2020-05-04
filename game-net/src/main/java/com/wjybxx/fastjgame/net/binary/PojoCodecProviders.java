@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.wjybxx.fastjgame.net.binaryextend.ClassCodec;
-import com.wjybxx.fastjgame.utils.misc.IntPair;
 import com.wjybxx.fastjgame.utils.misc.Range;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -136,8 +135,8 @@ public class PojoCodecProviders {
         @SuppressWarnings("unchecked")
         @Nullable
         @Override
-        public <T> Codec<T> getCodec(Class<T> clazz) {
-            return (Codec<T>) type2CodecMap.get(clazz);
+        public <T> ObjectCodec<T> getCodec(Class<T> clazz) {
+            return (ObjectCodec<T>) type2CodecMap.get(clazz);
         }
     }
 }

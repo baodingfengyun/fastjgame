@@ -16,16 +16,16 @@
 
 package com.wjybxx.fastjgame.net.misc;
 
-import com.wjybxx.fastjgame.net.binary.EntityInputStream;
-import com.wjybxx.fastjgame.net.binary.EntityOutputStream;
-import com.wjybxx.fastjgame.net.binary.EntitySerializer;
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * 数据块
  * 序列化时，只序列化有效负荷部分。
  * -
- * 由手动实现的{@link ChunkSerializer}负责序列化。
+ * 由手动实现的{@link ChunkCodec}负责序列化。
  *
  * @author wjybxx
  * @version 1.0
@@ -74,21 +74,21 @@ public class Chunk {
         return new Chunk(buffer, offset, length);
     }
 
-    private static class ChunkSerializer implements EntitySerializer<Chunk> {
+    private static class ChunkCodec implements PojoCodecImpl<Chunk> {
 
         @Override
-        public Class<Chunk> getEntityClass() {
+        public Class<Chunk> getEncoderClass() {
             return Chunk.class;
         }
 
         @Override
-        public Chunk readObject(EntityInputStream inputStream) throws Exception {
-            return newInstance(inputStream.readBytes());
+        public Chunk readObject(ObjectReader reader) throws Exception {
+            return newInstance(reader.readBytes());
         }
 
         @Override
-        public void writeObject(Chunk instance, EntityOutputStream outputStream) throws Exception {
-            outputStream.writeBytes(instance.getBuffer(), instance.getOffset(), instance.getLength());
+        public void writeObject(Chunk instance, ObjectWriter writer) throws Exception {
+            writer.writeBytes(instance.getBuffer(), instance.getOffset(), instance.getLength());
         }
     }
 }

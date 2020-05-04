@@ -184,4 +184,27 @@ public final class CollectionUtils {
         return Sets.newLinkedHashSetWithExpectedSize(expectedSize);
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    public static <K, V> void requireNotContains(Map<K, V> map, K key, String property) {
+        if (map.containsKey(key)) {
+            throwContainsException(key, property);
+        }
+    }
+
+    static void throwContainsException(Object key, String property) {
+        throw new IllegalArgumentException(property + " " + key + " is duplicate");
+    }
+
+    public static <K, V> void requireContains(Map<K, V> map, K key, String property) {
+        if (map.containsKey(key)) {
+            throwNotContainsException(key, property);
+        }
+    }
+
+    static <K> void throwNotContainsException(K key, String property) {
+        throw new IllegalArgumentException(property + " " + key + " is nonexistent");
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////
 }
