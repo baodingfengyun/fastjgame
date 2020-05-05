@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * 数据库实体字段
+ * 注意：{@link java.util.Map}和{@link java.util.Collection}多态问题解决方案请查看{@link Impl}注解。
  *
  * @author wjybxx
  * @version 1.0

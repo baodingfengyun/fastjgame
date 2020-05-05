@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import com.wjybxx.fastjgame.db.annotation.Impl;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -23,6 +25,7 @@ import java.lang.annotation.Target;
 
 /**
  * 用该注解注解的字段表示是一个需要序列化的属性字段。
+ * 注意：{@link java.util.Map}和{@link java.util.Collection}多态问题解决方案请查看{@link Impl}注解。
  *
  * @author wjybxx
  * @version 1.0

@@ -348,14 +348,14 @@ public class RedisEventLoop extends UnboundedEventLoop {
 
         @Override
         public void run() {
-            // 刷新管道，保证时序
-            pipelineSync();
-
             if (null == jedis) {
                 // 连接不可用，快速失败
                 promise.tryFailure(RedisConnectionException.INSTANCE);
                 return;
             }
+
+            // 刷新管道，保证时序
+            pipelineSync();
 
             try {
                 final T origin = command.execute(jedis);
