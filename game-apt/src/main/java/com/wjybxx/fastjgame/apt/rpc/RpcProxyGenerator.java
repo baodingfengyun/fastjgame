@@ -28,7 +28,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.tools.Diagnostic;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -219,7 +218,6 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
         // 需要延迟初始化的位置
         private final int lazyIndexes;
         // 需要提前反序列化的位置
-
         private final int preIndexes;
 
         ParseResult(List<ParameterSpec> realParameters, int lazyIndexes, int preIndexes) {
@@ -231,38 +229,30 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
     }
 
     private TypeMirror getNonPrimitiveReturnType(ExecutableElement method) {
-        if (method.getReturnType().getKind() != TypeKind.VOID) {
-            // 方法有返回值
-            if (method.getReturnType().getKind().isPrimitive()) {
-                // 可能是基础类型
-                return typeUtils.boxedClass((PrimitiveType) method.getReturnType()).asType();
-            } else {
-                return method.getReturnType();
-            }
+        if (method.getReturnType().getKind() == TypeKind.VOID) {
+            return processor.wildcardType;
         }
 
-        // 判断是否有Promise，如果没有则返回通配符（其实Void也行）
-        return method.getParameters().stream()
-                .filter(variableElement -> processor.isFuture(variableElement.asType()))
-                .findFirst()
-                .map(this::getFutureTypeArgument)
-                .orElse(processor.wildcardType);
+        if (method.getReturnType().getKind().isPrimitive()) {
+            // 可能是基础类型
+            return typeUtils.boxedClass((PrimitiveType) method.getReturnType()).asType();
+        }
+
+        if (processor.isFuture(method.getReturnType())) {
+            // future类型，捕获泛型参数
+            return findFutureTypeArgument(method);
+        } else {
+            return method.getReturnType();
+        }
     }
 
-    private TypeMirror getFutureTypeArgument(final VariableElement variableElement) {
-        return variableElement.asType().accept(new SimpleTypeVisitor8<TypeMirror, Void>() {
-            @Override
-            public TypeMirror visitDeclared(DeclaredType t, Void aVoid) {
-                if (t.getTypeArguments().size() > 0) {
-                    // 第一个参数就是返回值类型，这里的泛型也可能是'?'
-                    return t.getTypeArguments().get(0);
-                } else {
-                    // 声明类型木有泛型参数，返回Object类型，并打印一个错误
-                    // 2019年8月23日21:13:35 改为编译错误
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Promise missing type parameter!", variableElement);
-                    return elementUtils.getTypeElement(Object.class.getCanonicalName()).asType();
-                }
-            }
-        }, null);
+    private TypeMirror findFutureTypeArgument(ExecutableElement method) {
+        TypeMirror firstTypeParameter = AutoUtils.findFirstTypeParameter(method.getReturnType());
+        if (firstTypeParameter == null) {
+            messager.printMessage(Diagnostic.Kind.ERROR, "Future missing type parameter!", method);
+            return elementUtils.getTypeElement(Object.class.getCanonicalName()).asType();
+        } else {
+            return firstTypeParameter;
+        }
     }
 }

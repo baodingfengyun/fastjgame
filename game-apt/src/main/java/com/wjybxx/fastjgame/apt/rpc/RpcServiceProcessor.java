@@ -221,7 +221,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         if (!isAssignableFromLinkedHashMap(variableElement)) {
             messager.printMessage(Diagnostic.Kind.ERROR,
                     "Unsupported map type, Map parameter only support LinkedHashMap's parent, " +
-                            "\ntoo see the annotation '@Impl', then, you will know how to use any map type",
+                            "\nrefer to the annotation '@Impl' for more help",
                     variableElement);
         }
     }
@@ -230,7 +230,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         if (!isAssignableFormArrayList(variableElement)) {
             messager.printMessage(Diagnostic.Kind.ERROR,
                     "Unsupported collection type, Collection parameter only support ArrayList's parent, " +
-                            "\ntoo see the annotation '@Impl', then, you will know how to use any collection type",
+                            "\nrefer to the annotation '@Impl' for more help",
                     variableElement);
         }
     }

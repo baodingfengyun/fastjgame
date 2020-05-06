@@ -266,9 +266,9 @@ class DefaultCodecGenerator extends AbstractGenerator<SerializableClassProcessor
     private void appendReadCollectionStatement(VariableElement variableElement, StringBuilder readFormat, List<Object> params) {
         final TypeMirror impTypeMirror = getMapOrCollectionImp(variableElement);
         if (processor.isEnumSet(impTypeMirror)) {
-            final TypeMirror elementTypeMirror = AutoUtils.findFirstParameterActualType(variableElement.asType());
-            if (null == elementTypeMirror) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "raw types is not allowed here (EnumSet)", variableElement);
+            final TypeMirror elementTypeMirror = AutoUtils.findFirstTypeParameter(variableElement.asType());
+            if (null == elementTypeMirror || elementTypeMirror.getKind() != TypeKind.DECLARED) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "EnumSet has a bad type parameter!", variableElement);
                 return;
             }
 
@@ -310,9 +310,10 @@ class DefaultCodecGenerator extends AbstractGenerator<SerializableClassProcessor
     private void appendReadMapStatement(VariableElement variableElement, StringBuilder readFormat, List<Object> params) {
         final TypeMirror impTypeMirror = getMapOrCollectionImp(variableElement);
         if (processor.isEnumMap(impTypeMirror)) {
-            final TypeMirror keyTypeMirror = AutoUtils.findFirstParameterActualType(variableElement.asType());
-            if (null == keyTypeMirror) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "raw types is not allowed here (EnumMap)", variableElement);
+            final TypeMirror keyTypeMirror = AutoUtils.findFirstTypeParameter(variableElement.asType());
+
+            if (null == keyTypeMirror || keyTypeMirror.getKind() != TypeKind.DECLARED) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "EnumMap has a bad type parameter", variableElement);
                 return;
             }
 

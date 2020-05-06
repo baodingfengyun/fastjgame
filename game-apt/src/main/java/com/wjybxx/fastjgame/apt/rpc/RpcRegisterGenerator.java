@@ -128,7 +128,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
      *  		        FutureUtils.setFuture(future, promise);
      *                } catch(Throwable cause) {
      *                  promise.tryFailure(cause)
-     *                  ConcurrentUtils.rethrow(cause);
+     *                  AptReflectUtils.rethrow(cause);
      *            });
      *        }
      * }
@@ -144,7 +144,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * 		     	    promise.trySuccess(result);
      *               } catch(Throwable cause){
      *                  promise.tryFailure(cause)
-     *                  ConcurrentUtils.rethrow(cause);
+     *                  AptReflectUtils.rethrow(cause);
      *               }
      *            });
      *        }
@@ -160,7 +160,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * 		       	    promise.trySuccess(null);
      *               } catch(Throwable cause) {
      *                   promise.tryFailure(cause)
-     *                   ConcurrentUtils.rethrow(cause);
+     *                   AptReflectUtils.rethrow(cause);
      *               }
      *            });
      *        }
@@ -225,7 +225,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
     private RpcRegisterGenerator.InvokeStatement genInvokeStatement(ExecutableElement method) {
         // 缩进
         final StringBuilder format = new StringBuilder("    ");
-        final List<Object> params = new ArrayList<>(10);
+        final List<Object> params = new ArrayList<>(method.getParameters().size());
 
         if (method.getReturnType().getKind() != TypeKind.VOID) {
             // 声明返回值

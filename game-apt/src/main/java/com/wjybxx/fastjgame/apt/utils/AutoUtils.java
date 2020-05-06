@@ -348,7 +348,6 @@ public class AutoUtils {
         }, null);
     }
 
-
     /**
      * 忽略两个类型的泛型参数，判断第一个是否是第二个的子类型。
      * 如果考虑泛型的话，会存在区别
@@ -411,34 +410,19 @@ public class AutoUtils {
     }
 
     /**
-     * 获取第一个参数的真实类型，如果没有显示声明，则为null
+     * 获取第一个泛型参数
      */
     @Nullable
-    public static TypeMirror findFirstParameterActualType(TypeMirror typeMirror) {
+    public static TypeMirror findFirstTypeParameter(TypeMirror typeMirror) {
         return typeMirror.accept(new SimpleTypeVisitor8<TypeMirror, Void>() {
             @Override
             public TypeMirror visitDeclared(DeclaredType t, Void aVoid) {
                 if (t.getTypeArguments().size() == 0) {
                     // 未声明泛型参数
                     return null;
+                } else {
+                    return t.getTypeArguments().get(0);
                 }
-
-                final TypeMirror typeArgument = t.getTypeArguments().get(0);
-                if (typeArgument.getKind() == TypeKind.DECLARED) {
-                    return typeArgument;
-                }
-
-                if (typeArgument.getKind() == TypeKind.WILDCARD) {
-                    // may nullable - 继承是上界
-                    return ((WildcardType) typeArgument).getExtendsBound();
-                }
-
-                if (typeArgument.getKind() == TypeKind.TYPEVAR) {
-                    // may object
-                    return ((TypeVariable) typeArgument).getUpperBound();
-                }
-
-                return null;
             }
 
             @Override
