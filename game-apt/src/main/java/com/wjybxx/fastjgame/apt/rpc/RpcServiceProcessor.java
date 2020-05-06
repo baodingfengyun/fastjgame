@@ -60,16 +60,19 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     private static final String DEFAULT_METHOD_SPEC_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.DefaultRpcMethodSpec";
 
     private static final String METHOD_REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodProxyRegistry";
-    private static final String PROMISE_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.concurrent.Promise";
+
     private static final String CONTEXT_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcProcessContext";
+    private static final String FUTURE_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.concurrent.ListenableFuture";
+    private static final String FUTURE_UTILS_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.concurrent.FutureUtils";
 
     private static final String SERVICE_ID_METHOD_NAME = "serviceId";
     private static final String METHOD_ID_METHOD_NAME = "methodId";
 
     WildcardType wildcardType;
 
-    private DeclaredType promiseDeclaredType;
     private DeclaredType contextDeclaredType;
+    private DeclaredType futureDeclaredType;
+    TypeName futureUtilsTypeName;
 
     TypeElement methodSpecElement;
     TypeName defaultMethodSpecRawTypeName;
@@ -107,8 +110,10 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         rpcMethodDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(RPC_METHOD_CANONICAL_NAME));
 
         methodRegistryTypeName = ClassName.get(elementUtils.getTypeElement(METHOD_REGISTRY_CANONICAL_NAME));
+
         contextDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CONTEXT_CANONICAL_NAME));
-        promiseDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PROMISE_CANONICAL_NAME));
+        futureDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(FUTURE_CANONICAL_NAME));
+        futureUtilsTypeName = TypeName.get(elementUtils.getTypeElement(FUTURE_UTILS_CANONICAL_NAME).asType());
 
         methodSpecElement = elementUtils.getTypeElement(METHOD_SPEC_CANONICAL_NAME);
         defaultMethodSpecRawTypeName = TypeName.get(typeUtils.getDeclaredType(elementUtils.getTypeElement(DEFAULT_METHOD_SPEC_CANONICAL_NAME)));
@@ -208,11 +213,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
             if (isCollection(variableElement)) {
                 checkCollection(variableElement);
-                continue;
-            }
-
-            if (isPromise(variableElement)) {
-                checkPromise(variableElement);
             }
         }
     }
@@ -232,12 +232,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
                     "Unsupported collection type, Collection parameter only support ArrayList's parent, " +
                             "\ntoo see the annotation '@Impl', then, you will know how to use any collection type",
                     variableElement);
-        }
-    }
-
-    private void checkPromise(VariableElement variableElement) {
-        if (!isDeclaredAsPromise(variableElement)) {
-            messager.printMessage(Diagnostic.Kind.ERROR, "Promise parameter must declared as Promise.", variableElement);
         }
     }
 
@@ -310,16 +304,12 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, arrayListTypeMirror, variableElement.asType());
     }
 
-    boolean isPromise(VariableElement variableElement) {
-        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), promiseDeclaredType);
-    }
-
-    private boolean isDeclaredAsPromise(VariableElement variableElement) {
-        return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, promiseDeclaredType, variableElement.asType());
-    }
-
     boolean isContext(VariableElement variableElement) {
         return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, variableElement.asType(), contextDeclaredType);
+    }
+
+    boolean isFuture(TypeMirror typeMirror) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeMirror, futureDeclaredType);
     }
 
 }

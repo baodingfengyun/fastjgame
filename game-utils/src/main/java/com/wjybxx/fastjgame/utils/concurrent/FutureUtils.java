@@ -65,7 +65,7 @@ public class FutureUtils {
     /**
      * 将future的结果传输到promise上
      */
-    public static <V> void setFuture(FluentFuture<V> future, Promise<? super V> promise) {
+    public static <V> void setFuture(ListenableFuture<V> future, Promise<? super V> promise) {
         final UniRelay<? super V> uniRelay = new UniRelay<>(promise);
         if (!future.acceptNow(uniRelay)) {
             future.addListener(uniRelay);

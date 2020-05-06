@@ -115,15 +115,20 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
     /**
      * 为某个具体方法生成注册方法，方法分为两类
-     * 1. 异步方法 -- 异步方法是指需要 promise 的方法，由应用层代码告知远程执行结果。
-     * 2. 同步方法 -- 同步方法是指不需要 promise 的方法，由生成的代码告知远程执行结果。
+     * 1. 异步方法 -- 返回结果为future的方法。
+     * 2. 同步方法
      * <p>
-     * 1. 异步方法，那么返回结果的职责就完全交给应用层
+     * 1. 异步方法，返回Future
      * <pre>
      * {@code
      * 		private static void registerGetMethod1(RpcFunctionRegistry registry, T instance) {
      * 		    registry.register(10001, (context, methodParams, promise) -> {
-     * 		       instance.method1(methodParams.get(0), methodParams.get(1), promise);
+     * 		        try {
+     * 		            Future<V> future = instance.method1(methodParams.get(0), methodParams.get(1));
+     *  		        FutureUtils.setFuture(future, promise);
+     *                } catch(Throwable cause) {
+     *                  promise.tryFailure(cause)
+     *                  ConcurrentUtils.rethrow(cause);
      *            });
      *        }
      * }
@@ -179,24 +184,24 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
                 context, methodParams, promise);
 
         final InvokeStatement invokeStatement = genInvokeStatement(method);
-        if (invokeStatement.hasPromise) {
-            // 异步返回值，交给应用层返回结果
-            builder.addStatement(invokeStatement.format, invokeStatement.params.toArray());
-        } else {
-            // 同步返回结果 - 底层返回结果
-            builder.addCode("    try {\n");
-            builder.addStatement("    " + invokeStatement.format, invokeStatement.params.toArray());
-            if (method.getReturnType().getKind() == TypeKind.VOID) {
-                builder.addStatement("        $L.trySuccess(null)", promise);
-            } else {
-                builder.addStatement("        $L.trySuccess(result)", promise);
-            }
-            builder.addCode("    } catch (Throwable cause) {\n");
-            builder.addStatement("        $L.tryFailure(cause)", promise);
-            builder.addStatement("        $T.rethrow(cause)", AptReflectUtilsTypeName);
 
-            builder.addCode("    }\n");
+        builder.addCode("    try {\n");
+        builder.addStatement("    " + invokeStatement.format, invokeStatement.params.toArray());
+
+        if (method.getReturnType().getKind() == TypeKind.VOID) {
+            builder.addStatement("        $L.trySuccess(null)", promise);
+        } else if (processor.isFuture(method.getReturnType())) {
+            builder.addStatement("        $T.setFuture(result, $L)", processor.futureUtilsTypeName, promise);
+        } else {
+            builder.addStatement("        $L.trySuccess(result)", promise);
         }
+
+        builder.addCode("    } catch (Throwable cause) {\n");
+        builder.addStatement("        $L.tryFailure(cause)", promise);
+        builder.addStatement("        $T.rethrow(cause)", AptReflectUtilsTypeName);
+
+        builder.addCode("    }\n");
+
         builder.addStatement("})");
         return builder.build();
     }
@@ -215,6 +220,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
     /**
      * 生成方法调用代码，没有分号和换行符。
      * {@code Object result = instance.rpcMethod(a, b, c)}
+     * {@code instance.rpcMethod(a, b, c)}
      */
     private RpcRegisterGenerator.InvokeStatement genInvokeStatement(ExecutableElement method) {
         // 缩进
@@ -233,7 +239,6 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
         params.add(instance);
         params.add(method.getSimpleName().toString());
 
-        boolean hasPromise = false;
         boolean needDelimiter = false;
         int index = 0;
         for (VariableElement variableElement : method.getParameters()) {
@@ -245,43 +250,39 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
             if (processor.isContext(variableElement)) {
                 format.append(context);
-            } else if (processor.isPromise(variableElement)) {
-                format.append(promise);
-                hasPromise = true;
-            } else {
-                final TypeName parameterTypeName = ParameterizedTypeName.get(variableElement.asType());
-                if (parameterTypeName.isPrimitive()) {
-                    // 基本类型需要两次转换，否则可能导致重载问题
-                    // (int)((Integer)methodParams.get(index))
-                    // eg:
-                    // getName(int age);
-                    // getName(Integer age);
-                    format.append("($T)(($T)$L.get($L))");
-                    params.add(parameterTypeName);
-                    params.add(parameterTypeName.box());
-                } else {
-                    format.append("($T)$L.get($L)");
-                    params.add(parameterTypeName);
-                }
-                params.add(methodParams);
-                params.add(index);
-                index++;
+                continue;
             }
+
+            final TypeName parameterTypeName = ParameterizedTypeName.get(variableElement.asType());
+            if (parameterTypeName.isPrimitive()) {
+                // 基本类型需要两次转换，否则可能导致重载问题
+                // (int)((Integer)methodParams.get(index))
+                // eg:
+                // getName(int age);
+                // getName(Integer age);
+                format.append("($T)(($T)$L.get($L))");
+                params.add(parameterTypeName);
+                params.add(parameterTypeName.box());
+            } else {
+                format.append("($T)$L.get($L)");
+                params.add(parameterTypeName);
+            }
+            params.add(methodParams);
+            params.add(index);
+            index++;
         }
         format.append(")");
-        return new RpcRegisterGenerator.InvokeStatement(format.toString(), params, hasPromise);
+        return new RpcRegisterGenerator.InvokeStatement(format.toString(), params);
     }
 
     private static class InvokeStatement {
 
         private final String format;
         private final List<Object> params;
-        private final boolean hasPromise;
 
-        private InvokeStatement(String format, List<Object> params, boolean hasPromise) {
+        private InvokeStatement(String format, List<Object> params) {
             this.format = format;
             this.params = params;
-            this.hasPromise = hasPromise;
         }
     }
 }

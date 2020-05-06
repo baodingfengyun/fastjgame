@@ -143,8 +143,8 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
         // 筛选参数
         for (VariableElement variableElement : originParameters) {
-            // context和promise需要从参数列表删除
-            if (processor.isContext(variableElement) || processor.isPromise(variableElement)) {
+            // context需要从参数列表删除
+            if (processor.isContext(variableElement)) {
                 continue;
             }
 
@@ -243,13 +243,13 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
         // 判断是否有Promise，如果没有则返回通配符（其实Void也行）
         return method.getParameters().stream()
-                .filter(processor::isPromise)
+                .filter(variableElement -> processor.isFuture(variableElement.asType()))
                 .findFirst()
-                .map(this::getPromiseTypeArgument)
+                .map(this::getFutureTypeArgument)
                 .orElse(processor.wildcardType);
     }
 
-    private TypeMirror getPromiseTypeArgument(final VariableElement variableElement) {
+    private TypeMirror getFutureTypeArgument(final VariableElement variableElement) {
         return variableElement.asType().accept(new SimpleTypeVisitor8<TypeMirror, Void>() {
             @Override
             public TypeMirror visitDeclared(DeclaredType t, Void aVoid) {
