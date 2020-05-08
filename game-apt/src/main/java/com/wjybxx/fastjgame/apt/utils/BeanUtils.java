@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 public class BeanUtils {
 
-    public static final String INDEXABLE_VALUE_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.dsl.IndexableValue";
+    public static final String INDEXABLE_VALUE_OBJECT_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.dsl.IndexableValueObject";
     public static final String FOR_INDEX_METHOD_NAME = "forIndex";
     public static final String GET_INDEX_METHOD_NAME = "getIndex";
 

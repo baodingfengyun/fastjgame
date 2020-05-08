@@ -32,7 +32,7 @@ import javax.annotation.concurrent.Immutable;
  * github - https://github.com/hl845740757
  */
 @Immutable
-public interface IndexableEnum extends IndexableValue<Integer> {
+public interface IndexableEnum extends IndexableValueObject<Integer> {
 
     /**
      * 获取枚举值的数字。

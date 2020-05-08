@@ -75,7 +75,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     private DeclaredType impDeclaredType;
 
     private DeclaredType indexableEnumDeclaredType;
-    private DeclaredType indexableValueDeclaredType;
+    private DeclaredType indexableValueObjectDeclaredType;
 
     TypeElement serializerTypeElement;
     // 要覆盖的方法缓存，减少大量查询
@@ -112,7 +112,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         impDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(DBEntityProcessor.IMPL_CANONICAL_NAME));
 
         indexableEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_ENUM_CANONICAL_NAME));
-        indexableValueDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_VALUE_CANONICAL_NAME));
+        indexableValueObjectDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_VALUE_OBJECT_CANONICAL_NAME));
 
         serializerTypeElement = elementUtils.getTypeElement(CODEC_CANONICAL_NAME);
         getEncoderClassMethod = AutoUtils.findMethodByName(serializerTypeElement, GET_ENCODER_CLASS_METHOD_NAME);
@@ -225,7 +225,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     }
 
     private boolean isIndexableValue(TypeElement typeElement) {
-        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeElement.asType(), indexableValueDeclaredType);
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeElement.asType(), indexableValueObjectDeclaredType);
     }
 
     /**

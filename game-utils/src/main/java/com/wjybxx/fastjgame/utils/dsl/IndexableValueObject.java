@@ -22,7 +22,7 @@ import javax.annotation.Nonnull;
  * 可索引的值对象。
  * <p>
  * Q: 什么是可索引的值对象？
- * A: 值对象没有唯一标识，但存在某些类型的值对象，它们有类似唯一标识的索引的，通过索引我们获取获取到对应的值对象，这样的值对象我们就称之为可索引的值对象。。
+ * A: 值对象一般没有唯一标识，但存在某些类型的值对象，它们有类似唯一标识的索引的，通过索引我们获取获取到对应的值对象，这样的值对象我们就称之为可索引的值对象。。
  * 举个例子，策划的配置表格，每一行都是一个值对象，我们总是根据某些列的值去确定一条配置，如：物品表，我们一般通过物品id去获取配置。
  * <p>
  * Q: 那么该接口的作用？
@@ -39,7 +39,7 @@ import javax.annotation.Nonnull;
  * date - 2020/2/16
  * github - https://github.com/hl845740757
  */
-public interface IndexableValue<T> extends Value {
+public interface IndexableValueObject<T> extends ValueObject {
 
     /**
      * 获取值对象的索引对象

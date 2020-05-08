@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.db.core;
 
-import com.wjybxx.fastjgame.utils.dsl.Value;
+import com.wjybxx.fastjgame.utils.dsl.ValueObject;
 
 import javax.annotation.Nonnull;
 
@@ -39,7 +39,7 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/4/20
  */
-public interface TypeIdentifier extends Value {
+public interface TypeIdentifier extends ValueObject {
 
     /**
      * 获取对应的类型

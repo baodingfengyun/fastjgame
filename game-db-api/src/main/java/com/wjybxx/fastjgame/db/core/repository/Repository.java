@@ -14,23 +14,38 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.dsl;
+package com.wjybxx.fastjgame.db.core.repository;
+
+import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 
 /**
- * 实体，与DDD中的实体概念保持一致。
- * <p>
- * 一个实体拥有唯一的标识{@link #id()}，如果实体具有相同的类型和标识，则认为是相等的。
+ * 资源库
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/4/19
+ * date - 2020/5/8
  */
-@SuppressWarnings("unused")
-public interface Entity {
+@UnstableApi
+public interface Repository<T extends PersistableObject> {
 
     /**
-     * 实体的唯一标识
+     * 适用于首次
      */
-    Object id();
+    void store(T instance);
+
+    /**
+     * 适用于更新
+     */
+    void update(T instance);
+
+    /**
+     * 从持久化数据中删除给定对象
+     */
+    void remove(long id);
+
+    /**
+     * 通过id获取指定对象
+     */
+    T ofId(long id);
 
 }

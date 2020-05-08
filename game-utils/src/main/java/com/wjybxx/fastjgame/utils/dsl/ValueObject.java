@@ -21,8 +21,8 @@ import javax.annotation.concurrent.Immutable;
 /**
  * 值对象，与DDD中的值对象保持一致。
  * <p>
- * 值对象没有唯一标识，它根据对象的属性和状态判断相等性。
- * （有时候会有类似唯一标识的东西，但并不是唯一标识，更多的时候代表索引）
+ * 值对象一般没有唯一标识，它根据对象的属性和状态判断相等性。
+ * 有时候也会有唯一标识，但并不代表它是实体，一般值对象的唯一标识用于去重等特殊用途。
  * <p>
  * 该接口仅仅是一个标记接口，并不强制所有的值对象都实现该接口，但是实现该接口可以更加明确。
  * 不论是否实现该接口，一个值对象实现都应该满足值对象的要求，如：不可变。
@@ -35,6 +35,6 @@ import javax.annotation.concurrent.Immutable;
  * date - 2020/4/19
  */
 @Immutable
-public interface Value {
+public interface ValueObject {
 
 }

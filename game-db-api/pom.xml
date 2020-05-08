@@ -62,11 +62,20 @@
     </build>
 
     <dependencies>
+
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
             <artifactId>game-utils</artifactId>
             <version>1.0</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.mongodb/bson -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+            <version>4.0.3</version>
+        </dependency>
+
     </dependencies>
 
 </project>
