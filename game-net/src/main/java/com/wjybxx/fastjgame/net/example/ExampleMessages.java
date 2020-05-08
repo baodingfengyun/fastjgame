@@ -252,7 +252,7 @@ public final class ExampleMessages {
         @SerializableField
         private Profession profession;
 
-        @Impl(ArrayList.class)
+        @Impl(LinkedList.class)
         @SerializableField
         private List<String> stringList;
 

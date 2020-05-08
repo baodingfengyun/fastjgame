@@ -264,7 +264,7 @@ class DefaultCodecGenerator extends AbstractGenerator<SerializableClassProcessor
     }
 
     private void appendReadCollectionStatement(VariableElement variableElement, StringBuilder readFormat, List<Object> params) {
-        final TypeMirror impTypeMirror = getMapOrCollectionImp(variableElement);
+        final DeclaredType impTypeMirror = getMapOrCollectionImp(variableElement);
         if (processor.isEnumSet(impTypeMirror)) {
             final TypeMirror elementTypeMirror = AutoUtils.findFirstTypeParameter(variableElement.asType());
             if (null == elementTypeMirror || elementTypeMirror.getKind() != TypeKind.DECLARED) {
@@ -282,8 +282,12 @@ class DefaultCodecGenerator extends AbstractGenerator<SerializableClassProcessor
             params.add(elementRawTypeName);
         } else {
             final TypeName impTypeName = TypeName.get(typeUtils.erasure(impTypeMirror));
+            if (containsOneIntArgConstructor(impTypeMirror)) {
+                readFormat.append("reader.$L($T::new)");
+            } else {
+                readFormat.append("reader.$L(size -> new $T<>())");
+            }
 
-            readFormat.append("reader.$L($T::new)");
             params.add(READ_COLLECTION_METHOD_NAME);
             params.add(impTypeName);
         }
@@ -292,7 +296,7 @@ class DefaultCodecGenerator extends AbstractGenerator<SerializableClassProcessor
     /**
      * 获取参数的具体类型
      */
-    private TypeMirror getMapOrCollectionImp(VariableElement variableElement) {
+    private DeclaredType getMapOrCollectionImp(VariableElement variableElement) {
         final DeclaredType declaredType = AutoUtils.getDeclaredType(variableElement.asType());
         if (!declaredType.asElement().getModifiers().contains(Modifier.ABSTRACT)) {
             // 声明类型是具体类型
@@ -304,11 +308,23 @@ class DefaultCodecGenerator extends AbstractGenerator<SerializableClassProcessor
             return declaredType;
         }
 
-        return processor.getFieldImplAnnotationValue(variableElement);
+        return (DeclaredType) processor.getFieldImplAnnotationValue(variableElement);
+    }
+
+    /**
+     * 是否包含单int参数的构造方法
+     */
+    private boolean containsOneIntArgConstructor(DeclaredType declaredType) {
+        return declaredType.asElement().getEnclosedElements().stream()
+                .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
+                .map(e -> (ExecutableElement) e)
+                .filter(e -> e.getParameters().size() == 1)
+                .map(e -> e.getParameters().get(0))
+                .anyMatch(e -> e.asType().getKind() == TypeKind.INT);
     }
 
     private void appendReadMapStatement(VariableElement variableElement, StringBuilder readFormat, List<Object> params) {
-        final TypeMirror impTypeMirror = getMapOrCollectionImp(variableElement);
+        final DeclaredType impTypeMirror = getMapOrCollectionImp(variableElement);
         if (processor.isEnumMap(impTypeMirror)) {
             final TypeMirror keyTypeMirror = AutoUtils.findFirstTypeParameter(variableElement.asType());
 
@@ -328,7 +344,12 @@ class DefaultCodecGenerator extends AbstractGenerator<SerializableClassProcessor
         } else {
             final TypeName impTypeName = TypeName.get(typeUtils.erasure(impTypeMirror));
 
-            readFormat.append("reader.$L($T::new)");
+            if (containsOneIntArgConstructor(impTypeMirror)) {
+                readFormat.append("reader.$L($T::new)");
+            } else {
+                readFormat.append("reader.$L(size -> new $T<>())");
+            }
+
             params.add(READ_MAP_METHOD_NAME);
             params.add(impTypeName);
         }

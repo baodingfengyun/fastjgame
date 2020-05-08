@@ -24,7 +24,6 @@ import com.wjybxx.fastjgame.apt.db.DBEntityProcessor;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
-import javax.annotation.Nullable;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
@@ -384,12 +383,6 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
             messager.printMessage(Diagnostic.Kind.ERROR, "MapOrCollectionImpl must can't be abstract class", variableElement);
             return;
         }
-
-        final ExecutableElement noArgsConstructor = findOneIntArgsConstructor((TypeElement) impDeclaredType.asElement());
-        if (noArgsConstructor == null || !noArgsConstructor.getModifiers().contains(Modifier.PUBLIC)) {
-            // 必须包含只有一个int参数的构造方法
-            messager.printMessage(Diagnostic.Kind.ERROR, "MapOrCollectionImpl must contains public one int arg constructor", variableElement);
-        }
     }
 
     boolean isString(TypeMirror typeMirror) {
@@ -428,17 +421,6 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         final AnnotationValue annotationValue = AutoUtils.getAnnotationValue(impAnnotationMirror, "value");
         assert null != annotationValue;
         return AutoUtils.getAnnotationValueTypeMirror(annotationValue);
-    }
-
-    @Nullable
-    private static ExecutableElement findOneIntArgsConstructor(TypeElement typeElement) {
-        return typeElement.getEnclosedElements().stream()
-                .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
-                .map(e -> (ExecutableElement) e)
-                .filter(e -> e.getParameters().size() == 1)
-                .filter(e -> e.getParameters().get(0).asType().getKind() == TypeKind.INT)
-                .findFirst()
-                .orElse(null);
     }
 
     // ----------------------------------------------- 辅助类生成 -------------------------------------------
