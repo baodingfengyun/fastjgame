@@ -161,17 +161,17 @@ public class EnumUtils {
         // 保护性拷贝，避免出现并发问题 - 不确定values()是否会被修改
         final T[] copiedValues = Arrays.copyOf(values, values.length);
         if (isArrayAvailable(minNumber, maxNumber, values.length, fastQuery)) {
-            return new ArrayBasedEnumMapper<>(copiedValues, minNumber, maxNumber);
+            return new ArrayBasedMapper<>(copiedValues, minNumber, maxNumber);
         } else {
             return new MapBasedMapper<>(copiedValues, result);
         }
     }
 
     private static <T extends IndexableEnum> boolean isArrayAvailable(int minNumber, int maxNumber, int length, boolean fastQuery) {
-        if (ArrayBasedEnumMapper.matchDefaultFactor(minNumber, maxNumber, length)) {
+        if (ArrayBasedMapper.matchDefaultFactor(minNumber, maxNumber, length)) {
             return true;
         }
-        if (fastQuery && ArrayBasedEnumMapper.matchMinFactor(minNumber, maxNumber, length)) {
+        if (fastQuery && ArrayBasedMapper.matchMinFactor(minNumber, maxNumber, length)) {
             return true;
         }
         return false;
@@ -202,7 +202,7 @@ public class EnumUtils {
      * 基于数组的映射，对于数量少的枚举效果好；
      * (可能存在一定空间浪费，空间换时间，如果数字基本连续，那么空间利用率很好)
      */
-    private static class ArrayBasedEnumMapper<T extends IndexableEnum> implements IndexableEnumMapper<T> {
+    private static class ArrayBasedMapper<T extends IndexableEnum> implements IndexableEnumMapper<T> {
 
         private static final float DEFAULT_FACTOR = 0.5f;
         private static final float MIN_FACTOR = 0.25f;
@@ -219,7 +219,7 @@ public class EnumUtils {
          * @param maxNumber 枚举中的最大number
          */
         @SuppressWarnings("unchecked")
-        private ArrayBasedEnumMapper(T[] values, int minNumber, int maxNumber) {
+        private ArrayBasedMapper(T[] values, int minNumber, int maxNumber) {
             this.values = values;
             this.minNumber = minNumber;
             this.maxNumber = maxNumber;

@@ -172,7 +172,7 @@ public class EntityExample {
         @Override
         public void writeObject(ChildBean instance, ObjectWriter writer) throws Exception {
             writer.writeBoolean(instance.isDecodeAsChild1());
-            writer.writeEntity(instance.parent, Parent.class);
+            writer.writeObject(instance.parent, Parent.class);
         }
     }
 }

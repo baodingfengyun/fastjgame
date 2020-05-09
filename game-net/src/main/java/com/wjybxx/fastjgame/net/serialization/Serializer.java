@@ -63,8 +63,7 @@ public interface Serializer {
      * 该方法的主要目的是消除调用{@link #toBytes(Object)}和{@link #fromBytes(byte[])}实现克隆产生的中间数组。
      *
      * @param object 待克隆的对象
-     * @return Q: 为什么不是泛型的？
-     * A:深度克隆的对象，对于多态对象，如果缺少相应信息，可能返回不兼容的对象（map和集合）。
+     * @return Q: 为什么不是泛型的？A:对于多态对象，如果缺少相应信息，可能返回不兼容的对象（map和集合）。
      * @throws IOException error
      */
     Object cloneObject(@Nullable Object object) throws Exception;

@@ -74,7 +74,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     private DeclaredType impDeclaredType;
 
     private DeclaredType indexableEnumDeclaredType;
-    private DeclaredType indexableValueObjectDeclaredType;
+    private DeclaredType indexableObjectDeclaredType;
 
     TypeElement serializerTypeElement;
     // 要覆盖的方法缓存，减少大量查询
@@ -111,7 +111,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         impDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(DBEntityProcessor.IMPL_CANONICAL_NAME));
 
         indexableEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_ENUM_CANONICAL_NAME));
-        indexableValueObjectDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_VALUE_OBJECT_CANONICAL_NAME));
+        indexableObjectDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_OBJECT_CANONICAL_NAME));
 
         serializerTypeElement = elementUtils.getTypeElement(CODEC_CANONICAL_NAME);
         getEncoderClassMethod = AutoUtils.findMethodByName(serializerTypeElement, GET_ENCODER_CLASS_METHOD_NAME);
@@ -160,13 +160,13 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         }
 
         if (isindexableEnum(typeElement)) {
-            // indexableEnum是IndexableValue的子类，需要放在前面检查
+            // indexableEnum是IndexableObject的子类，需要放在前面检查
             checkindexableEnum(typeElement);
             return;
         }
 
-        if (isIndexableValue(typeElement)) {
-            checkIndexableValue(typeElement);
+        if (isIndexableObject(typeElement)) {
+            checkIndexableObject(typeElement);
             return;
         }
 
@@ -223,14 +223,14 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
                 .anyMatch(method -> method.getParameters().get(0).asType().getKind() == TypeKind.INT);
     }
 
-    private boolean isIndexableValue(TypeElement typeElement) {
-        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeElement.asType(), indexableValueObjectDeclaredType);
+    private boolean isIndexableObject(TypeElement typeElement) {
+        return AutoUtils.isSubTypeIgnoreTypeParameter(typeUtils, typeElement.asType(), indexableObjectDeclaredType);
     }
 
     /**
      * 检查可索引的实体，检查是否有forIndex方法
      */
-    private void checkIndexableValue(TypeElement typeElement) {
+    private void checkIndexableObject(TypeElement typeElement) {
         if (!containsGetIndexMethod(typeElement)) {
             messager.printMessage(Diagnostic.Kind.ERROR, "can't find getIndex() method", typeElement);
             return;
@@ -428,8 +428,8 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     private void generateSerializer(TypeElement typeElement) {
         if (isindexableEnum(typeElement)) {
             new IndexableEnumCodecGenerator(this, typeElement).execute();
-        } else if (isIndexableValue(typeElement)) {
-            new IndexableValueCodecGenerator(this, typeElement).execute();
+        } else if (isIndexableObject(typeElement)) {
+            new IndexableObjectCodecGenerator(this, typeElement).execute();
         } else {
             new DefaultCodecGenerator(this, typeElement).execute();
         }

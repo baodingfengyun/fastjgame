@@ -23,7 +23,7 @@ import com.wjybxx.fastjgame.net.binary.SerializableField;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
 import com.wjybxx.fastjgame.utils.dsl.IndexableEnumMapper;
-import com.wjybxx.fastjgame.utils.dsl.IndexableValueObject;
+import com.wjybxx.fastjgame.utils.dsl.IndexableObject;
 import com.wjybxx.fastjgame.utils.misc.IntPair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -74,7 +74,7 @@ public final class ExampleMessages {
     }
 
     @SerializableClass
-    public static class SceneConfig implements IndexableValueObject<IntPair> {
+    public static class SceneConfig implements IndexableObject<IntPair> {
 
         private final int type;
         private final int id;

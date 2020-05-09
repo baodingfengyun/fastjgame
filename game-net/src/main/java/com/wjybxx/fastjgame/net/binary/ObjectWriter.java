@@ -88,9 +88,9 @@ public interface ObjectWriter {
     /**
      * 向输出流中写一个多态实体对象（按照超类格式写入数据，并忽略子类字段）
      *
-     * @param entitySuperClass 实体对象的指定超类型
+     * @param superClass 实体对象的指定超类型
      */
-    <E> void writeEntity(@Nullable E entity, Class<? super E> entitySuperClass) throws Exception;
+    <E> void writeObject(@Nullable E value, Class<? super E> superClass) throws Exception;
 
     // --------------------------------------- 处理延迟序列化问题 ----------------------------------
 

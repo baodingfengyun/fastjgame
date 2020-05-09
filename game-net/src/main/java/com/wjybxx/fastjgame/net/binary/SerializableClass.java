@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
-import com.wjybxx.fastjgame.utils.dsl.IndexableValueObject;
+import com.wjybxx.fastjgame.utils.dsl.IndexableObject;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * 对于带有该注解的类，注解处理器需要提供以下保证：
  * 1. 如果是枚举，必须实现{@link IndexableEnum}，并提供非private的{@code forNumber(int)}方法 - 也就是按照protoBuf的枚举格式来。
  * 2. 如果是实现了{@link IndexableEnum}的类，也必须提供提供非private的{@code forNumber(int)}方法。
- * 3. 如果是实现了{@link IndexableValueObject}的类，必须提供非private的{@code forIndex(Object)}方法。
+ * 3. 如果是实现了{@link IndexableObject}的类，必须提供非private的{@code forIndex(Object)}方法。
  * 4. 如果是普通类，必须提供<b>无参构造方法</b>，可以是private，且要序列化的字段必须提供非private的getter方法，setter方法根据自己需求决定是否提供。
  *
  * <h3>扩展</h3>

@@ -166,7 +166,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
 
     /* ------------------------- 开放给Completion的方法 -------------------------- */
 
-    private Object encodeValue(V value) {
+    final Object encodeValue(V value) {
         return (value == null) ? NIL : value;
     }
 
@@ -221,7 +221,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
     /**
      * 是否是未完成状态
      */
-    static boolean isNotDone(Object result) {
+    static boolean isNotDone0(Object result) {
         return result == null || result == UNCANCELLABLE;
     }
 
@@ -305,7 +305,7 @@ abstract class AbstractPromise<V> implements Promise<V> {
     @Override
     public final boolean acceptNow(@Nonnull BiConsumer<? super V, ? super Throwable> action) {
         final Object localResult = result;
-        if (isNotDone(localResult)) {
+        if (isNotDone0(localResult)) {
             return false;
         }
 
@@ -455,8 +455,6 @@ abstract class AbstractPromise<V> implements Promise<V> {
         if (isDone()) {
             return this;
         }
-        // 检查死锁可能
-        checkDeadlock();
 
         // 检查中断 --- 在执行一个耗时操作之前检查中断是有必要的
         checkInterrupted();
@@ -470,21 +468,12 @@ abstract class AbstractPromise<V> implements Promise<V> {
         return this;
     }
 
-    /**
-     * 检查死锁可能。
-     */
-    private void checkDeadlock() {
-        // 实现流式语法后，无法很好的检查死锁问题
-    }
-
     @Override
     public final Promise<V> awaitUninterruptibly() {
         // 先检查一次是否已完成，减小锁竞争，同时在完成的情况下，等待不会死锁。
         if (isDone()) {
             return this;
         }
-        // 检查死锁可能
-        checkDeadlock();
 
         boolean interrupted = false;
 
@@ -515,8 +504,6 @@ abstract class AbstractPromise<V> implements Promise<V> {
         if (isDone()) {
             return true;
         }
-        // 等待之前检查死锁可能
-        checkDeadlock();
 
         // 即将等待之前检查中断标记（在耗时操作开始前检查中断是有必要的 -- 要养成习惯）
         checkInterrupted();
@@ -547,8 +534,6 @@ abstract class AbstractPromise<V> implements Promise<V> {
         if (isDone()) {
             return true;
         }
-        // 检查死锁可能
-        checkDeadlock();
 
         boolean interrupted = false;
 

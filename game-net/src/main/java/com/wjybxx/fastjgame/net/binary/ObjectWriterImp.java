@@ -149,14 +149,14 @@ class ObjectWriterImp implements ObjectWriter {
      * 读写格式仍然要与{@link CustomPojoCodec}保持一致
      */
     @Override
-    public <E> void writeEntity(@Nullable E entity, Class<? super E> entitySuperClass) throws Exception {
-        if (null == entity) {
+    public <E> void writeObject(@Nullable E value, Class<? super E> superClass) throws Exception {
+        if (null == value) {
             outputStream.writeTag(BinaryTag.NULL);
             return;
         }
-        @SuppressWarnings("unchecked") final PojoCodec<? super E> codec = (PojoCodec<? super E>) codecRegistry.get(entitySuperClass);
+        @SuppressWarnings("unchecked") final PojoCodec<? super E> codec = (PojoCodec<? super E>) codecRegistry.get(superClass);
         // 这里是生成的代码走进来的，因此即使异常，也能定位
-        codec.encode(outputStream, entity, codecRegistry);
+        codec.encode(outputStream, value, codecRegistry);
     }
 
     @Override

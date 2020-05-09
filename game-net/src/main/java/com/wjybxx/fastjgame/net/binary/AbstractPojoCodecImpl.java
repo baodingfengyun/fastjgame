@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.utils.dsl.IndexableValueObject;
+import com.wjybxx.fastjgame.utils.dsl.IndexableObject;
 
 /**
- * {@link IndexableValueObject}之外的serializer会继承该类。
+ * {@link IndexableObject}之外的serializer会继承该类。
  *
  * @author wjybxx
  * @version 1.0

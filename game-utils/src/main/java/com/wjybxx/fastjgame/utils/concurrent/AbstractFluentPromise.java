@@ -359,7 +359,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
             // 一直以为循环才能带标签...
             tryComplete:
-            if (isNotDone(out.result)) {
+            if (isNotDone0(out.result)) {
                 AbstractPromise<V> in = input;
                 Object inResult = in.result;
 
@@ -476,7 +476,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
             AbstractPromise<U> out = output;
 
             tryComplete:
-            if (isNotDone(out.result)) {
+            if (isNotDone0(out.result)) {
                 Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
@@ -530,7 +530,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<Void> out = output;
 
-            if (isNotDone(out.result)) {
+            if (isNotDone0(out.result)) {
                 Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
@@ -574,7 +574,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
-            if (isNotDone(out.result)) {
+            if (isNotDone0(out.result)) {
                 Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
@@ -617,7 +617,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<Void> out = output;
 
-            if (isNotDone(out.result)) {
+            if (isNotDone0(out.result)) {
                 AbstractPromise<V> in = input;
                 Object inResult = in.result;
 
@@ -663,7 +663,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
-            if (isNotDone(out.result)) {
+            if (isNotDone0(out.result)) {
                 AbstractPromise<V> in = input;
                 Object inResult = in.result;
 
@@ -709,7 +709,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<V> out = output;
 
-            if (isNotDone(out.result)) {
+            if (isNotDone0(out.result)) {
                 Object inResult = input.result;
                 Throwable cause;
 
@@ -755,7 +755,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<U> out = output;
 
-            if (isNotDone(out.result)) {
+            if (isNotDone0(out.result)) {
                 try {
                     if (isSyncOrNestedMode(mode) && !claim()) {
                         return null;
@@ -806,7 +806,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<V> out = output;
 
-            if (isNotDone(out.result)) {
+            if (isNotDone0(out.result)) {
                 try {
                     if (isSyncOrNestedMode(mode) && !claim()) {
                         return null;
@@ -861,7 +861,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         AbstractPromise<?> tryFire(int mode) {
             AbstractPromise<V> out = output;
 
-            if (isNotDone(out.result)) {
+            if (isNotDone0(out.result)) {
                 Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
@@ -966,7 +966,6 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
         @Override
         AbstractPromise<?> tryFire(int mode) {
-
             try {
                 if (isSyncOrNestedMode(mode) && !claim()) {
                     return null;

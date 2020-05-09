@@ -39,9 +39,9 @@ import static com.wjybxx.fastjgame.apt.utils.BeanUtils.GET_INDEX_METHOD_NAME;
  * @version 1.0
  * date - 2020/2/18
  */
-class IndexableValueCodecGenerator extends AbstractGenerator<SerializableClassProcessor> {
+class IndexableObjectCodecGenerator extends AbstractGenerator<SerializableClassProcessor> {
 
-    IndexableValueCodecGenerator(SerializableClassProcessor processor, TypeElement typeElement) {
+    IndexableObjectCodecGenerator(SerializableClassProcessor processor, TypeElement typeElement) {
         super(processor, typeElement);
     }
 
