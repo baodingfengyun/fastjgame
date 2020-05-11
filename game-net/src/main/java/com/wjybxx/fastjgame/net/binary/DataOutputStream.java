@@ -103,4 +103,8 @@ public interface DataOutputStream {
      */
     DataOutputStream slice(int index);
 
+    /**
+     * 刷新缓冲区
+     */
+    void flush() throws IOException;
 }

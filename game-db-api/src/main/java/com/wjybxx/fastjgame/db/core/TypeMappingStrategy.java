@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.serialization;
+package com.wjybxx.fastjgame.db.core;
 
 /**
  * 消息映射策略，自己决定消息类到消息id的映射。
@@ -25,13 +25,13 @@ package com.wjybxx.fastjgame.net.serialization;
  * github - https://github.com/hl845740757
  * @apiNote 1. 必须保证同一个类在所有机器上的映射结果是相同的。
  */
-public interface MessageMappingStrategy {
+public interface TypeMappingStrategy {
 
     /**
      * 对实体进行映射，将实体映射为唯一id。
      * 它的主要作用是减少传输量和编解码效率（字符串传输量大，且hash和equals开销大 -- 每次读入都是一个新的字符串，开销极大）。
      * 用户可以对实体名进行过滤，从返回结果中删除，表示不支持该实体序列化。
      */
-    int mapping(Class<?> messageClass);
+    TypeModel mapping(Class<?> messageClass);
 
 }

@@ -30,23 +30,24 @@ import javax.annotation.concurrent.Immutable;
  * date - 2020/4/20
  */
 @Immutable
-public interface TypeMapper {
+public interface TypeModelMapper {
 
     /**
      * 通过类型获取标识符
      */
     @Nullable
-    TypeIdentifier ofType(Class<?> type);
+    TypeModel ofType(Class<?> type);
 
     /**
      * 通过类型的数字id找到类型信息
      */
     @Nullable
-    TypeIdentifier ofNumber(long number);
+    TypeModel ofId(TypeId typeId);
 
     /**
      * 通过类型的名字找到类型信息
      */
-    TypeIdentifier ofName(String name);
+    @Nullable
+    TypeModel ofName(String name);
 
 }

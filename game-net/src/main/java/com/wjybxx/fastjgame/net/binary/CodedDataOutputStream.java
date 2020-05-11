@@ -165,4 +165,9 @@ public class CodedDataOutputStream implements DataOutputStream {
         final int newLength = limit - newOffset;
         return new CodedDataOutputStream(buffer, newOffset, newLength);
     }
+
+    @Override
+    public void flush() throws IOException {
+        codedOutputStream.flush();
+    }
 }

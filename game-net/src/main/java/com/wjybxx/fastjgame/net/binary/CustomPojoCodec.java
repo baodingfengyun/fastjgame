@@ -16,35 +16,17 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import javax.annotation.Nonnull;
-
 /**
- * 封装{@link PojoCodecImpl}
- *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/24
+ * date - 2020/5/11
  */
-public class CustomPojoCodec<T> extends PojoCodec<T> {
+public class CustomPojoCodec<T> implements PojoCodecImpl<T> {
 
-    private final PojoCodecImpl<T> codec;
+    private PojoCodecImpl<T> codec;
 
-    public CustomPojoCodec(byte providerId, int classId, PojoCodecImpl<T> codec) {
-        super(providerId, classId);
+    public CustomPojoCodec(PojoCodecImpl<T> codec) {
         this.codec = codec;
-    }
-
-    @Override
-    protected void encodeBody(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
-        final ObjectWriter objectWriter = new ObjectWriterImp(codecRegistry, outputStream);
-        codec.writeObject(value, objectWriter);
-    }
-
-    @Nonnull
-    @Override
-    public T decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        final ObjectReader objectReader = new ObjectReaderImp(codecRegistry, inputStream);
-        return codec.readObject(objectReader);
     }
 
     @Override
@@ -52,12 +34,13 @@ public class CustomPojoCodec<T> extends PojoCodec<T> {
         return codec.getEncoderClass();
     }
 
-    boolean isSupportReadFields() {
-        return codec instanceof AbstractPojoCodecImpl;
+    @Override
+    public T readObject(ObjectReader reader) throws Exception {
+        return codec.readObject(reader);
     }
 
-    void decodeBody(T instance, @Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        final ObjectReader objectReader = new ObjectReaderImp(codecRegistry, inputStream);
-        ((AbstractPojoCodecImpl<T>) codec).readFields(instance, objectReader);
+    @Override
+    public void writeObject(T instance, ObjectWriter writer) throws Exception {
+        codec.writeObject(instance, writer);
     }
 }

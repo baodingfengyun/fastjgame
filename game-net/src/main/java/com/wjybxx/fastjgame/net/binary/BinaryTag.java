@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.binary;
 
 
+import com.wjybxx.fastjgame.db.core.TypeId;
 import com.wjybxx.fastjgame.utils.EnumUtils;
 import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
 import com.wjybxx.fastjgame.utils.dsl.IndexableEnumMapper;
@@ -27,7 +28,7 @@ import java.util.Map;
 /**
  * 数据类型
  * 1. NULL
- * 2. 值类型：原始类型，及其包装类型，String
+ * 2. 值类型：原始类型，及其包装类型，{@link String}，{@link TypeId}
  * 3. 简单对象(POJO)
  * 4. 容器对象：MAP,COLLECTION,ARRAY。并没有基于{@link Iterable}做支持，而是基于的{@link Collection}
  *
@@ -43,42 +44,15 @@ public enum BinaryTag implements IndexableEnum {
      */
     NULL(0),
 
-    // ------------------------------------------- 值类型 -----------------------------
-    /**
-     * rawByte
-     */
+    // ----------------------------------------- 值类型 -----------------------------
     BYTE(1),
-    /**
-     * varInt32
-     */
     SHORT(2),
-    /**
-     * uInt32
-     */
     CHAR(3),
-    /**
-     * varInt32
-     */
     INT(4),
-    /**
-     * varInt64
-     */
     LONG(5),
-    /**
-     * fixed32
-     */
     FLOAT(6),
-    /**
-     * fixed64
-     */
     DOUBLE(7),
-    /**
-     * rawByte
-     */
     BOOLEAN(8),
-    /**
-     * 字符串
-     */
     STRING(9),
     // --------------------------------------- 简单对象 -------------------------------
 
@@ -109,10 +83,10 @@ public enum BinaryTag implements IndexableEnum {
      */
     MAP(13),
 
-    // --------------------------------------- 特定标识 --------------------------------
+    // --------------------------------------- 标记 --------------------------------
 
     /**
-     * 标识编解码时，仅仅代表一个表示，不关心具体类型
+     * 表示非值类型 - 只出现在数组编解码中
      */
     UNKNOWN(14);
 

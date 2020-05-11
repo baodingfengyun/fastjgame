@@ -52,7 +52,6 @@ class ExampleRpcClientLoop extends DisruptorEventLoop {
     private long startTime;
     private int index;
 
-
     public ExampleRpcClientLoop(@Nonnull ThreadFactory threadFactory,
                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                                 @Nullable LocalPort localPort) {

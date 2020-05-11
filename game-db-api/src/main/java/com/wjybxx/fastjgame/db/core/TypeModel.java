@@ -17,17 +17,18 @@
 package com.wjybxx.fastjgame.db.core;
 
 import com.wjybxx.fastjgame.utils.dsl.ValueObject;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;
 
 /**
- * 类型标识符，一个{@link TypeIdentifier}对应一个{@link Class}。
+ * 类型信息，一个{@link TypeModel}对应一个POJO类型{@link Class}。
  * <p>
- * Q：{@link #uniqueName()}字符串标识的作用？
+ * Q：{@link #typeName()}字符串标识的作用？
  * A：1. 持久化时必须使用字符串标识，因为字符串标识相对于数字型标识，更容易保持稳定(不变)(用户需要管理这些标识)。
  * 2. 字符串标识相对于数字型标识，可以包含更多的信息，且其易读。
  * <p>
- * Q: {@link #uniqueNumber()}数字标识的作用？
+ * Q: {@link #typeId()}数字标识的作用？
  * A: 1. 序列化时可以使用数字标识，可以减少数据传输量，提高通信效率。
  * 2. {@link String#hashCode()}和{@link String#equals(Object)}效率较差，导致查找效率较低，而使用基本类型的long则快得多。
  * 3. 不可以使用数字标识进行持久化，因为要保证一个数值型标识稳定十分困难。
@@ -39,23 +40,63 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/4/20
  */
-public interface TypeIdentifier extends ValueObject {
+public final class TypeModel implements ValueObject {
+
+    private final Class<?> type;
+    private final String name;
+    private final TypeId typeId;
+
+    public TypeModel(Class<?> type, String name, TypeId typeId) {
+        this.type = type;
+        this.name = name;
+        this.typeId = typeId;
+    }
 
     /**
      * 获取对应的类型
      */
     @Nonnull
-    Class<?> type();
+    public Class<?> type() {
+        return type;
+    }
 
     /**
      * 返回类型的字符串标识。
      */
     @Nonnull
-    String uniqueName();
+    public String typeName() {
+        return name;
+    }
 
     /**
      * 返回类型的数字标识。
      */
-    long uniqueNumber();
+    @NonNull
+    public TypeId typeId() {
+        return typeId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final TypeModel that = (TypeModel) o;
+        return type == that.type
+                && typeId == that.typeId
+                && name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * type.hashCode()
+                + 31 * name.hashCode()
+                + typeId.hashCode();
+    }
 
 }

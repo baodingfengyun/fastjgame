@@ -19,37 +19,33 @@ package com.wjybxx.fastjgame.net.binary;
 import com.google.protobuf.Internal;
 import com.google.protobuf.ProtocolMessageEnum;
 
-import javax.annotation.Nonnull;
-
 /**
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/17
  */
-public class ProtoEnumCodec<T extends ProtocolMessageEnum> extends PojoCodec<T> {
+public class ProtoEnumCodec<T extends ProtocolMessageEnum> implements PojoCodecImpl<T> {
 
     private final Class<T> enumClass;
     private final Internal.EnumLiteMap<T> mapper;
 
-    public ProtoEnumCodec(byte providerId, int classId, Class<T> enumClass, Internal.EnumLiteMap<T> mapper) {
-        super(providerId, classId);
+    public ProtoEnumCodec(Class<T> enumClass, Internal.EnumLiteMap<T> mapper) {
         this.enumClass = enumClass;
         this.mapper = mapper;
     }
 
     @Override
-    public void encodeBody(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeIndex(value.getNumber());
-    }
-
-    @Nonnull
-    @Override
-    public T decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return mapper.findValueByNumber(inputStream.readInt());
-    }
-
-    @Override
     public Class<T> getEncoderClass() {
         return enumClass;
+    }
+
+    @Override
+    public T readObject(ObjectReader reader) throws Exception {
+        return mapper.findValueByNumber(reader.readInt());
+    }
+
+    @Override
+    public void writeObject(T instance, ObjectWriter writer) throws Exception {
+        writer.writeInt(instance.getNumber());
     }
 }

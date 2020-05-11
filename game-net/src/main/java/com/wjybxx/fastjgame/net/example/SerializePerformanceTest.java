@@ -64,8 +64,7 @@ public class SerializePerformanceTest {
         final String name = codec.getClass().getSimpleName();
         final long start = System.currentTimeMillis();
         for (int index = 0; index < loopTimes; index++) {
-            byte[] byteBuf = codec.toBytes(msg);
-            Object decodeMessage = codec.fromBytes(byteBuf);
+            final Object cloneObj = codec.cloneObject(msg);
         }
         System.out.println(name + " codec " + loopTimes + " times cost timeMs " + (System.currentTimeMillis() - start));
     }

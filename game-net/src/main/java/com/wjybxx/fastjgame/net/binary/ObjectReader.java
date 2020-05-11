@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import com.google.protobuf.Parser;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -50,7 +52,15 @@ public interface ObjectReader {
 
     String readString() throws Exception;
 
+    /**
+     * 从输入流中读取一个字节数组
+     */
     byte[] readBytes() throws Exception;
+
+    /**
+     * 从输入流中读取一个protoBuffer消息
+     */
+    <T> T readMessage(Parser<T> parser) throws Exception;
 
     /**
      * 从输入流中读取一个字段，如果没有对应的简便方法，可以使用该方法。
@@ -76,7 +86,7 @@ public interface ObjectReader {
     <M extends Map<K, V>, K, V> M readMap(@Nonnull IntFunction<M> mapFactory) throws Exception;
 
     /**
-     * 从输入流中读取数据到数组中
+     * 从输入流中读取数据到数组中。
      *
      * @param componentType 数组元素类型，支持基本类型（因此未定义为泛型参数）
      */
@@ -86,19 +96,20 @@ public interface ObjectReader {
     /**
      * 读取一个多态实体对象(读取超类数据赋予子类实例)
      *
-     * @param entityFactory    真正的实体创建工厂
-     * @param entitySuperClass 实体对象的指定超类型。
-     *                         注意：该超类型必须对应一个{@link AbstractPojoCodecImpl}
+     * @param factory    真正的实体创建工厂
+     * @param superClass 实体对象的指定超类型。
+     *                   注意：该超类型必须对应一个{@link AbstractPojoCodecImpl}
      */
     @Nullable
-    <E> E readEntity(EntityFactory<E> entityFactory, Class<? super E> entitySuperClass) throws Exception;
+    <E> E readEntity(EntityFactory<E> factory, Class<? super E> superClass) throws Exception;
 
     // --------------------------------------- 处理提前反序列化问题 ----------------------------------
 
     /**
      * 读取一个需要提前反序列化的对象。
      * 如果读取到的是bytes，则会对读取到的bytes进行一次解码操作。
-     * 主要目的：使得对象可以在中间节点以bytes形式传输，然后在真正的接收方反序列化。
+     * 主要目的：期望减少字节数组的创建。
      */
     <T> T readPreDeserializeObject() throws Exception;
+
 }

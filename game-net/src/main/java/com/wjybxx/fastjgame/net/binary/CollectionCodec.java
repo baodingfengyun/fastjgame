@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.IntFunction;
 
@@ -30,36 +29,27 @@ import java.util.function.IntFunction;
  * @version 1.0
  * date - 2020/2/17
  */
-public class CollectionCodec implements ObjectCodec<Collection<?>> {
+class CollectionCodec {
 
     CollectionCodec() {
     }
 
-    @Override
-    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
-        encodeCollection(outputStream, value, codecRegistry);
-    }
-
-    @Nonnull
-    @Override
-    public Collection<?> decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return readCollectionImp(inputStream, ArrayList::new, codecRegistry);
-    }
-
-    static void encodeCollection(@Nonnull DataOutputStream outputStream, @Nonnull Collection<?> value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(BinaryTag.COLLECTION);
+    static void writeCollectionImpl(@Nonnull DataOutputStream outputStream,
+                                    @Nonnull Collection<?> value,
+                                    @Nonnull ObjectWriter writer) throws Exception {
         outputStream.writeInt(value.size());
         if (value.size() == 0) {
             return;
         }
-
         for (Object element : value) {
-            BinarySerializer.encodeObject(outputStream, element, codecRegistry);
+            writer.writeObject(element);
         }
     }
 
     @Nonnull
-    static <C extends Collection<E>, E> C readCollectionImp(@Nonnull DataInputStream inputStream, @Nonnull IntFunction<C> collectionFactory, @Nonnull CodecRegistry codecRegistry) throws Exception {
+    static <C extends Collection<E>, E> C readCollectionImp(@Nonnull DataInputStream inputStream,
+                                                            @Nonnull IntFunction<C> collectionFactory,
+                                                            @Nonnull ObjectReader reader) throws Exception {
         final int size = inputStream.readInt();
         if (size == 0) {
             return collectionFactory.apply(0);
@@ -67,14 +57,10 @@ public class CollectionCodec implements ObjectCodec<Collection<?>> {
 
         final C result = collectionFactory.apply(size);
         for (int index = 0; index < size; index++) {
-            final E e = BinarySerializer.decodeObject(inputStream, codecRegistry);
+            E e = reader.readObject();
             result.add(e);
         }
         return result;
     }
 
-    @Override
-    public Class<?> getEncoderClass() {
-        return Collection.class;
-    }
 }

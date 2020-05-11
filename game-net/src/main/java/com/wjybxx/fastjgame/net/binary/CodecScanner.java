@@ -51,15 +51,22 @@ public class CodecScanner {
 
     private static Set<Class<?>> scan() {
         return SCAN_PACKAGES.stream()
-                .map(scanPackage -> ClassScanner.findClasses(scanPackage,
-                        name -> true,
-                        CodecScanner::isEntitySerializer))
+                .map(scanPackage -> ClassScanner.findClasses(scanPackage, name -> true, CodecScanner::isPojoCodecImpl))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    private static boolean isEntitySerializer(Class<?> c) {
-        return !Modifier.isAbstract(c.getModifiers()) && PojoCodecImpl.class.isAssignableFrom(c);
+    private static boolean isPojoCodecImpl(Class<?> c) {
+        if (Modifier.isAbstract(c.getModifiers())) {
+            return false;
+        }
+        if (!PojoCodecImpl.class.isAssignableFrom(c)) {
+            return false;
+        }
+        if (c == ProtoMessageCodec.class || c == ProtoEnumCodec.class || c == CustomPojoCodec.class) {
+            return false;
+        }
+        return true;
     }
 
     @SuppressWarnings("unchecked")

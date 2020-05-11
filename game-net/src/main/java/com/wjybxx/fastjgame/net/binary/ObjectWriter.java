@@ -16,8 +16,11 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import com.google.protobuf.Message;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -60,12 +63,16 @@ public interface ObjectWriter {
     void writeBytes(@Nonnull byte[] bytes, int offset, int length) throws Exception;
 
     /**
+     * 向输出流中写入一个protoBuffer消息
+     */
+    void writeMessage(@Nullable Message message) throws Exception;
+
+    /**
      * 向输出流中写入一个字段，如果没有对应的简便方法，可以使用该方法
      *
      * @param value 字段的值
      */
     <T> void writeObject(@Nullable T value) throws Exception;
-
     // ----------------------------------------- 处理多态问题 ----------------------------------
 
     /**
@@ -97,8 +104,14 @@ public interface ObjectWriter {
     /**
      * 写入一个需要延迟序列化的对象。
      * 如果该参数不是bytes，则会先序列化为bytes，再以bytes写入输出流。
-     * 主要目的：使得对象在中间节点可以以bytes形式传输，然后在真正的接收方反序列化。
+     * 主要目的：期望减少额外的字节数组创建。
      */
     void writeLazySerializeObject(@Nullable Object value) throws Exception;
 
+    // --------------------------------------- 其它 ----------------------------------
+
+    /**
+     * 如果存在缓冲区，则刷新缓冲区
+     */
+    void flush() throws IOException;
 }

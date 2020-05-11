@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.net.serialization;
 
+import com.wjybxx.fastjgame.db.core.TypeId;
+import com.wjybxx.fastjgame.db.core.TypeModel;
+import com.wjybxx.fastjgame.db.core.TypeModelMapper;
 import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.misc.BufferPool;
 import com.wjybxx.fastjgame.utils.JsonUtils;
@@ -25,8 +28,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.Set;
 
 /**
  * 基于Json的编解码器，必须使用简单对象来封装参数。-- POJO
@@ -40,10 +43,10 @@ import java.util.Set;
 @ThreadSafe
 public class JsonSerializer implements Serializer {
 
-    private final MessageMapper messageMapper;
+    private final TypeModelMapper typeModelMapper;
 
-    private JsonSerializer(MessageMapper messageMapper) {
-        this.messageMapper = messageMapper;
+    private JsonSerializer(TypeModelMapper typeModelMapper) {
+        this.typeModelMapper = typeModelMapper;
     }
 
     @Nonnull
@@ -60,9 +63,8 @@ public class JsonSerializer implements Serializer {
             cacheBuffer.clear();
 
             ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer);
-            // 协议classId
-            int messageId = messageMapper.getMessageId(object.getClass());
-            byteBufOutputStream.writeInt(messageId);
+            // 类型信息
+            writeTypeId(byteBufOutputStream, object.getClass());
             // 写入序列化的内容
             JsonUtils.writeToOutputStream(byteBufOutputStream, object);
 
@@ -127,9 +129,8 @@ public class JsonSerializer implements Serializer {
         cacheBuffer.clear();
 
         try (ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer)) {
-            // 协议classId
-            int messageId = messageMapper.getMessageId(obj.getClass());
-            byteBufOutputStream.writeInt(messageId);
+            // 类型信息
+            writeTypeId(byteBufOutputStream, obj.getClass());
             // 写入序列化的内容
             JsonUtils.writeToOutputStream(byteBufOutputStream, obj);
             // 写入byteBuf
@@ -142,18 +143,37 @@ public class JsonSerializer implements Serializer {
         }
     }
 
+    private void writeTypeId(ByteBufOutputStream byteBufOutputStream, Class<?> type) throws IOException {
+        final TypeModel typeModel = typeModelMapper.ofType(type);
+        if (null == typeModel) {
+            throw new IOException("Unsupported type " + type.getName());
+        }
+        byteBufOutputStream.writeByte(typeModel.typeId().getNamespace());
+        byteBufOutputStream.writeByte(typeModel.typeId().getClassId());
+    }
+
     @Override
     public Object readObject(ByteBuf data) throws Exception {
         if (data.readableBytes() == 0) {
             return null;
         }
-        final Class<?> messageClazz = messageMapper.getMessageClass(data.readInt());
+        final Class<?> messageClazz = readType(data);
         final ByteBufInputStream inputStream = new ByteBufInputStream(data);
         return JsonUtils.readFromInputStream((InputStream) inputStream, messageClazz);
     }
 
-    public static JsonSerializer newInstance(Set<Class<?>> entityClasses, MessageMappingStrategy mappingStrategy) {
-        final MessageMapper messageMapper = MessageMapper.newInstance(entityClasses, mappingStrategy);
-        return new JsonSerializer(messageMapper);
+    private Class<?> readType(ByteBuf data) throws IOException {
+        final byte nameSpace = data.readByte();
+        final int classId = data.readInt();
+        final TypeId typeId = new TypeId(nameSpace, classId);
+        final TypeModel typeModel = typeModelMapper.ofId(typeId);
+        if (null == typeModel) {
+            throw new IOException("Unknown typeId " + typeId);
+        }
+        return typeModel.type();
+    }
+
+    public static JsonSerializer newInstance(TypeModelMapper typeModelMapper) {
+        return new JsonSerializer(typeModelMapper);
     }
 }

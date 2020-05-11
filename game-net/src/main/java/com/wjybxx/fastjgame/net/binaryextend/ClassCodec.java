@@ -16,10 +16,9 @@
 
 package com.wjybxx.fastjgame.net.binaryextend;
 
-import com.wjybxx.fastjgame.net.binary.CodecRegistry;
-import com.wjybxx.fastjgame.net.binary.DataInputStream;
-import com.wjybxx.fastjgame.net.binary.DataOutputStream;
-import com.wjybxx.fastjgame.net.binary.PojoCodec;
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -33,35 +32,31 @@ import java.util.Map;
  * date - 2020/2/18
  * github - https://github.com/hl845740757
  */
-public class ClassCodec extends PojoCodec<Class> {
+public class ClassCodec implements PojoCodecImpl<Class> {
 
     /**
      * 加载类的缓存 - 寻找类消耗较大，每个线程一份儿缓存
      */
     private static final ThreadLocal<Map<String, Class<?>>> LOAD_CACHE = ThreadLocal.withInitial(HashMap::new);
 
-    public ClassCodec(byte providerId, int classId) {
-        super(providerId, classId);
+    @Override
+    public Class readObject(ObjectReader reader) throws Exception {
+        final String className = reader.readString();
+        return findClass(className);
     }
 
     @Override
-    public void encodeBody(@Nonnull DataOutputStream outputStream, @Nonnull Class value, CodecRegistry codecRegistry) throws Exception {
-        encodeClass(outputStream, value);
+    public void writeObject(Class instance, ObjectWriter writer) throws Exception {
+        writer.writeString(instance.getName());
     }
 
-    @Nonnull
     @Override
-    public Class decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        final String className = inputStream.readString();
-        return decodeClass(className);
-    }
-
-    public static void encodeClass(DataOutputStream outputStream, Class<?> value) throws Exception {
-        outputStream.writeString(value.getName());
+    public Class<Class> getEncoderClass() {
+        return Class.class;
     }
 
     @Nonnull
-    public static Class decodeClass(String className) throws ClassNotFoundException {
+    public static Class findClass(String className) throws ClassNotFoundException {
         final Map<String, Class<?>> cacheMap = LOAD_CACHE.get();
         final Class<?> cacheClass = cacheMap.get(className);
         if (cacheClass != null) {
@@ -71,10 +66,5 @@ public class ClassCodec extends PojoCodec<Class> {
         final Class<?> newClass = Class.forName(className);
         cacheMap.put(className, newClass);
         return newClass;
-    }
-
-    @Override
-    public Class<Class> getEncoderClass() {
-        return Class.class;
     }
 }

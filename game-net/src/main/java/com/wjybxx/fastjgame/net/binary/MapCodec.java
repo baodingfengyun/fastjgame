@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.common.collect.Maps;
-
 import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.function.IntFunction;
@@ -30,39 +28,29 @@ import java.util.function.IntFunction;
  * @version 1.0
  * date - 2020/2/17
  */
-public class MapCodec implements ObjectCodec<Map<?, ?>> {
+class MapCodec {
 
     MapCodec() {
     }
 
-    @Override
-    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
-        encodeMap(outputStream, value, codecRegistry);
-    }
-
-    @Nonnull
-    @Override
-    public Map<?, ?> decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return readMapImp(inputStream, Maps::newLinkedHashMapWithExpectedSize, codecRegistry);
-    }
-
-    static void encodeMap(@Nonnull DataOutputStream outputStream, @Nonnull Map<?, ?> value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(BinaryTag.MAP);
+    static void writeMapImpl(@Nonnull DataOutputStream outputStream,
+                             @Nonnull Map<?, ?> value,
+                             @Nonnull ObjectWriter writer) throws Exception {
         outputStream.writeInt(value.size());
         if (value.size() == 0) {
             return;
         }
 
         for (Map.Entry<?, ?> entry : value.entrySet()) {
-            BinarySerializer.encodeObject(outputStream, entry.getKey(), codecRegistry);
-            BinarySerializer.encodeObject(outputStream, entry.getValue(), codecRegistry);
+            writer.writeObject(entry.getKey());
+            writer.writeObject(entry.getValue());
         }
     }
 
     @Nonnull
-    static <M extends Map<K, V>, K, V> M readMapImp(@Nonnull DataInputStream inputStream,
-                                                    @Nonnull IntFunction<M> mapFactory,
-                                                    @Nonnull CodecRegistry codecRegistry) throws Exception {
+    static <M extends Map<K, V>, K, V> M readMapImpl(@Nonnull DataInputStream inputStream,
+                                                     @Nonnull IntFunction<M> mapFactory,
+                                                     @Nonnull ObjectReader reader) throws Exception {
         final int size = inputStream.readInt();
         if (size == 0) {
             return mapFactory.apply(0);
@@ -70,15 +58,11 @@ public class MapCodec implements ObjectCodec<Map<?, ?>> {
 
         final M result = mapFactory.apply(size);
         for (int index = 0; index < size; index++) {
-            final K key = BinarySerializer.decodeObject(inputStream, codecRegistry);
-            final V value = BinarySerializer.decodeObject(inputStream, codecRegistry);
+            final K key = reader.readObject();
+            final V value = reader.readObject();
             result.put(key, value);
         }
         return result;
     }
 
-    @Override
-    public Class<?> getEncoderClass() {
-        return Map.class;
-    }
 }

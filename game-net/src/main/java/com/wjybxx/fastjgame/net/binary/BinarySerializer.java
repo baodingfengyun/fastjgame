@@ -21,10 +21,9 @@ import com.google.protobuf.Internal;
 import com.google.protobuf.Message;
 import com.google.protobuf.Parser;
 import com.google.protobuf.ProtocolMessageEnum;
+import com.wjybxx.fastjgame.db.core.TypeModelMapper;
 import com.wjybxx.fastjgame.net.misc.BufferPool;
 import com.wjybxx.fastjgame.net.serialization.JsonSerializer;
-import com.wjybxx.fastjgame.net.serialization.MessageMapper;
-import com.wjybxx.fastjgame.net.serialization.MessageMappingStrategy;
 import com.wjybxx.fastjgame.net.serialization.Serializer;
 import com.wjybxx.fastjgame.net.utils.ProtoUtils;
 import io.netty.buffer.ByteBuf;
@@ -36,7 +35,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +60,7 @@ public class BinarySerializer implements Serializer {
 
     private final CodecRegistry codecRegistry;
 
-    public BinarySerializer(CodecRegistry codecRegistry) {
+    private BinarySerializer(CodecRegistry codecRegistry) {
         this.codecRegistry = codecRegistry;
     }
 
@@ -75,7 +73,7 @@ public class BinarySerializer implements Serializer {
         try {
             // 写入字节数组缓存
             final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
-            encodeObject(outputStream, object, codecRegistry);
+            encodeObject(outputStream, object);
 
             // 写入byteBuf
             final ByteBuf buffer = bufAllocator.buffer(outputStream.writeIndex());
@@ -96,7 +94,7 @@ public class BinarySerializer implements Serializer {
 
             // 解析对象
             final CodedDataInputStream inputStream = new CodedDataInputStream(localBuffer, 0, readableBytes);
-            return decodeObject(inputStream, codecRegistry);
+            return decodeObject(inputStream);
         } finally {
             BufferPool.releaseBuffer(localBuffer);
         }
@@ -109,7 +107,7 @@ public class BinarySerializer implements Serializer {
         final byte[] localBuffer = BufferPool.allocateBuffer();
         try {
             final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
-            encodeObject(outputStream, object, codecRegistry);
+            encodeObject(outputStream, object);
 
             // 拷贝序列化结果
             final byte[] resultBytes = new byte[outputStream.writeIndex()];
@@ -122,7 +120,7 @@ public class BinarySerializer implements Serializer {
 
     @Override
     public Object fromBytes(@Nonnull byte[] data) throws Exception {
-        return decodeObject(new CodedDataInputStream(data), codecRegistry);
+        return decodeObject(new CodedDataInputStream(data));
     }
 
     @Override
@@ -134,102 +132,54 @@ public class BinarySerializer implements Serializer {
         try {
             // 写入缓冲区
             final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
-            encodeObject(outputStream, object, codecRegistry);
+            encodeObject(outputStream, object);
 
             // 读出
             final CodedDataInputStream inputStream = new CodedDataInputStream(localBuffer, 0, outputStream.writeIndex());
-            return decodeObject(inputStream, codecRegistry);
+            return decodeObject(inputStream);
         } finally {
             BufferPool.releaseBuffer(localBuffer);
         }
     }
 
-    // ------------------------------------------- tag相关 ------------------------------------
-
-    static <T> void encodeObject(DataOutputStream outputStream, @Nullable T value, CodecRegistry codecRegistry) throws Exception {
-        if (null == value) {
-            outputStream.writeTag(BinaryTag.NULL);
-        } else {
-            @SuppressWarnings("unchecked") final ObjectCodec<T> codec = (ObjectCodec<T>) codecRegistry.get(value.getClass());
-            codec.encode(outputStream, value, codecRegistry);
-        }
+    private void encodeObject(DataOutputStream outputStream, @Nullable Object value) throws Exception {
+        final ObjectWriter writer = new ObjectWriterImp(codecRegistry, outputStream);
+        writer.writeObject(value);
+        writer.flush();
     }
 
-    @SuppressWarnings("unchecked")
-    static <T> T decodeObject(DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        final BinaryTag tag = inputStream.readTag();
-        return (T) decodeObjectImp(tag, inputStream, codecRegistry);
-    }
-
-    static Object decodeObjectImp(BinaryTag tag, DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        switch (tag) {
-            case NULL:
-                return null;
-
-            case BYTE:
-                return inputStream.readByte();
-            case CHAR:
-                return inputStream.readChar();
-            case SHORT:
-                return inputStream.readShort();
-            case INT:
-                return inputStream.readInt();
-            case BOOLEAN:
-                return inputStream.readBoolean();
-            case LONG:
-                return inputStream.readLong();
-            case FLOAT:
-                return inputStream.readFloat();
-            case DOUBLE:
-                return inputStream.readDouble();
-            case STRING:
-                return inputStream.readString();
-
-            case POJO:
-                return PojoCodec.getPojoCodec(inputStream, codecRegistry).decode(inputStream, codecRegistry);
-
-            case ARRAY:
-                return codecRegistry.getArrayCodec().decode(inputStream, codecRegistry);
-            case MAP:
-                return codecRegistry.getMapCodec().decode(inputStream, codecRegistry);
-            case COLLECTION:
-                return codecRegistry.getCollectionCodec().decode(inputStream, codecRegistry);
-
-            default:
-                throw new IOException("unexpected tag : " + tag);
-        }
+    private Object decodeObject(DataInputStream inputStream) throws Exception {
+        final ObjectReader reader = new ObjectReaderImp(codecRegistry, inputStream);
+        return reader.readObject();
     }
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------
 
-    public static BinarySerializer newInstance(MessageMappingStrategy mappingStrategy) {
-        return newInstance(mappingStrategy, c -> true);
+    public static BinarySerializer newInstance(TypeModelMapper typeModelMapper) {
+        return newInstance(typeModelMapper, c -> true);
     }
 
     /**
-     * @param mappingStrategy 未来会改为不同的消息来源使用不同的映射策略，以减少冲突。
+     * @param typeModelMapper 类型映射信息
      * @param filter          由于{@link BinarySerializer}支持的消息类是确定的，不能加入，但是允许过滤删除
      */
     @SuppressWarnings("unchecked")
-    public static BinarySerializer newInstance(MessageMappingStrategy mappingStrategy, Predicate<Class<?>> filter) {
+    public static BinarySerializer newInstance(TypeModelMapper typeModelMapper, Predicate<Class<?>> filter) {
         final Set<Class<?>> supportedClassSet = getFilteredSupportedClasses(filter);
-        final MessageMapper messageMapper = MessageMapper.newInstance(supportedClassSet, mappingStrategy);
-        final List<PojoCodec<?>> codecList = new ArrayList<>(supportedClassSet.size());
-        final byte providerId = 11;
-
+        final List<PojoCodecImpl<?>> codecList = new ArrayList<>(supportedClassSet.size());
         try {
-            for (Class<?> messageClazz : messageMapper.getAllMessageClasses()) {
+            for (Class<?> messageClazz : supportedClassSet) {
                 // protoBuf消息
                 if (Message.class.isAssignableFrom(messageClazz)) {
                     Parser<?> parser = ProtoUtils.findParser((Class<? extends Message>) messageClazz);
-                    codecList.add(new ProtoMessageCodec(providerId, messageMapper.getMessageId(messageClazz), messageClazz, parser));
+                    codecList.add(new ProtoMessageCodec(messageClazz, parser));
                     continue;
                 }
 
                 // protoBufEnum
                 if (ProtocolMessageEnum.class.isAssignableFrom(messageClazz)) {
                     final Internal.EnumLiteMap<?> mapper = ProtoUtils.findMapper((Class<? extends ProtocolMessageEnum>) messageClazz);
-                    codecList.add(new ProtoEnumCodec(providerId, messageMapper.getMessageId(messageClazz), messageClazz, mapper));
+                    codecList.add(new ProtoEnumCodec(messageClazz, mapper));
                     continue;
                 }
 
@@ -237,14 +187,14 @@ public class BinarySerializer implements Serializer {
                 final Class<? extends PojoCodecImpl<?>> serializerClass = CodecScanner.getCodecClass(messageClazz);
                 if (serializerClass != null) {
                     final PojoCodecImpl<?> codec = createCodecInstance(serializerClass);
-                    codecList.add(new CustomPojoCodec(providerId, messageMapper.getMessageId(messageClazz), codec));
+                    codecList.add(new CustomPojoCodec(codec));
                     continue;
                 }
 
                 throw new IllegalArgumentException("Unsupported class " + messageClazz.getName());
             }
 
-            final CodecRegistry codecRegistry = CodecRegistrys.fromAppPojoCodecs(codecList);
+            final CodecRegistry codecRegistry = CodecRegistrys.fromAppPojoCodecs(typeModelMapper, codecList);
             return new BinarySerializer(codecRegistry);
         } catch (Exception e) {
             return ExceptionUtils.rethrow(e);

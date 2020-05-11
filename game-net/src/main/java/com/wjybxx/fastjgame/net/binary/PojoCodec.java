@@ -16,59 +16,81 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import javax.annotation.Nonnull;
+import com.wjybxx.fastjgame.db.core.TypeId;
+import com.wjybxx.fastjgame.db.core.TypeModel;
+
 import java.io.IOException;
 
 /**
  * 简单对象编解码器
- * Q: {@link #getProviderId()}{@link #getClassId()}的作用？
- * A: 实现自解释性，接收方在解码时可以根据这两个值确定唯一的codec，也就知道了如何解码。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/25
  */
-public abstract class PojoCodec<T> implements ObjectCodec<T> {
+final class PojoCodec {
 
-    private final byte providerId;
-    private final int classId;
+    static <T> void writePojoImp(DataOutputStream outputStream, T value, Class<?> type,
+                                 ObjectWriter writer, CodecRegistry codecRegistry) throws Exception {
+        final TypeModel typeModel = codecRegistry.typeModelMapper().ofType(type);
 
-    protected PojoCodec(byte providerId, int classId) {
-        this.providerId = providerId;
-        this.classId = classId;
+        if (typeModel == null) {
+            throw new IOException("Unsupported type " + type.getName());
+        }
+
+        // 写入类型信息
+        outputStream.writeByte(typeModel.typeId().getNamespace());
+        outputStream.writeFixedInt32(typeModel.typeId().getClassId());
+
+        @SuppressWarnings("unchecked") final PojoCodecImpl<T> pojoCodec = (PojoCodecImpl<T>) codecRegistry.get(type);
+        if (null == pojoCodec) {
+            throw new IOException("Unsupported type " + type.getName());
+        }
+
+        pojoCodec.writeObject(value, writer);
     }
 
-    @Override
-    public final void encode(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeTag(BinaryTag.POJO);
-        outputStream.writeByte(providerId);
-        // 大端模式写入classId，是为了当与客户端之间使用protoBuffer通信时，方便客户端解析，
-        outputStream.writeFixedInt32(classId);
-        encodeBody(outputStream, value, codecRegistry);
+    static Object readPojoImp(DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
+        final TypeId typeId = new TypeId(inputStream.readByte(), inputStream.readFixedInt32());
+        final PojoCodecImpl pojoCodec = codecRegistry.get(typeId);
+        if (null == pojoCodec) {
+            throw new IOException("Unsupported type " + typeId);
+        }
+        final ObjectReader reader = new ObjectReaderImp(codecRegistry, inputStream);
+        return pojoCodec.readObject(reader);
     }
 
-    protected abstract void encodeBody(DataOutputStream outputStream, T value, CodecRegistry codecRegistry) throws Exception;
+    static <E> E readPolymorphicPojoImpl(DataInputStream inputStream, EntityFactory<E> factory, Class<? super E> superClass,
+                                         ObjectReader reader, CodecRegistry codecRegistry) throws Exception {
+        final TypeId typeId = new TypeId(inputStream.readByte(), inputStream.readFixedInt32());
+        final PojoCodecImpl<?> pojoCodec = codecRegistry.get(typeId);
 
-    /**
-     * 返回codec所属的{@link CodecProvider}的id
-     */
-    public final byte getProviderId() {
-        return providerId;
+        if (null == pojoCodec) {
+            throw new IOException("Unsupported type " + typeId);
+        }
+
+        checkSuperClass(superClass, pojoCodec);
+        checkSupportReadFields(pojoCodec);
+
+        final E instance = factory.newInstance();
+        @SuppressWarnings("unchecked") final AbstractPojoCodecImpl<E> abstractPojoCodec = (AbstractPojoCodecImpl<E>) pojoCodec;
+        abstractPojoCodec.readFields(instance, reader);
+
+        return instance;
     }
 
-    /**
-     * 获取{@link #getEncoderClass()}在{@link CodecProvider}下的唯一id
-     */
-    public final int getClassId() {
-        return classId;
+    private static void checkSuperClass(Class<?> entitySuperClass, PojoCodecImpl<?> pojoCodec) throws IOException {
+        if (entitySuperClass != pojoCodec.getEncoderClass()) {
+            throw new IOException(String.format("Incompatible class, expected: %s, but read %s ",
+                    entitySuperClass.getName(),
+                    pojoCodec.getEncoderClass().getName()));
+        }
     }
 
-    @Override
-    public abstract Class<T> getEncoderClass();
-
-    static PojoCodec<?> getPojoCodec(DataInputStream inputStream, CodecRegistry codecRegistry) throws IOException {
-        final byte providerId = inputStream.readByte();
-        final int classId = inputStream.readFixedInt32();
-        return codecRegistry.getPojoCodec(providerId, classId);
+    private static void checkSupportReadFields(PojoCodecImpl<?> pojoCodec) throws IOException {
+        if (!(pojoCodec instanceof AbstractPojoCodecImpl)) {
+            throw new IOException("Unsupported codec, superClass serializer must implements " +
+                    AbstractPojoCodecImpl.class.getName());
+        }
     }
 }

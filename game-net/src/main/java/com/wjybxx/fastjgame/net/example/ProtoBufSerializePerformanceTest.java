@@ -20,13 +20,16 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.Message;
 import com.google.protobuf.Parser;
-import com.wjybxx.fastjgame.net.serialization.HashMessageMappingStrategy;
-import com.wjybxx.fastjgame.net.serialization.MessageMapper;
+import com.wjybxx.fastjgame.db.core.TypeId;
+import com.wjybxx.fastjgame.db.core.TypeModel;
+import com.wjybxx.fastjgame.db.core.TypeModelMapper;
+import com.wjybxx.fastjgame.db.impl.DefaultTypeModelMapper;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 一个不太靠谱的protoBuf编解码测试。
@@ -43,12 +46,10 @@ public class ProtoBufSerializePerformanceTest {
 
     private static final byte[] buffer = new byte[8192];
 
-    /**
-     * {@link p_test.p_testMsg}映射为和{@link TestMsg}相同的消息id
-     */
-    private static final MessageMapper messageMapper = MessageMapper.newInstance(
-            Collections.singleton(p_test.p_testMsg.class),
-            c -> HashMessageMappingStrategy.hash(TestMsg.class));
+    private static final TypeModelMapper TYPE_MODEL_MAPPER = DefaultTypeModelMapper.newInstance(Stream.of(p_test.p_testMsg.class)
+            .map(ExampleConstants.typeMappingStrategy::mapping)
+            .collect(Collectors.toList())
+    );
 
     public static void main(String[] args) throws IOException, InterruptedException {
         // 默认值不会被序列化(0, false)，因此我们要避免默认值
@@ -81,30 +82,44 @@ public class ProtoBufSerializePerformanceTest {
         final Parser<p_test.p_testMsg> parser = msg.getParserForType();
 
         final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(buffer);
-        codedOutputStream.writeInt32NoTag(messageMapper.getMessageId(msg.getClass()));
+        writeTypeId(msg, codedOutputStream);
         msg.writeTo(codedOutputStream);
-        System.out.println(" encode result bytes = " + codedOutputStream.getTotalBytesWritten());
+        System.out.println("encode result bytes = " + codedOutputStream.getTotalBytesWritten());
 
         final CodedInputStream inputStream = CodedInputStream.newInstance(buffer, 0, codedOutputStream.getTotalBytesWritten());
-        inputStream.readInt32();
+        final Class<?> type = readType(inputStream);
         final Object decodeMsg = parser.parseFrom(inputStream);
-        System.out.println(" codec equals result = " + msg.equals(decodeMsg));
+        System.out.println("codec equals result = " + msg.equals(decodeMsg));
+    }
+
+    private static void writeTypeId(Object msg, CodedOutputStream codedOutputStream) throws IOException {
+        final TypeModel typeModel = TYPE_MODEL_MAPPER.ofType(msg.getClass());
+        assert null != typeModel;
+        codedOutputStream.writeRawByte(typeModel.typeId().getNamespace());
+        codedOutputStream.writeFixed32NoTag(typeModel.typeId().getClassId());
+    }
+
+    private static Class<?> readType(CodedInputStream inputStream) throws IOException {
+        final byte nameSpace = inputStream.readRawByte();
+        final int classId = inputStream.readFixed32();
+        final TypeModel typeModel = TYPE_MODEL_MAPPER.ofId(new TypeId(nameSpace, classId));
+        assert null != typeModel;
+        return typeModel.type();
     }
 
     private static void codecTest(Message msg, int loopTimes, Map<Class<?>, Parser<? extends Message>> parserMap) throws IOException {
         final long start = System.currentTimeMillis();
         for (int index = 0; index < loopTimes; index++) {
+            // 这里需要简单模拟下解码过程
             final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(buffer);
-            codedOutputStream.writeInt32NoTag(messageMapper.getMessageId(msg.getClass()));
+            writeTypeId(msg, codedOutputStream);
             msg.writeTo(codedOutputStream);
 
-            // 这里需要简单模拟下解码过程
             final CodedInputStream inputStream = CodedInputStream.newInstance(buffer, 0, codedOutputStream.getTotalBytesWritten());
-            final int messageId = inputStream.readInt32();
-            final Class<?> messageClass = messageMapper.getMessageClass(messageId);
+            final Class<?> messageClass = readType(inputStream);
             final Parser<?> parser = parserMap.get(messageClass);
             final Object decodeMsg = parser.parseFrom(inputStream);
         }
-        System.out.println(" codec " + loopTimes + " times cost timeMs " + (System.currentTimeMillis() - start));
+        System.out.println("codec " + loopTimes + " times cost timeMs " + (System.currentTimeMillis() - start));
     }
 }

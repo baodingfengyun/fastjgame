@@ -15,12 +15,17 @@
  */
 package com.wjybxx.fastjgame.net.example;
 
+import com.wjybxx.fastjgame.db.core.TypeMappingStrategy;
+import com.wjybxx.fastjgame.db.core.TypeModelMapper;
+import com.wjybxx.fastjgame.db.impl.DefaultTypeModelMapper;
 import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.binary.CodecScanner;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroupBuilder;
-import com.wjybxx.fastjgame.net.serialization.HashMessageMappingStrategy;
+import com.wjybxx.fastjgame.net.serialization.HashTypeMappingStrategy;
 import com.wjybxx.fastjgame.net.serialization.JsonSerializer;
+
+import java.util.stream.Collectors;
 
 /**
  * 测试用例的常量
@@ -32,11 +37,19 @@ import com.wjybxx.fastjgame.net.serialization.JsonSerializer;
  */
 public final class ExampleConstants {
 
+    public static TypeMappingStrategy typeMappingStrategy = new HashTypeMappingStrategy();
+
+    public static TypeModelMapper typeModelMapper = DefaultTypeModelMapper.newInstance(
+            CodecScanner.getAllCustomCodecClass().stream()
+                    .map(typeMappingStrategy::mapping)
+                    .collect(Collectors.toList())
+    );
+
     /**
      * 测试用例使用的codec
      */
-    public static final JsonSerializer JSON_SERIALIZER = JsonSerializer.newInstance(CodecScanner.getAllCustomCodecClass(), new HashMessageMappingStrategy());
-    public static final BinarySerializer BINARY_SERIALIZER = BinarySerializer.newInstance(new HashMessageMappingStrategy());
+    public static final JsonSerializer JSON_SERIALIZER = JsonSerializer.newInstance(typeModelMapper);
+    public static final BinarySerializer BINARY_SERIALIZER = BinarySerializer.newInstance(typeModelMapper);
 
     public static final NetEventLoopGroup netEventLoop = new NetEventLoopGroupBuilder()
             .setWorkerGroupThreadNum(2)

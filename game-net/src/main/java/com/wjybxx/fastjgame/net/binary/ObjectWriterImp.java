@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import com.google.protobuf.Message;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -96,23 +98,35 @@ class ObjectWriterImp implements ObjectWriter {
     }
 
     @Override
+    public void writeMessage(@Nullable Message message) throws Exception {
+        if (message == null) {
+            outputStream.writeTag(BinaryTag.NULL);
+            return;
+        }
+
+        writePojo(message, message.getClass());
+    }
+
+    private void writePojo(@Nonnull Object pojo, @Nonnull Class<?> type) throws Exception {
+        outputStream.writeTag(BinaryTag.POJO);
+        PojoCodec.writePojoImp(outputStream, pojo, type, this, codecRegistry);
+    }
+
+    @Override
     public void writeBytes(@Nullable byte[] value) throws Exception {
         if (value == null) {
             outputStream.writeTag(BinaryTag.NULL);
             return;
         }
 
+        outputStream.writeTag(BinaryTag.ARRAY);
         ArrayCodec.writeByteArray(outputStream, value, 0, value.length);
     }
 
     @Override
     public void writeBytes(@Nonnull byte[] bytes, int offset, int length) throws Exception {
+        outputStream.writeTag(BinaryTag.ARRAY);
         ArrayCodec.writeByteArray(outputStream, bytes, offset, length);
-    }
-
-    @Override
-    public <T> void writeObject(@Nullable T value) throws Exception {
-        BinarySerializer.encodeObject(outputStream, value, codecRegistry);
     }
 
     @Override
@@ -121,7 +135,8 @@ class ObjectWriterImp implements ObjectWriter {
             outputStream.writeTag(BinaryTag.NULL);
             return;
         }
-        CollectionCodec.encodeCollection(outputStream, collection, codecRegistry);
+        outputStream.writeTag(BinaryTag.COLLECTION);
+        CollectionCodec.writeCollectionImpl(outputStream, collection, this);
     }
 
     @Override
@@ -130,7 +145,9 @@ class ObjectWriterImp implements ObjectWriter {
             outputStream.writeTag(BinaryTag.NULL);
             return;
         }
-        MapCodec.encodeMap(outputStream, map, codecRegistry);
+
+        outputStream.writeTag(BinaryTag.MAP);
+        MapCodec.writeMapImpl(outputStream, map, this);
     }
 
     @Override
@@ -140,23 +157,21 @@ class ObjectWriterImp implements ObjectWriter {
             return;
         }
         if (!array.getClass().isArray()) {
-            throw new IOException();
+            throw new IOException("Array expeceted");
         }
-        ArrayCodec.encodeArray(outputStream, array, codecRegistry);
+
+        outputStream.writeTag(BinaryTag.ARRAY);
+        ArrayCodec.writeArrayImpl(outputStream, array, this);
     }
 
-    /**
-     * 读写格式仍然要与{@link CustomPojoCodec}保持一致
-     */
     @Override
     public <E> void writeObject(@Nullable E value, Class<? super E> superClass) throws Exception {
         if (null == value) {
             outputStream.writeTag(BinaryTag.NULL);
             return;
         }
-        @SuppressWarnings("unchecked") final PojoCodec<? super E> codec = (PojoCodec<? super E>) codecRegistry.get(superClass);
-        // 这里是生成的代码走进来的，因此即使异常，也能定位
-        codec.encode(outputStream, value, codecRegistry);
+
+        writePojo(value, superClass);
     }
 
     @Override
@@ -176,13 +191,88 @@ class ObjectWriterImp implements ObjectWriter {
         final ObjectWriter childObjectWriter = new ObjectWriterImp(codecRegistry, childOutputStream);
         childObjectWriter.writeObject(value);
 
-        // 设置长度
         outputStream.writeTag(BinaryTag.ARRAY);
-        outputStream.writeTag(BinaryTag.BYTE);
-        outputStream.writeFixedInt32(childOutputStream.writeIndex());
+        ArrayCodec.writeLengthAndChildType(outputStream, BinaryTag.BYTE, childOutputStream.writeIndex());
 
         // 更新写索引
         outputStream.writeIndex(outputStream.writeIndex() + childOutputStream.writeIndex());
     }
 
+    @Override
+    public void flush() throws IOException {
+        outputStream.flush();
+    }
+
+    // ---------------------------------------------------------------------------
+    @Override
+    public <T> void writeObject(@Nullable T value) throws Exception {
+        if (value == null) {
+            outputStream.writeTag(BinaryTag.NULL);
+            return;
+        }
+
+        final Class<?> type = value.getClass();
+        // POJO优先，可能性最高，且如果命中，可以节省诸多消耗
+        final PojoCodecImpl<?> pojoCodec = codecRegistry.get(type);
+        if (pojoCodec != null) {
+            writePojo(value, type);
+            return;
+        }
+
+        // 第一梯队
+        if (type == Integer.class) {
+            writeInt((Integer) value);
+            return;
+        }
+        if (type == Long.class) {
+            writeLong((Long) value);
+            return;
+        }
+        if (type == String.class) {
+            writeString((String) value);
+            return;
+        }
+        if (type == Float.class) {
+            writeFloat((Float) value);
+            return;
+        }
+        if (type == Double.class) {
+            writeDouble((Double) value);
+            return;
+        }
+        if (type == Boolean.class) {
+            writeBoolean((Boolean) value);
+            return;
+        }
+
+        // 第二梯队
+        if (value instanceof Collection) {
+            writeCollection((Collection<?>) value);
+            return;
+        }
+        if (value instanceof Map) {
+            writeMap((Map<?, ?>) value);
+            return;
+        }
+        if (type.isArray()) {
+            writeArray(value);
+            return;
+        }
+
+        // 第三梯队
+        if (type == Short.class) {
+            outputStream.writeShort((Short) value);
+            return;
+        }
+        if (type == Byte.class) {
+            outputStream.writeByte((Byte) value);
+            return;
+        }
+        if (type == Character.class) {
+            outputStream.writeChar((Character) value);
+            return;
+        }
+
+        throw new IOException("Unsupported type " + type.getName());
+    }
 }

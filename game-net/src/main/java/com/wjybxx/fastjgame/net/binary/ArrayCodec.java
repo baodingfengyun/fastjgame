@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.wjybxx.fastjgame.net.binaryextend.ClassCodec;
-import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,23 +26,22 @@ import java.util.EnumMap;
 import java.util.IdentityHashMap;
 
 /**
- * 数组编解码器
+ * 数组编解码器。
+ * 多维数组和非值类型数组，性能不好，传输量也大 - 未来可能不支持任意的数组，只支持值类型和String类型，其它一律作为Object数组处理
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/2/17
  */
-public class ArrayCodec implements ObjectCodec<Object> {
-
-    private static final Class<?> ARRAY_ENCODER_CLASS = ArrayCodec.class;
+class ArrayCodec {
 
     private static final int CHILD_SIZE = 9;
 
     /**
-     * 针对基本类型数组的优化
+     * 针对基本类型数组的优化 - 主要是拆装箱问题
      */
-    private static final IdentityHashMap<Class<?>, ValueArrayCodec<?>> componentType2CodecMapping = new IdentityHashMap<>(CHILD_SIZE);
-    private static final EnumMap<BinaryTag, ValueArrayCodec<?>> tag2CodecMapping = new EnumMap<>(BinaryTag.class);
+    private static final IdentityHashMap<Class<?>, ValueArrayCodec<?>> componentType2CodecMap = new IdentityHashMap<>(CHILD_SIZE);
+    private static final EnumMap<BinaryTag, ValueArrayCodec<?>> tag2CodecMap = new EnumMap<>(BinaryTag.class);
 
     static {
         register(byte.class, new ByteArrayCodec());
@@ -58,112 +56,95 @@ public class ArrayCodec implements ObjectCodec<Object> {
     }
 
     private static void register(Class<?> component, ValueArrayCodec<?> codec) {
-        componentType2CodecMapping.put(component, codec);
-        tag2CodecMapping.put(codec.childType(), codec);
+        componentType2CodecMap.put(component, codec);
+        tag2CodecMap.put(codec.getTag(), codec);
     }
 
     ArrayCodec() {
 
     }
 
-    @Override
-    public void encode(@Nonnull DataOutputStream outputStream, @Nonnull Object value, CodecRegistry codecRegistry) throws Exception {
-        encodeArray(outputStream, value, codecRegistry);
-    }
-
     @SuppressWarnings("unchecked")
-    static void encodeArray(@Nonnull DataOutputStream outputStream, @Nonnull Object value, CodecRegistry codecRegistry) throws Exception {
-        final ValueArrayCodec codec = componentType2CodecMapping.get(value.getClass().getComponentType());
-        final int length = Array.getLength(value);
+    static void writeArrayImpl(@Nonnull DataOutputStream outputStream, @Nonnull Object array, ObjectWriter writer) throws Exception {
+        final int length = Array.getLength(array);
 
+        final ValueArrayCodec codec = componentType2CodecMap.get(array.getClass().getComponentType());
         if (null != codec) {
-            writeTagAndChildTypeAndLength(outputStream, codec.childType(), length);
-            codec.writeValueArray(outputStream, value);
+            writeLengthAndChildType(outputStream, codec.getTag(), length);
+            codec.writeValueArray(outputStream, array);
         } else {
-            writeTagAndChildTypeAndLength(outputStream, BinaryTag.UNKNOWN, length);
-            writeObjectArray(outputStream, value, length, codecRegistry);
+            writeLengthAndChildType(outputStream, BinaryTag.UNKNOWN, length);
+            writeObjectArray(outputStream, array, writer, length);
         }
     }
 
-    private static void writeTagAndChildTypeAndLength(DataOutputStream outputStream, BinaryTag childType, int length) throws IOException {
-        outputStream.writeTag(BinaryTag.ARRAY);
-        outputStream.writeTag(childType);
-        // 大端模式固定长度写入主要为了兼容字节数组的扩展
+    static void writeLengthAndChildType(@Nonnull DataOutputStream outputStream, BinaryTag childType, int length) throws IOException {
+        outputStream.writeByte(childType.getNumber());
+        // 固定长度写入主要为了兼容字节数组的扩展
         outputStream.writeFixedInt32(length);
     }
 
-    /**
-     * 写对象数组，对象数组主要存在Null等处理
-     */
-    private static void writeObjectArray(DataOutputStream outputStream, @Nonnull Object instance, int length,
-                                         CodecRegistry codecRegistry) throws Exception {
-        // Q: 为什么要将component的类型信息编码？
-        // A: 因为component类型可能不在编解码范围内，比如接口。
-        // 因此编码类信息才能完整解码，它会导致传输量增加，性能降低
-        ClassCodec.encodeClass(outputStream, instance.getClass().getComponentType());
+    private static void writeObjectArray(DataOutputStream outputStream, @Nonnull Object array, ObjectWriter writer, int length) throws Exception {
+        // 写入类型信息
+        outputStream.writeString(array.getClass().getComponentType().getName());
 
         for (int index = 0; index < length; index++) {
-            Object value = Array.get(instance, index);
-            BinarySerializer.encodeObject(outputStream, value, codecRegistry);
+            Object value = Array.get(array, index);
+            writer.writeObject(value);
         }
     }
 
-    @Nonnull
-    @Override
-    public Object decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return readArray(inputStream, null, codecRegistry);
-    }
+    static Object readArrayImpl(DataInputStream inputStream, @Nullable Class<?> componentType, ObjectReader reader) throws Exception {
+        final byte tagValue = inputStream.readByte();
+        final BinaryTag childType = BinaryTag.forNumber(tagValue);
 
-    static Object readArray(DataInputStream inputStream, @Nullable Class<?> objectArrayComponentType, CodecRegistry codecRegistry) throws Exception {
-        final BinaryTag childType = inputStream.readTag();
+        if (childType == null) {
+            throw new IOException("Unknown child type " + tagValue);
+        }
+
         final int length = inputStream.readFixedInt32();
 
-        return readArrayImp(inputStream, objectArrayComponentType, codecRegistry, childType, length);
-    }
-
-    static Object readArrayImp(DataInputStream inputStream, @Nullable Class<?> objectArrayComponentType, CodecRegistry codecRegistry, BinaryTag childType, int length) throws Exception {
         if (childType != BinaryTag.UNKNOWN) {
-            final ValueArrayCodec<?> codec = tag2CodecMapping.get(childType);
-            assert null != codec;
+            final ValueArrayCodec<?> codec = tag2CodecMap.get(childType);
             return codec.readValueArray(inputStream, length);
         } else {
-            return readObjectArray(inputStream, objectArrayComponentType, length, codecRegistry);
+            return readObjectArray(inputStream, reader, componentType, length);
         }
     }
 
-    private static Object readObjectArray(DataInputStream inputStream,
-                                          @Nullable Class<?> objectArrayComponentType, int length,
-                                          CodecRegistry codecRegistry) throws Exception {
-        final String componentClassName = inputStream.readString();
-        if (null == objectArrayComponentType) {
-            // 查找类性能不好
-            objectArrayComponentType = ClassCodec.decodeClass(componentClassName);
+    private static Object readObjectArray(DataInputStream inputStream, ObjectReader reader, @Nullable Class<?> componentType, int length) throws Exception {
+        // 不管用不用，都需要先读取
+        final String className = inputStream.readString();
+
+        if (componentType == null) {
+            // 如果外部没有传入，则需要加载类
+            componentType = ClassCodec.findClass(className);
         }
 
-        final Object array = Array.newInstance(objectArrayComponentType, length);
+        final Object array = Array.newInstance(componentType, length);
         for (int index = 0; index < length; index++) {
-            Array.set(array, index, BinarySerializer.decodeObject(inputStream, codecRegistry));
+            Array.set(array, index, reader.readObject());
         }
-
         return array;
     }
 
     static void writeByteArray(DataOutputStream outputStream, @Nonnull byte[] bytes, int offset, int length) throws Exception {
-        writeTagAndChildTypeAndLength(outputStream, BinaryTag.BYTE, length);
+        writeLengthAndChildType(outputStream, BinaryTag.BYTE, bytes.length);
         outputStream.writeBytes(bytes, offset, length);
     }
 
-    @Override
-    public Class<?> getEncoderClass() {
-        return ARRAY_ENCODER_CLASS;
+    static byte[] readByteArray(DataInputStream inputStream) throws IOException {
+        final BinaryTag childType = inputStream.readTag();
+        if (childType != BinaryTag.BYTE) {
+            throw new IOException("Expected byteArray, but read " + childType);
+        }
+        final int length = inputStream.readFixedInt32();
+        return inputStream.readBytes(length);
     }
 
-    private interface ValueArrayCodec<U> extends IndexableEnum {
+    private interface ValueArrayCodec<U> {
 
-        /**
-         * 子类标识
-         */
-        BinaryTag childType();
+        BinaryTag getTag();
 
         /**
          * 写入数组的内容
@@ -176,35 +157,31 @@ public class ArrayCodec implements ObjectCodec<Object> {
          */
         U readValueArray(DataInputStream inputStream, int length) throws Exception;
 
-        @Override
-        default int getNumber() {
-            return childType().getNumber();
-        }
     }
 
     private static class ByteArrayCodec implements ValueArrayCodec<byte[]> {
 
         @Override
-        public BinaryTag childType() {
+        public BinaryTag getTag() {
             return BinaryTag.BYTE;
         }
 
         @Override
         public void writeValueArray(DataOutputStream outputStream, @Nonnull byte[] array) throws Exception {
-            outputStream.writeBytes(array, 0, array.length);
+            outputStream.writeBytes(array);
         }
 
         @Override
         public byte[] readValueArray(DataInputStream inputStream, int length) throws Exception {
             return inputStream.readBytes(length);
         }
-
     }
+
 
     private static class IntArrayCodec implements ValueArrayCodec<int[]> {
 
         @Override
-        public BinaryTag childType() {
+        public BinaryTag getTag() {
             return BinaryTag.INT;
         }
 
@@ -229,7 +206,7 @@ public class ArrayCodec implements ObjectCodec<Object> {
     private static class FloatArrayCodec implements ValueArrayCodec<float[]> {
 
         @Override
-        public BinaryTag childType() {
+        public BinaryTag getTag() {
             return BinaryTag.FLOAT;
         }
 
@@ -253,7 +230,7 @@ public class ArrayCodec implements ObjectCodec<Object> {
     private static class DoubleArrayCodec implements ValueArrayCodec<double[]> {
 
         @Override
-        public BinaryTag childType() {
+        public BinaryTag getTag() {
             return BinaryTag.DOUBLE;
         }
 
@@ -277,7 +254,7 @@ public class ArrayCodec implements ObjectCodec<Object> {
     private static class LongArrayCodec implements ValueArrayCodec<long[]> {
 
         @Override
-        public BinaryTag childType() {
+        public BinaryTag getTag() {
             return BinaryTag.LONG;
         }
 
@@ -301,7 +278,7 @@ public class ArrayCodec implements ObjectCodec<Object> {
     private static class ShortArrayCodec implements ValueArrayCodec<short[]> {
 
         @Override
-        public BinaryTag childType() {
+        public BinaryTag getTag() {
             return BinaryTag.SHORT;
         }
 
@@ -325,7 +302,7 @@ public class ArrayCodec implements ObjectCodec<Object> {
     private static class CharArrayCodec implements ValueArrayCodec<char[]> {
 
         @Override
-        public BinaryTag childType() {
+        public BinaryTag getTag() {
             return BinaryTag.CHAR;
         }
 
@@ -349,7 +326,7 @@ public class ArrayCodec implements ObjectCodec<Object> {
     private static class BooleanArrayCodec implements ValueArrayCodec<boolean[]> {
 
         @Override
-        public BinaryTag childType() {
+        public BinaryTag getTag() {
             return BinaryTag.BOOLEAN;
         }
 
@@ -373,7 +350,7 @@ public class ArrayCodec implements ObjectCodec<Object> {
     private static class StringArrayCodec implements ValueArrayCodec<String[]> {
 
         @Override
-        public BinaryTag childType() {
+        public BinaryTag getTag() {
             return BinaryTag.STRING;
         }
 

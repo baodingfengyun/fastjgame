@@ -16,9 +16,13 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import com.google.protobuf.Parser;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.IntFunction;
@@ -86,30 +90,46 @@ class ObjectReaderImp implements ObjectReader {
         return inputStream.readChar();
     }
 
+    private void readTagAndCheck(BinaryTag expectedTag) throws Exception {
+        final BinaryTag tag = inputStream.readTag();
+        if (tag != expectedTag) {
+            throw new IOException("Incompatible wireType, expected: " + expectedTag + ", but read: " + tag);
+        }
+    }
+
     @Override
     public String readString() throws Exception {
         final BinaryTag tag = inputStream.readTag();
         if (tag == BinaryTag.NULL) {
             return null;
         }
+        checkTag(tag, BinaryTag.STRING);
+
         return inputStream.readString();
     }
 
     @Override
-    public byte[] readBytes() throws Exception {
-        return readArray(byte.class);
+    public <T> T readMessage(Parser<T> parser) throws Exception {
+        final BinaryTag tag = inputStream.readTag();
+        if (tag == BinaryTag.NULL) {
+            return null;
+        }
+        checkTag(tag, BinaryTag.POJO);
+
+        @SuppressWarnings("unchecked") final T message = (T) PojoCodec.readPojoImp(inputStream, codecRegistry);
+        return message;
     }
 
     @Override
-    public <T> T readObject() throws Exception {
-        return BinarySerializer.decodeObject(inputStream, codecRegistry);
-    }
-
-    private void readTagAndCheck(BinaryTag expectedTag) throws Exception {
+    public byte[] readBytes() throws Exception {
         final BinaryTag tag = inputStream.readTag();
-        if (tag != expectedTag) {
-            throw new IOException("Incompatible wireType, expected: " + expectedTag + ", but read: " + tag);
+        if (tag == BinaryTag.NULL) {
+            return null;
         }
+
+        checkTag(tag, BinaryTag.ARRAY);
+
+        return ArrayCodec.readByteArray(inputStream);
     }
 
     @Nullable
@@ -122,7 +142,7 @@ class ObjectReaderImp implements ObjectReader {
 
         checkTag(tag, BinaryTag.COLLECTION);
 
-        return CollectionCodec.readCollectionImp(inputStream, collectionFactory, codecRegistry);
+        return CollectionCodec.readCollectionImp(inputStream, collectionFactory, this);
     }
 
     @Nullable
@@ -135,7 +155,7 @@ class ObjectReaderImp implements ObjectReader {
 
         checkTag(tag, BinaryTag.MAP);
 
-        return MapCodec.readMapImp(inputStream, mapFactory, codecRegistry);
+        return MapCodec.readMapImpl(inputStream, mapFactory, this);
     }
 
     @Nullable
@@ -148,11 +168,11 @@ class ObjectReaderImp implements ObjectReader {
 
         checkTag(tag, BinaryTag.ARRAY);
 
-        @SuppressWarnings("unchecked") final T array = (T) ArrayCodec.readArray(inputStream, componentType, codecRegistry);
+        @SuppressWarnings("unchecked") final T array = (T) ArrayCodec.readArrayImpl(inputStream, componentType, this);
         return array;
     }
 
-    public <E> E readEntity(EntityFactory<E> entityFactory, Class<? super E> entitySuperClass) throws Exception {
+    public <E> E readEntity(EntityFactory<E> factory, Class<? super E> superClass) throws Exception {
         final BinaryTag tag = inputStream.readTag();
         if (tag == BinaryTag.NULL) {
             return null;
@@ -160,31 +180,31 @@ class ObjectReaderImp implements ObjectReader {
 
         checkTag(tag, BinaryTag.POJO);
 
-        final PojoCodec<?> pojoCodec = PojoCodec.getPojoCodec(inputStream, codecRegistry);
+        return PojoCodec.readPolymorphicPojoImpl(inputStream, factory, superClass, this, codecRegistry);
 
-        checkEntitySuperClass(entitySuperClass, pojoCodec);
-
-        checkSupportReadFields(pojoCodec);
-
-        @SuppressWarnings("unchecked") final CustomPojoCodec<E> customPojoCodec = (CustomPojoCodec<E>) pojoCodec;
-        final E instance = entityFactory.newInstance();
-        customPojoCodec.decodeBody(instance, inputStream, codecRegistry);
-        return instance;
     }
 
-    private void checkEntitySuperClass(Class<?> entitySuperClass, ObjectCodec<?> pojoCodec) throws IOException {
-        if (entitySuperClass != pojoCodec.getEncoderClass()) {
-            throw new IOException(String.format("Incompatible class, expected: %s, but read %s ",
-                    entitySuperClass.getName(),
-                    pojoCodec.getEncoderClass().getName()));
+    @Override
+    public <T> T readPreDeserializeObject() throws Exception {
+        final BinaryTag tag = inputStream.readTag();
+        if (tag == BinaryTag.NULL) {
+            return null;
         }
-    }
 
-    private void checkSupportReadFields(PojoCodec<?> pojoCodec) throws IOException {
-        if (!(pojoCodec instanceof CustomPojoCodec) || !((CustomPojoCodec<?>) pojoCodec).isSupportReadFields()) {
-            throw new IOException("Unsupported codec, entitySuperClass serializer must implements " +
-                    AbstractPojoCodecImpl.class.getName());
-        }
+        checkTag(tag, BinaryTag.ARRAY);
+
+        final BinaryTag childType = inputStream.readTag();
+        checkTag(childType, BinaryTag.BYTE);
+
+        final int length = inputStream.readFixedInt32();
+        final DataInputStream childInputStream = inputStream.slice(length);
+        final ObjectReaderImp childReader = new ObjectReaderImp(codecRegistry, childInputStream);
+        final T value = childReader.readObject();
+
+        // 更新当前输入流的读索引
+        inputStream.readIndex(inputStream.readIndex() + childInputStream.readIndex());
+
+        return value;
     }
 
     private void checkTag(final BinaryTag readTag, final BinaryTag expectedTag) throws Exception {
@@ -193,32 +213,49 @@ class ObjectReaderImp implements ObjectReader {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    // -----------------------------------------------------------------------------------------------------------
+
     @Override
-    public <T> T readPreDeserializeObject() throws Exception {
+    public <T> T readObject() throws Exception {
         final BinaryTag tag = inputStream.readTag();
-        if (tag == BinaryTag.NULL) {
-            return null;
+        @SuppressWarnings("unchecked") final T result = (T) readObjectImpl(tag);
+        return result;
+    }
+
+    private Object readObjectImpl(BinaryTag tag) throws Exception {
+        switch (tag) {
+            case NULL:
+                return null;
+
+            case BYTE:
+                return inputStream.readByte();
+            case CHAR:
+                return inputStream.readChar();
+            case SHORT:
+                return inputStream.readShort();
+            case INT:
+                return inputStream.readInt();
+            case BOOLEAN:
+                return inputStream.readBoolean();
+            case LONG:
+                return inputStream.readLong();
+            case FLOAT:
+                return inputStream.readFloat();
+            case DOUBLE:
+                return inputStream.readDouble();
+            case STRING:
+                return inputStream.readString();
+
+            case POJO:
+                return PojoCodec.readPojoImp(inputStream, codecRegistry);
+            case ARRAY:
+                return ArrayCodec.readArrayImpl(inputStream, null, this);
+            case MAP:
+                return MapCodec.readMapImpl(inputStream, CollectionUtils::newLinkedHashMapWithExpectedSize, this);
+            case COLLECTION:
+                return CollectionCodec.readCollectionImp(inputStream, ArrayList::new, this);
+            default:
+                throw new IOException("unexpected tag : " + tag);
         }
-
-        if (tag != BinaryTag.ARRAY) {
-            return (T) BinarySerializer.decodeObjectImp(tag, inputStream, codecRegistry);
-        }
-
-        final BinaryTag childTag = inputStream.readTag();
-        final int length = inputStream.readFixedInt32();
-
-        if (childTag != BinaryTag.BYTE) {
-            return (T) ArrayCodec.readArrayImp(inputStream, null, codecRegistry, childTag, length);
-        }
-
-        final DataInputStream childInputStream = inputStream.slice(length);
-        final ObjectReaderImp childEntityInputStream = new ObjectReaderImp(codecRegistry, childInputStream);
-        final T value = childEntityInputStream.readObject();
-
-        // 更新当前输入流的读索引
-        inputStream.readIndex(inputStream.readIndex() + childInputStream.readIndex());
-
-        return value;
     }
 }

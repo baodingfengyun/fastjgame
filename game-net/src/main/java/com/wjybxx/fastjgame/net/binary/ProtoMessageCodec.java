@@ -19,8 +19,6 @@ package com.wjybxx.fastjgame.net.binary;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.Parser;
 
-import javax.annotation.Nonnull;
-
 /**
  * protoBuf消息编解码支持
  * <p>
@@ -30,26 +28,14 @@ import javax.annotation.Nonnull;
  * @version 1.0
  * date - 2020/2/17
  */
-public class ProtoMessageCodec<T extends AbstractMessage> extends PojoCodec<T> {
+public class ProtoMessageCodec<T extends AbstractMessage> implements PojoCodecImpl<T> {
 
     private final Class<T> messageClass;
     private final Parser<T> parser;
 
-    public ProtoMessageCodec(byte providerId, int classId, Class<T> messageClass, Parser<T> parser) {
-        super(providerId, classId);
+    public ProtoMessageCodec(Class<T> messageClass, Parser<T> parser) {
         this.messageClass = messageClass;
         this.parser = parser;
-    }
-
-    @Override
-    public void encodeBody(@Nonnull DataOutputStream outputStream, @Nonnull T value, CodecRegistry codecRegistry) throws Exception {
-        outputStream.writeMessage(value);
-    }
-
-    @Nonnull
-    @Override
-    public T decode(@Nonnull DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        return inputStream.readMessage(parser);
     }
 
     @Override
@@ -57,4 +43,13 @@ public class ProtoMessageCodec<T extends AbstractMessage> extends PojoCodec<T> {
         return messageClass;
     }
 
+    @Override
+    public T readObject(ObjectReader reader) throws Exception {
+        return reader.readMessage(parser);
+    }
+
+    @Override
+    public void writeObject(T instance, ObjectWriter writer) throws Exception {
+        writer.writeMessage(instance);
+    }
 }

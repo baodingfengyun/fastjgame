@@ -16,12 +16,16 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import com.wjybxx.fastjgame.db.core.TypeId;
+import com.wjybxx.fastjgame.db.core.TypeModel;
+import com.wjybxx.fastjgame.db.core.TypeModelMapper;
+import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
-import static java.lang.String.format;
+import java.util.IdentityHashMap;
+import java.util.List;
 
 /**
  * @author wjybxx
@@ -30,81 +34,58 @@ import static java.lang.String.format;
  */
 public class CodecRegistrys {
 
-    /**
-     * 用户使用自定义的pojo的概率远大于底层支持的pojo，因此要把用户的provider放在默认的provider的前面，加快搜索效率
-     * 此外，如果底层和应用同时存在对某一个pojo的编解码支持，那么用户的实现将屏蔽底层的实现。
-     *
-     * @param appPojoCodecList 用户自定义的编解码器集合
-     */
-    public static CodecRegistry fromAppPojoCodecs(List<? extends PojoCodec<?>> appPojoCodecList) {
-        final List<CodecProvider> pojoCodecProviders = new ArrayList<>(PojoCodecProviders.fromCodecs(appPojoCodecList));
-        pojoCodecProviders.addAll(PojoCodecProviders.getDefaultProviders());
-        return new CodecRegistryImp(pojoCodecProviders);
+    public static CodecRegistry fromAppPojoCodecs(TypeModelMapper typeModelMapper, List<PojoCodecImpl<?>> pojoCodecs) {
+        final Long2ObjectMap<PojoCodecImpl<?>> typeId2CodecMap = new Long2ObjectOpenHashMap<>(pojoCodecs.size());
+        final IdentityHashMap<Class<?>, PojoCodecImpl<?>> type2CodecMap = new IdentityHashMap<>(pojoCodecs.size());
+
+        for (PojoCodecImpl<?> pojoCodec : pojoCodecs) {
+            final Class<?> type = pojoCodec.getEncoderClass();
+            final TypeModel typeModel = typeModelMapper.ofType(type);
+
+            if (typeModel == null) {
+                continue;
+            }
+
+            FastCollectionsUtils.requireNotContains(typeId2CodecMap, typeModel.typeId().toGuid(), "typeId-(toGuid)");
+            CollectionUtils.requireNotContains(type2CodecMap, type, "type");
+
+            typeId2CodecMap.put(typeModel.typeId().toGuid(), pojoCodec);
+            type2CodecMap.put(type, pojoCodec);
+        }
+
+        return new DefaultCodecRegistry(typeModelMapper, typeId2CodecMap, type2CodecMap);
     }
 
-    private static class CodecRegistryImp implements CodecRegistry {
+    private static class DefaultCodecRegistry implements CodecRegistry {
 
-        private final CodecProvider[] codecProviders;
-        private final PojoCodecProvider[] pojoCodecProviders;
-        private final ContainerCodecProvider containerCodecProvider;
+        private final TypeModelMapper typeModelMapper;
+        private final Long2ObjectMap<PojoCodecImpl<?>> typeId2CodecMap;
+        private final IdentityHashMap<Class<?>, PojoCodecImpl<?>> type2CodecMap;
 
-        CodecRegistryImp(List<? extends CodecProvider> codecProviders) {
-            this.codecProviders = codecProviders.toArray(CodecProvider[]::new);
-            this.pojoCodecProviders = codecProviders.stream()
-                    .filter(PojoCodecProvider.class::isInstance)
-                    .map(PojoCodecProvider.class::cast)
-                    .toArray(PojoCodecProvider[]::new);
-
-            this.containerCodecProvider = codecProviders.stream()
-                    .filter(ContainerCodecProvider.class::isInstance)
-                    .findFirst()
-                    .map(ContainerCodecProvider.class::cast)
-                    .get();
+        private DefaultCodecRegistry(TypeModelMapper typeModelMapper,
+                                     Long2ObjectMap<PojoCodecImpl<?>> typeId2CodecMap,
+                                     IdentityHashMap<Class<?>, PojoCodecImpl<?>> type2CodecMap) {
+            this.typeModelMapper = typeModelMapper;
+            this.typeId2CodecMap = typeId2CodecMap;
+            this.type2CodecMap = type2CodecMap;
         }
 
         @Override
-        public <T> ObjectCodec<T> get(Class<T> clazz) {
-            for (CodecProvider codecProvider : codecProviders) {
-                final ObjectCodec<T> codec = codecProvider.getCodec(clazz);
-                if (codec != null) {
-                    return codec;
-                }
-            }
-            throw new CodecConfigurationException(format("Can't find a codec for %s.", clazz));
+        public TypeModelMapper typeModelMapper() {
+            return typeModelMapper;
         }
 
         @Override
-        public PojoCodec<?> getPojoCodec(byte providerId, int classId) {
-            // 理论上provider数量较少，使用数组性能足够好，无需map
-            for (PojoCodecProvider pojoCodecProvider : pojoCodecProviders) {
-                if (pojoCodecProvider.getProviderId() == providerId) {
-                    return getCheckedCodec(pojoCodecProvider, classId);
-                }
-            }
-            throw new CodecConfigurationException(format("Can't find a codec for %s:%s.", providerId, classId));
-        }
-
-        private static PojoCodec<?> getCheckedCodec(final PojoCodecProvider codecProvider, int classId) {
-            final PojoCodec<?> codec = codecProvider.getPojoCodec(classId);
-            if (null == codec) {
-                throw new CodecConfigurationException(format("Can't find a codec for %s:%s.", codecProvider.getProviderId(), classId));
-            }
+        public <T> PojoCodecImpl<T> get(Class<T> clazz) {
+            @SuppressWarnings("unchecked") PojoCodecImpl<T> codec = (PojoCodecImpl<T>) type2CodecMap.get(clazz);
             return codec;
         }
 
         @Override
-        public ObjectCodec<Object> getArrayCodec() {
-            return containerCodecProvider.getArrayCodec();
-        }
-
-        @Override
-        public ObjectCodec<Map<?, ?>> getMapCodec() {
-            return containerCodecProvider.getMapCodec();
-        }
-
-        @Override
-        public ObjectCodec<Collection<?>> getCollectionCodec() {
-            return containerCodecProvider.getCollectionCodec();
+        public <T> PojoCodecImpl<T> get(TypeId typeId) {
+            @SuppressWarnings("unchecked") PojoCodecImpl<T> codec = (PojoCodecImpl<T>) typeId2CodecMap.get(typeId.toGuid());
+            return codec;
         }
     }
+
 }
