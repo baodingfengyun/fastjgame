@@ -316,9 +316,9 @@ public class UnboundedEventLoop extends AbstractEventLoop {
         WrappedRunnable r;
         // 1. 在检测到未关闭的状态下尝试压入队列
         if (!isShuttingDown() && taskQueue.relaxedOffer(r = new WrappedRunnable(task))) {
-            // 2. 压入队列是一个过程！在压入队列的过程中，executor的状态可能改变，因此必须再次校验 - 以判断线程是否在任务压入队列之后已经开始关闭了
-            // 由于是多生产者单消费者模型，因此非消费者不能删除元素，因此只能置为无效任务
-            if (isShuttingDown() && TASK.compareAndSet(r, task, WrappedRunnable.TOMBSTONE)) {
+            // 2. 压入队列是一个过程！插入队列后，executor的状态可能已开始关闭，因此必须再次校验
+            // 由于是多生产者单消费者模型，因此非消费者不能删除元素，因此只能置为null
+            if (isShuttingDown() && TASK.compareAndSet(r, task, null)) {
                 reject(task);
                 return false;
             }
@@ -529,10 +529,14 @@ public class UnboundedEventLoop extends AbstractEventLoop {
         }
     }
 
+    /**
+     * Q: 为什么提供该封装？
+     * A: 由于{@link EventLoop}是单消费者模型，生产者只能插入不能删除。如果一个生产者在插入之后，想要删除，则违反了单消费者模型，会产生并发问题。
+     * 提供一层代理，如果生产者在插入之后想要撤回，则将task置为null，这样不违背队列的单消费原则。
+     * 但是这样也产生了额外的消耗，包括一次{@link VarHandle#getAndSet(Object...)}和一次{@link Runnable#run()}转发，会抵消一部分性能提升。
+     * eg: 如果没有该机制的话，插入之后EventLoop开始关闭，我们将束手无策....
+     */
     static class WrappedRunnable implements Runnable {
-
-        private static final Runnable TOMBSTONE = () -> {
-        };
 
         /**
          * 非volatile，首次可见性由插入队列提供的可见性保证，后续可见性由{@link #TASK}的CAS操作提供可见性保证。
@@ -545,9 +549,9 @@ public class UnboundedEventLoop extends AbstractEventLoop {
 
         @Override
         public void run() {
-            final Runnable r = (Runnable) TASK.getAndSet(this, TOMBSTONE);
-            // 关闭时的边界情况下，可能为TOMBSTONE，因为生产者并不能删除任务，因此只能将task置为无效值
-            if (r != TOMBSTONE) {
+            final Runnable r = (Runnable) TASK.getAndSet(this, null);
+            // 关闭时的边界情况下，可能为null，因为生产者并不能删除任务，因此只能将task置为无效值
+            if (r != null) {
                 r.run();
             }
         }
