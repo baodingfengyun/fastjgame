@@ -43,7 +43,7 @@ public class DefaultRedisClient implements RedisClient {
     }
 
     @Override
-    public void execute(@Nonnull PipelineCommand<?> command) {
+    public <V> void execute(@Nonnull PipelineCommand<V> command) {
         redisEventLoop.execute(command, false);
     }
 

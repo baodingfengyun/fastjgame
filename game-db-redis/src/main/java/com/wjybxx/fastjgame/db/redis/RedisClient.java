@@ -43,7 +43,7 @@ public interface RedisClient {
      *
      * @param command 待执行的命令
      */
-    void execute(@Nonnull PipelineCommand<?> command);
+    <V> void execute(@Nonnull PipelineCommand<V> command);
 
     /**
      * 异步执行一个命令，同时刷新命令队列，并不监听结果。
