@@ -562,9 +562,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
             try {
                 // Q: 为什么可以继续消费
                 // A: 保证了生产者不会覆盖未消费的数据 - shutdown处的处理是必须的
+                // Q: 为什么initialSequence作为边界？
+                // A: 其它生产者提交的数据一定在initialSequence之前，initialSequence及之后的sequence是当前EventLoop申请的，一定是无任务的
                 long nextSequence = sequence.get() + 1;
-                final long endSequence = sequence.get() + ringBuffer.getBufferSize();
-                for (; nextSequence <= endSequence; nextSequence++) {
+                for (; nextSequence < initialSequence; nextSequence++) {
                     final Runnable task = ringBuffer.get(nextSequence).detachTask();
                     // Q: 这里可能为null吗？
                     // A: 这里可能为null - 因为是多生产者模式，关闭前发布的数据可能是不连续的

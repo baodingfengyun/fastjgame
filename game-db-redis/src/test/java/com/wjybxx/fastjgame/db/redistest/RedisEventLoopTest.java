@@ -46,7 +46,9 @@ public class RedisEventLoopTest {
         final EventLoop appEventLoop = newAppEventLoop(redisEventLoop);
         try {
             // submit一个任务，阻塞到线程启动成功
+            redisEventLoop.submit(ConcurrentUtils.NO_OP_TASK).get();
             appEventLoop.submit(ConcurrentUtils.NO_OP_TASK).get();
+
             appEventLoop.terminationFuture().awaitUninterruptibly();
         } finally {
             appEventLoop.shutdown();
