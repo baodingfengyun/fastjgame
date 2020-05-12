@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.WaitStrategyFactory;
 
 import javax.annotation.Nonnull;
@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/7/21
  * github - https://github.com/hl845740757
  */
-public class DefaultEventLoop extends UnboundedEventLoop {
+public class DefaultEventLoop extends TemplateEventLoop {
 
     public DefaultEventLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
         super(parent, threadFactory, rejectedExecutionHandler);

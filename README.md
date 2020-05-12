@@ -21,6 +21,7 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 2. 删除EventExecutor概念，只保留EventLoop概念，EventLoop就是单线程的。如果不需要单线程带来的一些保证，那么使用Executor概念即可。
 3. EventLoop是**多生产者单消费者**模型。
 4. 提供了基于Disruptor的高性能事件循环**DisruptorEventLoop**。
+5. 提供了基于JCTools的Mpsc队列的高性能事件循环**TemplateEventLoop**。
 
 ### RPC
 这里的rpc设计并未追求所谓的标准，而更追求实用性，主要特点如下：

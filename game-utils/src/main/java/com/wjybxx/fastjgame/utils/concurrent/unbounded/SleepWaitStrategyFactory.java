@@ -69,7 +69,7 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
         }
 
         @Override
-        public void waitFor(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
+        public void waitFor(TemplateEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
             int counter = retries;
             while (eventLoop.isTaskQueueEmpty()) {
                 counter = applyWaitMethod(eventLoop, counter);
@@ -81,7 +81,7 @@ public class SleepWaitStrategyFactory implements WaitStrategyFactory {
             }
         }
 
-        private int applyWaitMethod(final UnboundedEventLoop eventLoop, int counter) throws ShuttingDownException {
+        private int applyWaitMethod(final TemplateEventLoop eventLoop, int counter) throws ShuttingDownException {
             // 检查中断/终止信号
             eventLoop.checkShuttingDown();
 

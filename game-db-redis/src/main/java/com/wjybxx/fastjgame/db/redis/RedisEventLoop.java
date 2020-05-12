@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -62,7 +62,7 @@ import static com.wjybxx.fastjgame.utils.ThreadUtils.sleepQuietly;
  * date - 2019/12/12
  * github - https://github.com/hl845740757
  */
-public class RedisEventLoop extends UnboundedEventLoop {
+public class RedisEventLoop extends TemplateEventLoop {
 
     private static final Logger logger = LoggerFactory.getLogger(RedisEventLoop.class);
 

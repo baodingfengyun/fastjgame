@@ -30,7 +30,7 @@ import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.event.EventDispatchTask;
 import com.wjybxx.fastjgame.utils.concurrent.event.EventLoopTerminalEvent;
-import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop;
 import com.wjybxx.fastjgame.utils.eventbus.Subscribe;
 import io.netty.channel.Channel;
 
@@ -52,7 +52,7 @@ import java.util.concurrent.ThreadFactory;
  * date - 2019/8/3
  * github - https://github.com/hl845740757
  */
-class NetEventLoopImp extends UnboundedEventLoop implements NetEventLoop {
+class NetEventLoopImp extends TemplateEventLoop implements NetEventLoop {
 
     private static final int TASK_BATCH_SIZE = 2048;
 

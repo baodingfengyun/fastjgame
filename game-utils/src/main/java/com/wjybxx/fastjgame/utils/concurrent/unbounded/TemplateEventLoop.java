@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils.concurrent.unbounded;
 
 
+import com.lmax.disruptor.RingBuffer;
 import com.wjybxx.fastjgame.utils.concurrent.*;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.WaitStrategyFactory.WaitStrategy;
@@ -40,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 事件循环的模板实现。
- * 它是无界事件循环的超类，如果期望使用有界队列，请使用{@link DisruptorEventLoop}。
+ * 它是无界事件循环的超类，如果期望使用有界队列，请使用{@link DisruptorEventLoop}或{@link #newTaskQueue()}创建有界队列。
  * 等待策略实现与{@link DisruptorEventLoop}的等待策略是一致的。
  *
  * @author wjybxx
@@ -48,9 +49,9 @@ import java.util.concurrent.TimeUnit;
  * date - 2019/7/14
  * github - https://github.com/hl845740757
  */
-public class UnboundedEventLoop extends AbstractEventLoop {
+public class TemplateEventLoop extends AbstractEventLoop {
 
-    private static final Logger logger = LoggerFactory.getLogger(UnboundedEventLoop.class);
+    private static final Logger logger = LoggerFactory.getLogger(TemplateEventLoop.class);
 
     /**
      * 批量拉取(执行)任务数 - 该值越小{@link #loopOnce()}执行越频繁，响应关闭请求越快。
@@ -92,14 +93,14 @@ public class UnboundedEventLoop extends AbstractEventLoop {
      * 任务队列
      * <p>
      * {@link EventLoop}是多生产者单消费者模型，在该模型下，任务队列讲究极致性能的话，性能大致如下：
-     * 1. {@link com.lmax.disruptor.RingBuffer} - 性能高，资源利用率更好，暴露的API更底层。
-     * 2. {@link MpscArrayQueue} - 主要{@link WrappedRunnable}申请了额外的资源，且在执行时存在额外的CAS操作。
-     * 3. {@link MpscLinkedQueue}
+     * 1. {@link MpscArrayQueue} - 性能极好，表现稳定，但我引入的{@link WrappedRunnable}申请了额外的资源。
+     * 2. {@link RingBuffer} - 性能也极好，表现稳定，资源利用率好于{@link MpscArrayQueue}，暴露的API更底层，性能吃亏在多消费者模型上。
+     * 3. {@link MpscLinkedQueue} - 性能也极好，但是是无界队列，表现不稳定（好的时候比拟{@link MpscArrayQueue}的性能）。
      * 4. {@link ConcurrentLinkedQueue}
      * 5. {@link LinkedBlockingQueue}
      * <p>
      * {@link MpscArrayQueue}{@link MpscLinkedQueue}最开始是在netty里看见的，但是由于是internal的，没能搞过来，后来发现是jctools的组件。
-     * {@link MpscArrayQueue}和{@link com.lmax.disruptor.RingBuffer}性能基本无差别，但资源利用率有别。
+     * {@link MpscArrayQueue}和{@link RingBuffer}性能基本无差别，但资源利用率有别。
      * {@link MpscLinkedQueue}是无界实现，比{@link ConcurrentLinkedQueue}性能更好。
      */
     private final MessagePassingQueue<Runnable> taskQueue;
@@ -123,23 +124,23 @@ public class UnboundedEventLoop extends AbstractEventLoop {
      */
     private final Promise<?> terminationFuture = FutureUtils.newPromise();
 
-    public UnboundedEventLoop(@Nullable EventLoopGroup parent,
-                              @Nonnull ThreadFactory threadFactory,
-                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+    public TemplateEventLoop(@Nullable EventLoopGroup parent,
+                             @Nonnull ThreadFactory threadFactory,
+                             @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
         this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_BATCH_EVENT_SIZE, new SleepWaitStrategyFactory());
     }
 
-    public UnboundedEventLoop(@Nullable EventLoopGroup parent,
-                              @Nonnull ThreadFactory threadFactory,
-                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                              int taskBatchSize) {
+    public TemplateEventLoop(@Nullable EventLoopGroup parent,
+                             @Nonnull ThreadFactory threadFactory,
+                             @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                             int taskBatchSize) {
         this(parent, threadFactory, rejectedExecutionHandler, taskBatchSize, new SleepWaitStrategyFactory());
     }
 
-    public UnboundedEventLoop(@Nullable EventLoopGroup parent,
-                              @Nonnull ThreadFactory threadFactory,
-                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                              @Nonnull WaitStrategyFactory waitStrategyFactory) {
+    public TemplateEventLoop(@Nullable EventLoopGroup parent,
+                             @Nonnull ThreadFactory threadFactory,
+                             @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                             @Nonnull WaitStrategyFactory waitStrategyFactory) {
         this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_BATCH_EVENT_SIZE, waitStrategyFactory);
     }
 
@@ -151,11 +152,11 @@ public class UnboundedEventLoop extends AbstractEventLoop {
      * @param taskBatchSize            批量执行任务数，设定合理的任务数可避免执行任务耗费太多时间。
      * @param waitStrategyFactory      没有任务时的等待策略
      */
-    public UnboundedEventLoop(@Nullable EventLoopGroup parent,
-                              @Nonnull ThreadFactory threadFactory,
-                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                              int taskBatchSize,
-                              @Nonnull WaitStrategyFactory waitStrategyFactory) {
+    public TemplateEventLoop(@Nullable EventLoopGroup parent,
+                             @Nonnull ThreadFactory threadFactory,
+                             @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                             int taskBatchSize,
+                             @Nonnull WaitStrategyFactory waitStrategyFactory) {
         super(parent);
 
         if (taskBatchSize <= 0) {
@@ -172,6 +173,9 @@ public class UnboundedEventLoop extends AbstractEventLoop {
         this.rejectedExecutionHandler = rejectedExecutionHandler;
     }
 
+    /**
+     * 如果子类期望使用有界队列可以覆盖该方法
+     */
     protected MessagePassingQueue<Runnable> newTaskQueue() {
         return new MpscLinkedQueue<>();
     }
@@ -242,22 +246,10 @@ public class UnboundedEventLoop extends AbstractEventLoop {
     @Nonnull
     @Override
     public final List<Runnable> shutdownNow() {
-        int expectedState = state;
-        for (; ; ) {
-            if (isShutdown0(expectedState)) {
-                // 已被其它线程关闭
-                return Collections.emptyList();
-            }
-
-            int realState = compareAndExchangeState(expectedState, ST_SHUTDOWN);
-            if (expectedState == realState) {
-                // CAS成功，当前线程负责了关闭 - 这里不能操作TaskQueue中的数据，不能打破[多生产者单消费者]的架构
-                ensureThreadTerminable(expectedState);
-                return Collections.emptyList();
-            }
-            // retry
-            expectedState = realState;
-        }
+        shutdown();
+        advanceRunState(ST_SHUTDOWN);
+        // 这里不能操作taskQueue中的数据，不能打破[多生产者单消费者]的架构
+        return Collections.emptyList();
     }
 
     /**
@@ -346,9 +338,9 @@ public class UnboundedEventLoop extends AbstractEventLoop {
     }
 
     /**
-     * 这里提醒一下，对于{@link ConcurrentLinkedQueue}，一定不要用size方法，size方法会遍历所有元素，性能极差。
+     * 检查任务队列是否为空 - 主要用在等待策略中
      */
-    final boolean isTaskQueueEmpty() {
+    public final boolean isTaskQueueEmpty() {
         assert inEventLoop();
         return taskQueue.isEmpty();
     }
@@ -356,7 +348,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
     /**
      * 如果EventLoop已经开始关闭，则抛出{@link ShuttingDownException}
      */
-    final void checkShuttingDown() throws ShuttingDownException {
+    public final void checkShuttingDown() throws ShuttingDownException {
         if (isShuttingDown()) {
             throw ShuttingDownException.INSTANCE;
         }
@@ -475,7 +467,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
         private void loop() {
             while (true) {
                 try {
-                    waitStrategy.waitFor(UnboundedEventLoop.this);
+                    waitStrategy.waitFor(TemplateEventLoop.this);
 
                     runTasksBatch();
 
@@ -563,7 +555,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
     static {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
-            STATE = l.findVarHandle(UnboundedEventLoop.class, "state", int.class);
+            STATE = l.findVarHandle(TemplateEventLoop.class, "state", int.class);
             TASK = l.findVarHandle(WrappedRunnable.class, "task", Runnable.class);
         } catch (ReflectiveOperationException e) {
             throw new ExceptionInInitializerError(e);

@@ -63,7 +63,7 @@ public class TimeoutBlockingWaitStrategyFactory implements WaitStrategyFactory {
         }
 
         @Override
-        public void waitFor(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
+        public void waitFor(TemplateEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
             if (eventLoop.isTaskQueueEmpty()) {
                 // 阻塞式等待生产者消费
                 long nanos = timeoutInNanos;

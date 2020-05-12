@@ -23,7 +23,7 @@ import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.YieldWaitStrategyFactory;
 
 import java.util.concurrent.CountDownLatch;
@@ -67,8 +67,8 @@ public class QueueTest {
         System.out.println("costTimeMs: " + costTimeMs);
     }
 
-    private static UnboundedEventLoop newUnboundEventLoop() {
-        return new UnboundedEventLoop(null, new DefaultThreadFactory("CONSUMER"),
+    private static TemplateEventLoop newUnboundEventLoop() {
+        return new TemplateEventLoop(null, new DefaultThreadFactory("CONSUMER"),
                 RejectedExecutionHandlers.abort(), new YieldWaitStrategyFactory());
     }
 

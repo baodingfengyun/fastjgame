@@ -49,7 +49,7 @@ public class BusySpinWaitStrategyFactory implements WaitStrategyFactory {
         }
 
         @Override
-        public void waitFor(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
+        public void waitFor(TemplateEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
             int spinTries = 0;
             while (eventLoop.isTaskQueueEmpty()) {
                 eventLoop.checkShuttingDown();

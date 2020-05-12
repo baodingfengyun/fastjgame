@@ -57,7 +57,7 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
         }
 
         @Override
-        public void waitFor(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
+        public void waitFor(TemplateEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException {
             int counter = spinTries;
             int spinTries = 0;
 
@@ -72,7 +72,7 @@ public class YieldWaitStrategyFactory implements WaitStrategyFactory {
             }
         }
 
-        private int applyWaitMethod(final UnboundedEventLoop eventLoop, int counter) throws ShuttingDownException {
+        private int applyWaitMethod(final TemplateEventLoop eventLoop, int counter) throws ShuttingDownException {
             // 检查停止
             eventLoop.checkShuttingDown();
 

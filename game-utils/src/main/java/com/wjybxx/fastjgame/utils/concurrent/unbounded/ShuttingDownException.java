@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.utils.concurrent.unbounded;
 
 /**
- * 当等待任务的过程中，发现{@link UnboundedEventLoop}已经开始关闭时，则抛出该异常。
+ * 当等待任务的过程中，发现{@link TemplateEventLoop}已经开始关闭时，则抛出该异常。
  *
  * @author wjybxx
  * @version 1.0

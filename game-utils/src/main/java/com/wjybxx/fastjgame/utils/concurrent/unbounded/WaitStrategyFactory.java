@@ -35,11 +35,11 @@ public interface WaitStrategyFactory {
          *
          * @param eventLoop 等待任务的消费者
          */
-        void waitFor(UnboundedEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException;
+        void waitFor(TemplateEventLoop eventLoop) throws ShuttingDownException, TimeoutException, InterruptedException;
 
         /**
          * 唤醒阻塞的消费者，表示有新的任务到达。
-         * 如果有消费者在{@link #waitFor(UnboundedEventLoop)}中将自己挂起了，则需要唤醒。
+         * 如果有消费者在{@link #waitFor(TemplateEventLoop)}中将自己挂起了，则需要唤醒。
          * 该方法由生产者调用。
          */
         void signalAllWhenBlocking();

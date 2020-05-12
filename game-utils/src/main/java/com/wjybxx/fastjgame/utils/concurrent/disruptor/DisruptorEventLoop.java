@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.utils.concurrent.disruptor;
 
 import com.lmax.disruptor.*;
 import com.wjybxx.fastjgame.utils.concurrent.*;
-import com.wjybxx.fastjgame.utils.concurrent.unbounded.UnboundedEventLoop;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,20 +34,11 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 基于Disruptor的事件循环。
- * 它是有界事件循环的超类，如果期望使用无界队列，请使用{@link UnboundedEventLoop}。
- * 等待策略与{@link UnboundedEventLoop}是一致的。
- *
+ * 它是有界事件循环的超类，如果期望使用无界队列，请使用{@link TemplateEventLoop}。
+ * 等待策略与{@link TemplateEventLoop}是一致的。
  * <p>
- * Q: {@link DisruptorEventLoop}比起{@link UnboundedEventLoop}，优势在哪？<br>
- * A: 1. {@link DisruptorEventLoop}采用的是无锁队列，性能高于{@link UnboundedEventLoop}。
- * 2. {@link DisruptorEventLoop}对资源的利用率远胜{@link UnboundedEventLoop}。
- * <p>
- * Q: 那缺陷在哪呢？
- * A: 最大的缺陷就是它只能是有界的队列。由于{@link EventLoop}都是单线程的，如果某个EventLoop使用有界队列，且有阻塞式操作，则可能导致死锁或较长时间阻塞。
- *
- * <p>
- * Q: 哪些事件循环适合使用{@link DisruptorEventLoop} ?<br>
- * A: 如果你的服务处于终端节点，且需要极低的延迟和极高的吞吐量的时候。
+ * 在{@link TemplateEventLoop}最新实现中，采用了JCTools中的Mpsc队列，性能已经和{@link DisruptorEventLoop}基本无差，
+ * 此外支持有界和无界队列。
  *
  * @author wjybxx
  * @version 1.0
@@ -262,22 +253,10 @@ public class DisruptorEventLoop extends AbstractEventLoop {
     @Nonnull
     @Override
     public final List<Runnable> shutdownNow() {
-        int expectedState = state;
-        for (; ; ) {
-            if (isShutdown0(expectedState)) {
-                // 已被其它线程关闭
-                return Collections.emptyList();
-            }
-
-            int realState = compareAndExchangeState(expectedState, ST_SHUTDOWN);
-            if (expectedState == realState) {
-                // CAS成功，当前线程负责了关闭 - 这里不能操作ringBuffer中的数据，不能打破[多生产者单消费者]的架构
-                ensureThreadTerminable(expectedState);
-                return Collections.emptyList();
-            }
-            // retry
-            expectedState = realState;
-        }
+        shutdown();
+        advanceRunState(ST_SHUTDOWN);
+        // 这里不能操作ringBuffer中的数据，不能打破[多生产者单消费者]的架构
+        return Collections.emptyList();
     }
 
     /**
