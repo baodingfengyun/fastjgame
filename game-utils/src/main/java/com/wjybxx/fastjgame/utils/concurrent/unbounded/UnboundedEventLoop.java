@@ -17,10 +17,12 @@
 package com.wjybxx.fastjgame.utils.concurrent.unbounded;
 
 
-import com.lmax.disruptor.RingBuffer;
 import com.wjybxx.fastjgame.utils.concurrent.*;
 import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.WaitStrategyFactory.WaitStrategy;
+import org.jctools.queues.MessagePassingQueue;
+import org.jctools.queues.MpscArrayQueue;
+import org.jctools.queues.MpscLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,15 +89,20 @@ public class UnboundedEventLoop extends AbstractEventLoop {
     private volatile int state = ST_NOT_STARTED;
 
     /**
-     * 任务队列。
-     * Q: 为什么选择{@link ConcurrentLinkedQueue}？
-     * A: 关于任务队列，对{@link RingBuffer} {@link ConcurrentLinkedQueue} {@link LinkedBlockingQueue}也对比了很多次，测试结果大致如下：
-     * 1. {@link RingBuffer}的性能始终是最好的，但是它是有界的。
-     * 2. 在高竞争下，{@link LinkedBlockingQueue}优于{@link ConcurrentLinkedQueue}，但是差距不算大（可能竞争还不够激烈）。
-     * 3. 在低竞争下，{@link ConcurrentLinkedQueue}表现更好，{@link LinkedBlockingQueue}在低竞争下吞吐量实在不能看。
-     * 考虑到高竞争的情况较少，最终选择了{@link ConcurrentLinkedQueue}。
+     * 任务队列
+     * <p>
+     * {@link EventLoop}是多生产者单消费者模型，在该模型下，任务队列讲究极致性能的话，性能大致如下：
+     * 1. {@link com.lmax.disruptor.RingBuffer} - 性能高，资源利用率更好，暴露的API更底层。
+     * 2. {@link MpscArrayQueue} - 主要{@link WrappedRunnable}申请了额外的资源，且在执行时存在额外的CAS操作。
+     * 3. {@link MpscLinkedQueue}
+     * 4. {@link ConcurrentLinkedQueue}
+     * 5. {@link LinkedBlockingQueue}
+     * <p>
+     * {@link MpscArrayQueue}{@link MpscLinkedQueue}最开始是在netty里看见的，但是由于是internal的，没能搞过来，后来发现是jctools的组件。
+     * {@link MpscArrayQueue}和{@link com.lmax.disruptor.RingBuffer}性能基本无差别，但资源利用率有别。
+     * {@link MpscLinkedQueue}是无界实现，比{@link ConcurrentLinkedQueue}性能更好。
      */
-    private final ConcurrentLinkedQueue<Runnable> taskQueue = new ConcurrentLinkedQueue<>();
+    private final MessagePassingQueue<Runnable> taskQueue;
 
     /**
      * 批量执行任务的大小
@@ -116,23 +123,23 @@ public class UnboundedEventLoop extends AbstractEventLoop {
      */
     private final Promise<?> terminationFuture = FutureUtils.newPromise();
 
-    protected UnboundedEventLoop(@Nullable EventLoopGroup parent,
-                                 @Nonnull ThreadFactory threadFactory,
-                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
+    public UnboundedEventLoop(@Nullable EventLoopGroup parent,
+                              @Nonnull ThreadFactory threadFactory,
+                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
         this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_BATCH_EVENT_SIZE, new SleepWaitStrategyFactory());
     }
 
-    protected UnboundedEventLoop(@Nullable EventLoopGroup parent,
-                                 @Nonnull ThreadFactory threadFactory,
-                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                 int taskBatchSize) {
+    public UnboundedEventLoop(@Nullable EventLoopGroup parent,
+                              @Nonnull ThreadFactory threadFactory,
+                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                              int taskBatchSize) {
         this(parent, threadFactory, rejectedExecutionHandler, taskBatchSize, new SleepWaitStrategyFactory());
     }
 
-    protected UnboundedEventLoop(@Nullable EventLoopGroup parent,
-                                 @Nonnull ThreadFactory threadFactory,
-                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                 @Nonnull WaitStrategyFactory waitStrategyFactory) {
+    public UnboundedEventLoop(@Nullable EventLoopGroup parent,
+                              @Nonnull ThreadFactory threadFactory,
+                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                              @Nonnull WaitStrategyFactory waitStrategyFactory) {
         this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_BATCH_EVENT_SIZE, waitStrategyFactory);
     }
 
@@ -144,11 +151,11 @@ public class UnboundedEventLoop extends AbstractEventLoop {
      * @param taskBatchSize            批量执行任务数，设定合理的任务数可避免执行任务耗费太多时间。
      * @param waitStrategyFactory      没有任务时的等待策略
      */
-    protected UnboundedEventLoop(@Nullable EventLoopGroup parent,
-                                 @Nonnull ThreadFactory threadFactory,
-                                 @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                                 int taskBatchSize,
-                                 @Nonnull WaitStrategyFactory waitStrategyFactory) {
+    public UnboundedEventLoop(@Nullable EventLoopGroup parent,
+                              @Nonnull ThreadFactory threadFactory,
+                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                              int taskBatchSize,
+                              @Nonnull WaitStrategyFactory waitStrategyFactory) {
         super(parent);
 
         if (taskBatchSize <= 0) {
@@ -159,9 +166,14 @@ public class UnboundedEventLoop extends AbstractEventLoop {
         // 记录异常退出日志
         UncaughtExceptionHandlers.logIfAbsent(thread, logger);
 
+        this.taskQueue = newTaskQueue();
         this.waitStrategy = waitStrategyFactory.newInstance();
         this.taskBatchSize = taskBatchSize;
         this.rejectedExecutionHandler = rejectedExecutionHandler;
+    }
+
+    protected MessagePassingQueue<Runnable> newTaskQueue() {
+        return new MpscLinkedQueue<>();
     }
 
     @Override
@@ -301,11 +313,12 @@ public class UnboundedEventLoop extends AbstractEventLoop {
      * @return 添加任务是否成功
      */
     private boolean addTask(@Nonnull Runnable task) {
+        WrappedRunnable r;
         // 1. 在检测到未关闭的状态下尝试压入队列
-        if (!isShuttingDown() && taskQueue.offer(task)) {
+        if (!isShuttingDown() && taskQueue.relaxedOffer(r = new WrappedRunnable(task))) {
             // 2. 压入队列是一个过程！在压入队列的过程中，executor的状态可能改变，因此必须再次校验 - 以判断线程是否在任务压入队列之后已经开始关闭了
-            // remove失败表示executor已经处理了该任务
-            if (isShuttingDown() && taskQueue.remove(task)) {
+            // 由于是多生产者单消费者模型，因此非消费者不能删除元素，因此只能置为无效任务
+            if (isShuttingDown() && TASK.compareAndSet(r, task, WrappedRunnable.TOMBSTONE)) {
                 reject(task);
                 return false;
             }
@@ -489,7 +502,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
         private void runTasksBatch() {
             Runnable task;
             for (int countDown = taskBatchSize; countDown > 0; countDown--) {
-                task = taskQueue.poll();
+                task = taskQueue.relaxedPoll();
 
                 if (task == null) {
                     break;
@@ -502,6 +515,7 @@ public class UnboundedEventLoop extends AbstractEventLoop {
         private void cleanTaskQueue() {
             Runnable task;
             while (!isShutdown()) {
+                // 这里需要使用poll
                 task = taskQueue.poll();
 
                 if (task == null) {
@@ -515,12 +529,38 @@ public class UnboundedEventLoop extends AbstractEventLoop {
         }
     }
 
+    static class WrappedRunnable implements Runnable {
+
+        private static final Runnable TOMBSTONE = () -> {
+        };
+
+        /**
+         * 非volatile，首次可见性由插入队列提供的可见性保证，后续可见性由{@link #TASK}的CAS操作提供可见性保证。
+         */
+        private Runnable task;
+
+        WrappedRunnable(Runnable task) {
+            this.task = task;
+        }
+
+        @Override
+        public void run() {
+            final Runnable r = (Runnable) TASK.getAndSet(this, TOMBSTONE);
+            // 关闭时的边界情况下，可能为TOMBSTONE，因为生产者并不能删除任务，因此只能将task置为无效值
+            if (r != TOMBSTONE) {
+                r.run();
+            }
+        }
+    }
+
     private static final VarHandle STATE;
+    private static final VarHandle TASK;
 
     static {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
             STATE = l.findVarHandle(UnboundedEventLoop.class, "state", int.class);
+            TASK = l.findVarHandle(WrappedRunnable.class, "task", Runnable.class);
         } catch (ReflectiveOperationException e) {
             throw new ExceptionInInitializerError(e);
         }

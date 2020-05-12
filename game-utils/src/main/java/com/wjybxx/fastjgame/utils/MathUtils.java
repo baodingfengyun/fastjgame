@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils;
 
 import com.google.common.math.IntMath;
+import com.google.common.primitives.Ints;
 import com.wjybxx.fastjgame.utils.misc.IntPair;
 import com.wjybxx.fastjgame.utils.misc.ShortPair;
 
@@ -55,6 +56,14 @@ public class MathUtils {
 
     private MathUtils() {
 
+    }
+
+    public static int roundToPowerOfTwo(int value) {
+        if (value < 0) {
+            throw new IllegalArgumentException("Given value:" + value + ". Expecting value >= 0.");
+        }
+        int n = -1 >>> Integer.numberOfLeadingZeros(value - 1);
+        return (n < 0) ? 1 : (n >= Ints.MAX_POWER_OF_TWO) ? Ints.MAX_POWER_OF_TWO : n + 1;
     }
 
     /**

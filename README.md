@@ -60,13 +60,10 @@ Guid生成器中定义了命名空间的概念，只要求同一个命名空间�
 > 2. 在game-parent下clean，再compile，可消除缺少类文件的报错。
 
 ***
-### 并发组件优化 2020/04/30 仿CompletableFuture的FluentFuture 异步操作管道
-最近深受异步回调之坑(A->B->C)，寻求解决之道，最终在**CompletableFuture**找到解决方案，**thenCompose**方法可以构建异步操作管道，
-可以极大的提高代码的表达力，也更容易维护，用着真的上瘾。不过我并没有直接使用CompletableFuture，而是根据自己的需求仿写了一个**FluentFuture**，
-因为部分需求不太一样，而且CompletableFuture有些处理也很坑。
-
-PS: 最开始的ListenableFuture其实是参考了Netty的Future，其实也参考了Guava的部分，不过Guava当时研究的不深，错失了它的FluentFuture类。
-这里我建议大家研究研究JDK的**CompletableFuture**，如果你存在大量异步编程，墙裂建议研究一下。
+### 并发组件优化 JCTools的Mpsc队列代替ConcurrentLinkedQueue
+Disruptor的**RingBuffer**和Jdk的**ConcurrentLinkedQueue**都是多消费者模型，而**EventLoop是多生产者单消费者模型**，使用Mpsc队列可以极大的提高性能。  
+Mpsc队列最早是在Netty中看见的，但是苦于是internal的，后来才发现其实是JCTools的，于是引入，作为无界EventLoop的模板，性能确实极好。  
+PS: 也很适用Actor模型。
 
 ### [历史重要更新](https://github.com/hl845740757/fastjgame/blob/master/%E5%8E%86%E5%8F%B2%E9%87%8D%E8%A6%81%E6%9B%B4%E6%96%B0.md)
 
