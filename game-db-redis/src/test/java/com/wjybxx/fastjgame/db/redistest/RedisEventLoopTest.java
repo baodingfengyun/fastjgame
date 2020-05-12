@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.SleepWaitStrategyFactory;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.YieldWaitStrategyFactory;
 import redis.clients.jedis.JedisPool;
@@ -86,7 +87,7 @@ public class RedisEventLoopTest {
         private RedisClient redisClient;
 
         ClientEventLoop(RedisEventLoop redisEventLoop) {
-            super(null, new DefaultThreadFactory("REDIS-CLIENT"), RejectedExecutionHandlers.log(), new YieldWaitStrategyFactory());
+            super(null, new DefaultThreadFactory("REDIS-CLIENT"), RejectedExecutionHandlers.log(), new SleepWaitStrategyFactory());
             this.redisEventLoop = redisEventLoop;
         }
 

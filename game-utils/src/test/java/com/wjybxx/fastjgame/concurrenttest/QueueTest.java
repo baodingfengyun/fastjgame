@@ -31,6 +31,11 @@ import java.util.stream.IntStream;
 
 /**
  * 一个简单的不靠谱测试
+ * 以消费者Pool 100W个任务为基础，数据如下(单位:毫秒):
+ * MpscArrayQueue: 105-110 非常稳定
+ * Disruptor:  极致110  但更多落在130~140
+ * ConcurrentLinkedQueue 极致130 但更多落在140-150
+ * MpscLinkedQueue：极致45~50 但被JVM反优化后更多落在300+   这个差别太大，还没较仔细的研究，猜测是JVM干了什么特殊的优化导致的....
  *
  * @author wjybxx
  * @version 1.0
@@ -38,13 +43,14 @@ import java.util.stream.IntStream;
  */
 public class QueueTest {
 
+    private static volatile boolean stop = false;
+
     public static void main(String[] args) throws InterruptedException {
         final int consumerNum = 8;
-        final int maxLoop = 10 * 10000;
 
         final EventLoop consumer =
-//                newUnboundEventLoop();
-                newDisruptorEventLoop(consumerNum * maxLoop);
+                newUnboundEventLoop();
+//                newDisruptorEventLoop(consumerNum * maxLoop);
         // 先启动
         consumer.execute(ConcurrentUtils.NO_OP_TASK);
 
@@ -52,29 +58,30 @@ public class QueueTest {
         final CountDownLatch stopLatch = new CountDownLatch(consumerNum);
 
         IntStream.range(0, consumerNum)
-                .mapToObj(i -> new Worker(consumer, maxLoop, startLatch, stopLatch))
+                .mapToObj(i -> new Worker(consumer, startLatch, stopLatch))
                 .forEach(Thread::start);
 
         startLatch.countDown();
 
         final long startTimeNano = System.nanoTime();
-        stopLatch.await();
-        consumer.shutdown();
         consumer.terminationFuture().awaitUninterruptibly();
 
         final long costTimeNano = System.nanoTime() - startTimeNano;
         final long costTimeMs = costTimeNano / TimeUtils.NANO_PER_MILLISECOND;
         System.out.println("costTimeMs: " + costTimeMs);
+
+        stop = true;
+        stopLatch.await();
     }
 
     private static TemplateEventLoop newUnboundEventLoop() {
         return new TemplateEventLoop(null, new DefaultThreadFactory("CONSUMER"),
-                RejectedExecutionHandlers.abort(), new YieldWaitStrategyFactory());
+                RejectedExecutionHandlers.discard(), new YieldWaitStrategyFactory());
     }
 
     private static DisruptorEventLoop newDisruptorEventLoop(int minQueueSize) {
         return new DisruptorEventLoop(null, new DefaultThreadFactory("CONSUMER"),
-                RejectedExecutionHandlers.abort(),
+                RejectedExecutionHandlers.discard(),
                 MathUtils.roundToPowerOfTwo(minQueueSize), 8192,
                 new com.wjybxx.fastjgame.utils.concurrent.disruptor.YieldWaitStrategyFactory());
     }
@@ -82,13 +89,11 @@ public class QueueTest {
     private static class Worker extends Thread {
 
         private final EventLoop consumer;
-        private final int maxLoop;
         private final CountDownLatch startLatch;
         private final CountDownLatch stopLatch;
 
-        private Worker(EventLoop consumer, int maxLoop, CountDownLatch startLatch, CountDownLatch stopLatch) {
+        private Worker(EventLoop consumer, CountDownLatch startLatch, CountDownLatch stopLatch) {
             this.consumer = consumer;
-            this.maxLoop = maxLoop;
             this.startLatch = startLatch;
             this.stopLatch = stopLatch;
         }
@@ -98,10 +103,12 @@ public class QueueTest {
             try {
                 startLatch.await();
 
-                final int max = maxLoop;
-                for (int index = 0; index < max; index++) {
-                    consumer.execute(ConcurrentUtils.NO_OP_TASK);
-                }
+                do {
+                    for (int index = 0; index < 8192; index++) {
+                        consumer.execute(ConcurrentUtils.NO_OP_TASK);
+                    }
+
+                } while (!stop);
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
