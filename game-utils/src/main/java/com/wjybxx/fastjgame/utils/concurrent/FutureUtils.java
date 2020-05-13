@@ -48,7 +48,6 @@ public class FutureUtils {
     }
 
     /**
-     * /**
      * 创建一个{@link FluentFuture}，该future表示它关联的任务早已失败。因此{@link FluentFuture#isCompletedExceptionally()}总是返回true。
      * 所有添加到该future上的{@link FutureListener}都会立即被通知。并且该future上的所有阻塞方法会立即返回而不会阻塞。
      *

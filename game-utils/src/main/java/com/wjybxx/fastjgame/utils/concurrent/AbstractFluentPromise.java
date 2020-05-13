@@ -911,7 +911,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
          */
         final boolean claim() {
             Executor e = executor;
-            if (e == null || EventLoopUtils.inEventLoop(e)) {
+            if (e == null || e == MoreExecutors.directExecutor() || EventLoopUtils.inEventLoop(e)) {
                 executor = null;
                 return true;
             }

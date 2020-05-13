@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RunnableFuture;
@@ -33,11 +32,11 @@ public class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<
 
     private final Callable<V> callable;
 
-    PromiseTask(EventLoop executor, Callable<V> callable) {
+    PromiseTask(Callable<V> callable) {
         this.callable = callable;
     }
 
-    PromiseTask(@Nonnull EventLoop defaultExecutor, Runnable runnable, V value) {
+    PromiseTask(Runnable runnable, V value) {
         this.callable = Executors.callable(runnable, value);
     }
 

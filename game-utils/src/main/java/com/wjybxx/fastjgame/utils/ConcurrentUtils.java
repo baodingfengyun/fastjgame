@@ -16,12 +16,10 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.utils.function.AcquireFun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -44,37 +42,6 @@ public class ConcurrentUtils {
 
     private ConcurrentUtils() {
 
-    }
-
-    /**
-     * 在{@link CountDownLatch#await()}上等待，等待期间不响应中断
-     *
-     * @param countDownLatch 闭锁
-     */
-    public static void awaitUninterruptibly(@Nonnull CountDownLatch countDownLatch) {
-        awaitUninterruptibly(countDownLatch::await);
-    }
-
-    /**
-     * 在等待期间不响应中断
-     *
-     * @param acquireFun 如果在资源上申请资源
-     */
-    public static void awaitUninterruptibly(AcquireFun acquireFun) {
-        boolean interrupted = false;
-        try {
-            while (true) {
-                try {
-                    acquireFun.acquire();
-                    break;
-                } catch (InterruptedException e) {
-                    interrupted = true;
-                }
-            }
-        } finally {
-            // 恢复中断状态
-            ThreadUtils.recoveryInterrupted(interrupted);
-        }
     }
 
     // ------------------------------------------- 安全地执行 ------------------------------------

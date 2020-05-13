@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-
 import javax.annotation.Nonnull;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -115,7 +113,7 @@ public class GlobalEventLoop extends AbstractEventLoop {
 
     @Override
     public void execute(@Nonnull Runnable task) {
-        executorService.execute(() -> ConcurrentUtils.safeExecute(task));
+        executorService.execute(() -> safeExecute(task));
     }
 
     private final class InnerThreadFactory implements ThreadFactory {

@@ -47,4 +47,10 @@ public class DoubleHolder {
     public void setValue(double value) {
         this.value = value;
     }
+
+    public double getAndSet(double value) {
+        double r = this.value;
+        this.value = value;
+        return r;
+    }
 }

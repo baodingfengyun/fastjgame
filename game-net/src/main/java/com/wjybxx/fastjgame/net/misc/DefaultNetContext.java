@@ -121,11 +121,11 @@ public class DefaultNetContext implements NetContext {
 
     @Override
     public FluentFuture<Session> connectLocal(String sessionId, @Nonnull LocalPort localPort, @Nonnull LocalSessionConfig config) {
-        final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
         if (!(localPort instanceof DefaultLocalPort)) {
             throw new UnsupportedOperationException();
         }
 
+        final NetEventLoop netEventLoop = selectNetEventLoop(sessionId);
         final Promise<Session> connectPromise = FutureUtils.newPromise();
         netEventLoop.post(new ConnectLocalRequest(sessionId, (DefaultLocalPort) localPort, config, this, connectPromise));
         return connectPromise;

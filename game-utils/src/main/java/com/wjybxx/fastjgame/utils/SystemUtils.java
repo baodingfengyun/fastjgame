@@ -46,4 +46,7 @@ public class SystemUtils {
         return org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS;
     }
 
+    public static boolean isLinux() {
+        return org.apache.commons.lang3.SystemUtils.IS_OS_LINUX;
+    }
 }

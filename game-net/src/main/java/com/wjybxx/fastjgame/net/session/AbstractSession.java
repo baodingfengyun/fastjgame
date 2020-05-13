@@ -147,14 +147,14 @@ public abstract class AbstractSession implements Session {
             // 非首次调用
             return;
         }
+
         // 可能是网络层关闭
-        EventLoopUtils.executeOrRun(netEventLoop, () -> {
-            try {
-                doCloseSafely();
-            } finally {
-                checkNotify(oldState);
-            }
-        });
+        EventLoopUtils.executeOrRun(netEventLoop, () -> closeAndCheckNotify(oldState));
+    }
+
+    private void closeAndCheckNotify(int oldState) {
+        doCloseSafely();
+        checkNotify(oldState);
     }
 
     private void doCloseSafely() {
