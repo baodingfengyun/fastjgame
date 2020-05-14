@@ -103,7 +103,7 @@ public class TemplateEventLoop extends AbstractEventLoop {
      * {@link MpscArrayQueue}{@link MpscLinkedQueue}最开始是在netty里看见的，但是由于是internal的，没能搞过来，后来发现是jctools的组件。
      * {@link MpscArrayQueue}性能比{@link RingBuffer}高一些，但资源利用率差一点。
      */
-    private final MessagePassingQueue<WrappedRunnable> taskQueue;
+    private final MessagePassingQueue<Runnable> taskQueue;
 
     /**
      * 批量执行任务的大小
@@ -176,7 +176,7 @@ public class TemplateEventLoop extends AbstractEventLoop {
     /**
      * 如果子类期望使用有界队列可以覆盖该方法
      */
-    protected MessagePassingQueue<WrappedRunnable> newTaskQueue() {
+    protected MessagePassingQueue<Runnable> newTaskQueue() {
         return new MpscLinkedQueue<>();
     }
 
@@ -428,8 +428,10 @@ public class TemplateEventLoop extends AbstractEventLoop {
      * 工作者线程
      * <p>
      * 两阶段终止模式 --- 在终止前进行清理操作，安全的关闭线程不是一件容易的事情。
+     * <p>
+     * 实现{@link org.jctools.queues.MessagePassingQueue.Consumer}接口用于避免lambda表达式。
      */
-    private class Worker implements Runnable {
+    private class Worker implements Runnable, MessagePassingQueue.Consumer<Runnable> {
 
         @Override
         public void run() {
@@ -492,20 +494,17 @@ public class TemplateEventLoop extends AbstractEventLoop {
         }
 
         private void runTasksBatch() {
-            WrappedRunnable task;
-            for (int countDown = taskBatchSize; countDown > 0; countDown--) {
-                task = taskQueue.relaxedPoll();
+            // DisruptorEventLoop其实也批量拉取消费的
+            taskQueue.drain(this, taskBatchSize);
+        }
 
-                if (task == null) {
-                    break;
-                }
-
-                task.run();
-            }
+        @Override
+        public void accept(Runnable runnable) {
+            runnable.run();
         }
 
         private void cleanTaskQueue() {
-            WrappedRunnable task;
+            Runnable task;
             while (!isShutdown()) {
                 // 这里需要使用poll
                 task = taskQueue.poll();
