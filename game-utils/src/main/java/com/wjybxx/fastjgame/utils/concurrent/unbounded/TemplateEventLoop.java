@@ -469,9 +469,11 @@ public class TemplateEventLoop extends AbstractEventLoop {
         private void loop() {
             while (true) {
                 try {
+                    // 等待生产者生产数据
                     waitStrategy.waitFor(TemplateEventLoop.this);
 
-                    runTasksBatch();
+                    // 批量消费可用数据 DisruptorEventLoop其实也批量拉取消费的
+                    taskQueue.drain(this, taskBatchSize);
 
                     safeLoopOnce();
                 } catch (ShuttingDownException | InterruptedException e) {
@@ -491,11 +493,6 @@ public class TemplateEventLoop extends AbstractEventLoop {
                     }
                 }
             }
-        }
-
-        private void runTasksBatch() {
-            // DisruptorEventLoop其实也批量拉取消费的
-            taskQueue.drain(this, taskBatchSize);
         }
 
         @Override
