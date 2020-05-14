@@ -487,7 +487,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
                         // 处理所有可消费的事件
                         while (nextSequence <= availableSequence) {
-                            safeExecute(ringBuffer.get(nextSequence).detachTask());
+                            ringBuffer.get(nextSequence).run();
                             nextSequence++;
                         }
 
@@ -545,12 +545,12 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                 // A: 其它生产者提交的数据一定在initialSequence之前，initialSequence及之后的sequence是当前EventLoop申请的，一定是无任务的
                 long nextSequence = sequence.get() + 1;
                 for (; nextSequence < initialSequence; nextSequence++) {
-                    final Runnable task = ringBuffer.get(nextSequence).detachTask();
+                    final RunnableEvent task = ringBuffer.get(nextSequence);
                     // Q: 这里可能为null吗？
                     // A: 这里可能为null - 因为是多生产者模式，关闭前发布的数据可能是不连续的
                     // 如果已进入shutdown阶段，则直接丢弃任务，而不是执行
                     if (null != task && !isShutdown()) {
-                        safeExecute(task);
+                        task.run();
                     }
                 }
             } finally {
@@ -560,7 +560,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
         }
     }
 
-    private static final class RunnableEvent {
+    private static final class RunnableEvent implements Runnable {
 
         private Runnable task;
 
@@ -568,10 +568,11 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
         }
 
-        Runnable detachTask() {
+        @Override
+        public void run() {
             Runnable r = task;
             task = null;
-            return r;
+            safeExecute(r);
         }
 
         void setTask(@Nonnull Runnable task) {

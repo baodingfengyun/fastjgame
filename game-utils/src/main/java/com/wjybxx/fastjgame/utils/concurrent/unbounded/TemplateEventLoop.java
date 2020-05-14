@@ -103,7 +103,7 @@ public class TemplateEventLoop extends AbstractEventLoop {
      * {@link MpscArrayQueue}{@link MpscLinkedQueue}最开始是在netty里看见的，但是由于是internal的，没能搞过来，后来发现是jctools的组件。
      * {@link MpscArrayQueue}性能比{@link RingBuffer}高一些，但资源利用率差一点。
      */
-    private final MessagePassingQueue<Runnable> taskQueue;
+    private final MessagePassingQueue<WrappedRunnable> taskQueue;
 
     /**
      * 批量执行任务的大小
@@ -176,7 +176,7 @@ public class TemplateEventLoop extends AbstractEventLoop {
     /**
      * 如果子类期望使用有界队列可以覆盖该方法
      */
-    protected MessagePassingQueue<Runnable> newTaskQueue() {
+    protected MessagePassingQueue<WrappedRunnable> newTaskQueue() {
         return new MpscLinkedQueue<>();
     }
 
@@ -492,7 +492,7 @@ public class TemplateEventLoop extends AbstractEventLoop {
         }
 
         private void runTasksBatch() {
-            Runnable task;
+            WrappedRunnable task;
             for (int countDown = taskBatchSize; countDown > 0; countDown--) {
                 task = taskQueue.relaxedPoll();
 
@@ -500,12 +500,12 @@ public class TemplateEventLoop extends AbstractEventLoop {
                     break;
                 }
 
-                safeExecute(task);
+                task.run();
             }
         }
 
         private void cleanTaskQueue() {
-            Runnable task;
+            WrappedRunnable task;
             while (!isShutdown()) {
                 // 这里需要使用poll
                 task = taskQueue.poll();
@@ -514,7 +514,7 @@ public class TemplateEventLoop extends AbstractEventLoop {
                     break;
                 }
 
-                safeExecute(task);
+                task.run();
             }
 
             taskQueue.clear();
@@ -544,7 +544,7 @@ public class TemplateEventLoop extends AbstractEventLoop {
             final Runnable r = (Runnable) TASK.getAndSet(this, null);
             // 关闭时的边界情况下，可能为null，因为生产者并不能删除任务，因此只能将task置为无效值
             if (r != null) {
-                r.run();
+                safeExecute(r);
             }
         }
     }
