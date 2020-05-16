@@ -32,6 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>
  * 1. 等待期间不会执行{@link DisruptorEventLoop#loopOnce()}，而是在每次超时之后执行一次{@link DisruptorEventLoop#loopOnce()}
  * 2. 可能不能立即感知新的事件到达，从而产生阻塞。
+ * 3. 消费者可能在有可消费者的事件时仍然处理阻塞状态，因此使用该策略时超时时间不可以太长。
  * <p>
  * {@link LiteTimeoutBlockingWaitStrategy}
  *
@@ -114,7 +115,8 @@ public class TimeoutBlockingWaitStrategyFactory implements WaitStrategyFactory {
 
         @Override
         public void signalAllWhenBlocking() {
-            // 如果这里返回false，可能导致消费者丢失信号，消费者仍然可能阻塞，直到超时
+            // 注意：由于这里并未先获取锁，因此即使这里getAndSet认为不需要通知，消费者可能立即又赋值为true
+            // 从而导致这里并未进行通知，而消费者将会阻塞，直到超时或下一个事件到达
             if (signalNeeded.getAndSet(false)) {
                 lock.lock();
                 try {
