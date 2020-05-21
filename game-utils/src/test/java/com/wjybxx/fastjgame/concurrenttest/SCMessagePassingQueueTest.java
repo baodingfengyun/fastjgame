@@ -82,7 +82,6 @@ public class SCMessagePassingQueueTest {
         public void run() {
             while (!stop) {
                 messageQueue.poll();
-                messageQueue.poll();
 
                 if (!messageQueue.isEmpty()) {
                     final String e = messageQueue.poll();
