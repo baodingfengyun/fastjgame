@@ -31,7 +31,6 @@ import org.jctools.queues.SpmcArrayQueue;
 public class SpmcArrayQueuePeekTest {
 
     private static volatile boolean stop = false;
-    private static volatile long maxConsumedSequence;
 
     public static void main(String[] args) throws InterruptedException {
         // Smaller capacity helps test
@@ -78,10 +77,7 @@ public class SpmcArrayQueuePeekTest {
         @Override
         public void run() {
             while (!stop) {
-                final Long polledSequence = messageQueue.poll();
-                if (polledSequence != null) {
-                    maxConsumedSequence = polledSequence;
-                }
+                messageQueue.poll();
                 // wait producer fill
                 try {
                     Thread.sleep(1);
@@ -96,6 +92,7 @@ public class SpmcArrayQueuePeekTest {
     private static class Peeker extends Thread {
 
         final MessagePassingQueue<Long> messageQueue;
+        long lastPeekedSequence;
 
         private Peeker(MessagePassingQueue<Long> messageQueue) {
             this.messageQueue = messageQueue;
@@ -104,25 +101,17 @@ public class SpmcArrayQueuePeekTest {
         @Override
         public void run() {
             while (!stop) {
-                final long preMaxConsumedSequence = SpmcArrayQueuePeekTest.maxConsumedSequence;
-
                 final Long peekedSequence = messageQueue.peek();
                 if (peekedSequence == null) {
                     continue;
                 }
-                final long postMaxConsumedSequence = SpmcArrayQueuePeekTest.maxConsumedSequence;
 
-                if (peekedSequence < preMaxConsumedSequence) {
-                    String msg = String.format("Unreachable, peekedSequence %s, preMaxConsumedSequence %s",
-                            preMaxConsumedSequence, peekedSequence);
+                if (peekedSequence < lastPeekedSequence) {
+                    String msg = String.format("peekedSequence %s, lastPeekedSequence %s", peekedSequence, lastPeekedSequence);
                     throw new IllegalStateException(msg);
                 }
 
-                if (peekedSequence - postMaxConsumedSequence >= messageQueue.capacity()) {
-                    String msg = String.format("preMaxConsumedSequence %s, peekedSequence %s, postMaxConsumedSequence %s",
-                            preMaxConsumedSequence, peekedSequence, postMaxConsumedSequence);
-                    throw new IllegalStateException(msg);
-                }
+                lastPeekedSequence = peekedSequence;
             }
         }
     }
