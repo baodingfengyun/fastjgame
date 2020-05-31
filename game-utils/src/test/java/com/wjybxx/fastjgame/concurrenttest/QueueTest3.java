@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrenttest;
 
-import org.jctools.queues.MessagePassingQueue;
-import org.jctools.queues.MpscArrayQueue;
-import org.jctools.queues.MpscLinkedQueue;
-import org.jctools.queues.MpscUnboundedArrayQueue;
+import org.jctools.queues.*;
 
 import java.util.Arrays;
 import java.util.Queue;
@@ -48,6 +45,7 @@ public class QueueTest3 {
         testQueue(threadNum, new MpscArrayQueue<>(TASK_NUM));
         testQueue(threadNum, new MpscLinkedQueue<>());
         testQueue(threadNum, new MpscUnboundedArrayQueue<>(8192));
+        testQueue(threadNum, new MpscUnboundedXaddArrayQueue<>(8192));
     }
 
     private static void testQueue(final int threadNum, Queue<String> queue) {
