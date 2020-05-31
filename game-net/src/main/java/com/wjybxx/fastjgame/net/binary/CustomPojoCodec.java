@@ -29,6 +29,10 @@ public class CustomPojoCodec<T> implements PojoCodecImpl<T> {
         this.codec = codec;
     }
 
+    public PojoCodecImpl<T> getDelegate() {
+        return codec;
+    }
+
     @Override
     public Class<T> getEncoderClass() {
         return codec.getEncoderClass();

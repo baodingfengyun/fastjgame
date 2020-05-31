@@ -63,7 +63,7 @@ final class PojoCodec {
     static <E> E readPolymorphicPojoImpl(DataInputStream inputStream, EntityFactory<E> factory, Class<? super E> superClass,
                                          ObjectReader reader, CodecRegistry codecRegistry) throws Exception {
         final TypeId typeId = new TypeId(inputStream.readByte(), inputStream.readFixedInt32());
-        final PojoCodecImpl<?> pojoCodec = codecRegistry.get(typeId);
+        final PojoCodecImpl<E> pojoCodec = codecRegistry.get(typeId);
 
         if (null == pojoCodec) {
             throw new IOException("Unsupported type " + typeId);
@@ -73,9 +73,7 @@ final class PojoCodec {
         checkSupportReadFields(pojoCodec);
 
         final E instance = factory.newInstance();
-        @SuppressWarnings("unchecked") final AbstractPojoCodecImpl<E> abstractPojoCodec = (AbstractPojoCodecImpl<E>) pojoCodec;
-        abstractPojoCodec.readFields(instance, reader);
-
+        readFields(reader, pojoCodec, instance);
         return instance;
     }
 
@@ -88,9 +86,19 @@ final class PojoCodec {
     }
 
     private static void checkSupportReadFields(PojoCodecImpl<?> pojoCodec) throws IOException {
-        if (!(pojoCodec instanceof AbstractPojoCodecImpl)) {
-            throw new IOException("Unsupported codec, superClass serializer must implements " +
-                    AbstractPojoCodecImpl.class.getName());
+        if (pojoCodec instanceof CustomPojoCodec) {
+            PojoCodecImpl<?> delegate = ((CustomPojoCodec<?>) pojoCodec).getDelegate();
+            if (delegate instanceof AbstractPojoCodecImpl) {
+                return;
+            }
         }
+        throw new IOException("Unsupported codec, superClass serializer must implements " +
+                AbstractPojoCodecImpl.class.getName());
+    }
+
+    private static <E> void readFields(ObjectReader reader, PojoCodecImpl<E> pojoCodec, E instance) throws Exception {
+        final PojoCodecImpl<E> delegate = ((CustomPojoCodec<E>) pojoCodec).getDelegate();
+        final AbstractPojoCodecImpl<E> abstractPojoCodec = (AbstractPojoCodecImpl<E>) delegate;
+        abstractPojoCodec.readFields(instance, reader);
     }
 }
