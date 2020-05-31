@@ -86,19 +86,19 @@ final class PojoCodec {
     }
 
     private static void checkSupportReadFields(PojoCodecImpl<?> pojoCodec) throws IOException {
-        if (pojoCodec instanceof CustomPojoCodec) {
-            PojoCodecImpl<?> delegate = ((CustomPojoCodec<?>) pojoCodec).getDelegate();
-            if (delegate instanceof AbstractPojoCodecImpl) {
-                return;
-            }
+        if (pojoCodec instanceof CustomPojoCodec && getDelegate(pojoCodec) instanceof AbstractPojoCodecImpl) {
+            return;
         }
-        throw new IOException("Unsupported codec, superClass serializer must implements " +
+        throw new IOException("Unsupported codec, superClass codec must implements " +
                 AbstractPojoCodecImpl.class.getName());
     }
 
+    private static <E> PojoCodecImpl<E> getDelegate(PojoCodecImpl<E> pojoCodec) {
+        return ((CustomPojoCodec<E>) pojoCodec).getDelegate();
+    }
+
     private static <E> void readFields(ObjectReader reader, PojoCodecImpl<E> pojoCodec, E instance) throws Exception {
-        final PojoCodecImpl<E> delegate = ((CustomPojoCodec<E>) pojoCodec).getDelegate();
-        final AbstractPojoCodecImpl<E> abstractPojoCodec = (AbstractPojoCodecImpl<E>) delegate;
+        final AbstractPojoCodecImpl<E> abstractPojoCodec = (AbstractPojoCodecImpl<E>) getDelegate(pojoCodec);
         abstractPojoCodec.readFields(instance, reader);
     }
 }
