@@ -95,14 +95,15 @@ public class TemplateEventLoop extends AbstractEventLoop {
      * <p>
      * {@link EventLoop}是多生产者单消费者模型，在该模型下，任务队列讲究极致性能的话，性能大致如下(CPU核心足够的情况下)：
      * 1. {@link MpscArrayQueue} - [有界] 性能极好，表现稳定，但我引入的{@link WrappedRunnable}申请了额外的资源。
-     * 2. {@link MpscUnboundedArrayQueue} - [无界] 性能也极好，表现稳定，但我引入的{@link WrappedRunnable}申请了额外的资源。
-     * 3. {@link RingBuffer} - [有界] 性能也极好，表现稳定，资源利用率好于{@link MpscArrayQueue}和{@link MpscUnboundedArrayQueue}，暴露的API更底层，性能吃亏在多消费者模型上。
+     * 2. {@link RingBuffer} - [有界] 性能也极好，表现稳定，资源利用率好于{@link MpscArrayQueue}和{@link MpscUnboundedArrayQueue}，暴露的API更底层，性能吃亏在多消费者模型上。
+     * 3. {@link MpscUnboundedArrayQueue} - [无界] 性能也极好，表现稳定，但我引入的{@link WrappedRunnable}申请了额外的资源。
      * 4. {@link ConcurrentLinkedQueue} - [无界] 性能较好，表现稳定，次于{@link RingBuffer}。
      * 5. {@link LinkedBlockingQueue} - [无界] 性能一般，表现稳定，高度竞争时性能高于{@link ConcurrentLinkedQueue}，但低竞争下吞吐量实在惨烈。
      * <p>
-     * {@link MpscArrayQueue}{@link MpscLinkedQueue}最开始是在netty里看见的，但是由于是internal的，没能搞过来，后来发现是jctools的组件。
      * {@link MpscArrayQueue}性能比{@link RingBuffer}高一些，但资源利用率差一点。
-     * {@link MpscUnboundedArrayQueue}确实是个好东西。
+     * {@link MpscUnboundedArrayQueue}性能比{@link RingBuffer}稍差一点，但是是无界队列。
+     * {@link MpscLinkedQueue}的表现不稳定，性能的好的时候遥遥领先(No.1)，慢的时候差于{@link ConcurrentLinkedQueue}，
+     * 至今未查明具体原因，因此使用{@link MpscUnboundedArrayQueue}代替。
      */
     private final MessagePassingQueue<Runnable> taskQueue;
 
