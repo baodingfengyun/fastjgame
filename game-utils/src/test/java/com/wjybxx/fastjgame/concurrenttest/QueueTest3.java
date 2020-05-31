@@ -106,9 +106,9 @@ public class QueueTest3 {
         joinQuietly(consumer);
     }
 
-    private static void joinQuietly(Thread consumer) {
+    private static void joinQuietly(Thread thread) {
         try {
-            consumer.join();
+            thread.join();
         } catch (InterruptedException ignore) {
 
         }
