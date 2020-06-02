@@ -72,7 +72,7 @@ public class KafkaLogPublisher<T extends GameLog> extends DisruptorEventLoop imp
                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                              @Nonnull String brokerList,
                              @Nonnull LogEncoder<T, DefaultLogRecord> encoder) {
-        super(null, threadFactory, rejectedExecutionHandler, PRODUCER_RING_BUFFER_SIZE, PRODUCER_TASK_BATCH_SIZE, new SleepWaitStrategyFactory());
+        super(null, threadFactory, rejectedExecutionHandler, new SleepWaitStrategyFactory(), PRODUCER_RING_BUFFER_SIZE, PRODUCER_TASK_BATCH_SIZE);
         this.producer = new KafkaProducer<>(newConfig(brokerList), new StringSerializer(), new StringSerializer());
         this.encoder = encoder;
     }

@@ -93,20 +93,21 @@ public class TemplateEventLoop extends AbstractEventLoop {
      * {@link EventLoop}是多生产者单消费者模型，在该模型下，任务队列讲究极致性能的话，性能大致如下(CPU核心足够的情况下)：
      * 1. {@link MpscUnboundedXaddArrayQueue} - [无界] 性能极好，表现稳定，但我引入的{@link WrappedRunnable}申请了额外的资源。
      * 2. {@link MpscArrayQueue} - [有界] 性能极好，表现稳定，但我引入的{@link WrappedRunnable}申请了额外的资源。
-     * 3. {@link RingBuffer} - [有界] 性能也极好，表现稳定，资源利用率好于{@link MpscArrayQueue}和{@link MpscUnboundedArrayQueue}，暴露的API更底层，性能吃亏在多消费者模型上。
+     * 3. {@link RingBuffer} - [有界] 性能也极好，表现稳定，资源利用率好于其它队列，暴露的API更底层，但没有针对单消费者的优化。
      * 4. {@link MpscUnboundedArrayQueue} - [无界] 性能也极好，表现稳定，但我引入的{@link WrappedRunnable}申请了额外的资源。
      * 5. {@link ConcurrentLinkedQueue} - [无界] 性能较好，表现稳定，次于{@link RingBuffer}。
      * 6. {@link LinkedBlockingQueue} - [无界] 性能一般，表现稳定，高度竞争时性能高于{@link ConcurrentLinkedQueue}，但低竞争下吞吐量实在惨烈。
      * <p>
      * Q: 理论上底层都是基于数组的，那么无界队列的性能应该远高于有界队列，那为什么{@link MpscUnboundedArrayQueue}的吞吐量高竞争下低于{@link MpscArrayQueue}？
-     * A: 我之前没意识到这个问题，其实是因为{@link MpscUnboundedArrayQueue}并不是真正的无界队列，和{@link LinkedBlockingQueue}一样，虽然看似无界，但是仍然考虑了消费者的进度，
-     * 因此增加了额外的竞争和开销，而{@link MpscUnboundedXaddArrayQueue}是真正的无界队列，和{@link MpscLinkedQueue}一样，完全不考虑消费者的进度，因此有极高的吞吐量。
+     * A: 我之前没意识到这个问题，其实是因为{@link MpscUnboundedArrayQueue}仍然考虑了消费者的进度，目的是节省空间，只在必要的时候下创建新的数组，
+     * 而{@link MpscUnboundedXaddArrayQueue}完全不考虑消费者的进度，和{@link LinkedBlockingQueue}类似，因此在offer时性能极高，但是会增加空间。
+     * 两者的策略分别是空间换时间和时间换空间。
      * <p>
-     * {@link MpscUnboundedXaddArrayQueue}是真正的无界队列，有最高的吞吐量。
+     * {@link MpscUnboundedXaddArrayQueue}有最高的吞吐量，大概是{@link MpscArrayQueue}和RingBuffer的5倍（5000W比1000W）。
      * {@link MpscArrayQueue}性能比{@link RingBuffer}高一些，但资源利用率差一点。
      * {@link MpscUnboundedArrayQueue}性能比{@link RingBuffer}稍差一点，但是是无界队列。
-     * {@link MpscLinkedQueue}的表现不稳定，性能的好的时候遥遥领先(No.1)，慢的时候差于{@link ConcurrentLinkedQueue}，
-     * 至今未查明具体原因，因此使用{@link MpscUnboundedArrayQueue}代替。
+     * {@link MpscLinkedQueue}的表现不稳定，性能的好的时候仅次于{@link MpscUnboundedXaddArrayQueue}，慢的时候差于{@link ConcurrentLinkedQueue}，
+     * 可能是因为缓存命中率太低。
      */
     private final MessagePassingQueue<Runnable> taskQueue;
 
@@ -132,21 +133,24 @@ public class TemplateEventLoop extends AbstractEventLoop {
     public TemplateEventLoop(@Nullable EventLoopGroup parent,
                              @Nonnull ThreadFactory threadFactory,
                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler) {
-        this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_BATCH_EVENT_SIZE, new SleepWaitStrategyFactory());
-    }
-
-    public TemplateEventLoop(@Nullable EventLoopGroup parent,
-                             @Nonnull ThreadFactory threadFactory,
-                             @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                             int taskBatchSize) {
-        this(parent, threadFactory, rejectedExecutionHandler, taskBatchSize, new SleepWaitStrategyFactory());
+        this(parent, threadFactory, rejectedExecutionHandler, new SleepWaitStrategyFactory(),
+                null, DEFAULT_BATCH_EVENT_SIZE);
     }
 
     public TemplateEventLoop(@Nullable EventLoopGroup parent,
                              @Nonnull ThreadFactory threadFactory,
                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                              @Nonnull WaitStrategyFactory waitStrategyFactory) {
-        this(parent, threadFactory, rejectedExecutionHandler, DEFAULT_BATCH_EVENT_SIZE, waitStrategyFactory);
+        this(parent, threadFactory, rejectedExecutionHandler, waitStrategyFactory,
+                null, DEFAULT_BATCH_EVENT_SIZE);
+    }
+
+    public TemplateEventLoop(@Nullable EventLoopGroup parent,
+                             @Nonnull ThreadFactory threadFactory,
+                             @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
+                             int taskBatchSize) {
+        this(parent, threadFactory, rejectedExecutionHandler, new SleepWaitStrategyFactory(),
+                null, taskBatchSize);
     }
 
     /**
@@ -154,14 +158,14 @@ public class TemplateEventLoop extends AbstractEventLoop {
      * @param threadFactory            线程工厂，创建的线程不要直接启动，建议调用
      *                                 {@link Thread#setUncaughtExceptionHandler(Thread.UncaughtExceptionHandler)}设置异常处理器
      * @param rejectedExecutionHandler 拒绝任务的策略
-     * @param taskBatchSize            批量执行任务数，设定合理的任务数可避免执行任务耗费太多时间。
      * @param waitStrategyFactory      没有任务时的等待策略
+     * @param taskBatchSize            批量执行任务数，设定合理的任务数可避免执行任务耗费太多时间。
      */
     public TemplateEventLoop(@Nullable EventLoopGroup parent,
                              @Nonnull ThreadFactory threadFactory,
                              @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
-                             int taskBatchSize,
-                             @Nonnull WaitStrategyFactory waitStrategyFactory) {
+                             @Nonnull WaitStrategyFactory waitStrategyFactory,
+                             @Nullable TaskQueueFactory taskQueueFactory, int taskBatchSize) {
         super(parent);
 
         if (taskBatchSize <= 0) {
@@ -172,17 +176,15 @@ public class TemplateEventLoop extends AbstractEventLoop {
         // 记录异常退出日志
         UncaughtExceptionHandlers.logIfAbsent(thread, logger);
 
-        this.taskQueue = newTaskQueue();
-        this.waitStrategy = waitStrategyFactory.newInstance();
-        this.taskBatchSize = taskBatchSize;
-        this.rejectedExecutionHandler = rejectedExecutionHandler;
-    }
+        this.rejectedExecutionHandler = Objects.requireNonNull(rejectedExecutionHandler, "rejectHandler");
+        this.waitStrategy = Objects.requireNonNull(waitStrategyFactory.newInstance(), "waitStrategy");
 
-    /**
-     * 如果子类期望使用有界队列可以覆盖该方法
-     */
-    protected MessagePassingQueue<Runnable> newTaskQueue() {
-        return new MpscUnboundedXaddArrayQueue<>(8192, 4);
+        if (taskQueueFactory != null) {
+            this.taskQueue = Objects.requireNonNull(taskQueueFactory.newTaskQueue(), "taskQueue");
+        } else {
+            this.taskQueue = new MpscUnboundedXaddArrayQueue<>(8192, 4);
+        }
+        this.taskBatchSize = taskBatchSize;
     }
 
     @Override
@@ -472,14 +474,16 @@ public class TemplateEventLoop extends AbstractEventLoop {
         }
 
         private void loop() {
-            while (true) {
+            // 不使用while(true)避免有大量任务堆积的时候长时间无法退出
+            while (!isShuttingDown()) {
                 try {
                     // 等待生产者生产数据
                     waitStrategy.waitFor(TemplateEventLoop.this);
 
-                    // 批量消费可用数据 DisruptorEventLoop其实也批量拉取消费的
+                    // 批量消费可用数据 DisruptorEventLoop其实也是批量拉取消费的
                     taskQueue.drain(this, taskBatchSize);
 
+                    // 每处理一批任务，执行一次循环
                     safeLoopOnce();
                 } catch (ShuttingDownException | InterruptedException e) {
                     // 检测到EventLoop关闭或被中断

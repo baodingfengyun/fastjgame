@@ -14,30 +14,26 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrenttest;
+package com.wjybxx.fastjgame.queue;
 
 import org.jctools.queues.MessagePassingQueue;
-import org.jctools.queues.MpscArrayQueue;
-import org.jctools.queues.SpscLinkedQueue;
+import org.jctools.queues.SpscArrayQueue;
+
+import java.util.concurrent.locks.LockSupport;
 
 /**
- * 看{@link SpscLinkedQueue#isEmpty()}源码的时候总觉得有bug，写了个测试，哎，真的有bug
- * 测试单消费者队列的isEmpty约束
- *
  * @author wjybxx
  * @version 1.0
- * date - 2020/5/16
+ * date - 2020/5/23
  */
-public class SCMessagePassingQueueTest {
+public class SpscArrayQueueSizeTest {
 
     private static volatile boolean stop = false;
 
     public static void main(String[] args) throws InterruptedException {
-        MessagePassingQueue<String> messageQueue = new MpscArrayQueue<>(8);
+        MessagePassingQueue<String> messageQueue = new SpscArrayQueue<>(8);
 
         new Producer(messageQueue).start();
-        new Producer(messageQueue).start();
-
         new Consumer(messageQueue).start();
 
         try {
@@ -46,6 +42,7 @@ public class SCMessagePassingQueueTest {
             stop = true;
         }
     }
+
 
     private static class Producer extends Thread {
 
@@ -59,13 +56,13 @@ public class SCMessagePassingQueueTest {
 
         @Override
         public void run() {
-            try {
-                while (!stop) {
-                    messageQueue.offer(Long.toString(sequence++));
-                    Thread.sleep(1);
+            while (!stop) {
+                messageQueue.offer(Long.toString(sequence++));
+                int size = messageQueue.size();
+                int capacity = messageQueue.capacity();
+                if (size > capacity) {
+                    throw new IllegalStateException("size : " + size + ", capacity : " + capacity);
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -82,13 +79,7 @@ public class SCMessagePassingQueueTest {
         public void run() {
             while (!stop) {
                 messageQueue.poll();
-
-                if (!messageQueue.isEmpty()) {
-                    final String e = messageQueue.poll();
-                    if (null == e) {
-                        throw new Error("MessageQueue.isEmpty() is false, messageQueue.poll() return null! Queue " + messageQueue.getClass().getSimpleName());
-                    }
-                }
+                LockSupport.parkNanos(1);
             }
         }
 

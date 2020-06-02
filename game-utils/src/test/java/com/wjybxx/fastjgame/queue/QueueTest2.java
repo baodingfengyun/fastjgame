@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrenttest;
+package com.wjybxx.fastjgame.queue;
 
 import org.jctools.queues.*;
 
@@ -41,7 +41,7 @@ public class QueueTest2 {
 
     public static void main(String[] args) {
         // -1 给消费者
-        int threadNum = Runtime.getRuntime().availableProcessors() - 1;
+        int threadNum = 4;
         testQueue(threadNum, new ConcurrentLinkedQueue<>());
         testQueue(threadNum, new LinkedBlockingQueue<>());
         testQueue(threadNum, new ArrayBlockingQueue<>(TASK_NUM));

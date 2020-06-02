@@ -86,7 +86,7 @@ public class KafkaLogPuller<T extends GameLog> extends DisruptorEventLoop implem
                           @Nonnull String groupId,
                           @Nonnull LogDecoder<DefaultLogRecord, T> decoder,
                           @Nonnull Collection<LogConsumer<T>> consumers) {
-        super(null, threadFactory, rejectedExecutionHandler, CONSUMER_RING_BUFFER_SIZE, CONSUMER_TASK_BATCH_SIZE, newWaitStrategyFactory());
+        super(null, threadFactory, rejectedExecutionHandler, newWaitStrategyFactory(), CONSUMER_RING_BUFFER_SIZE, CONSUMER_TASK_BATCH_SIZE);
         this.decoder = decoder;
         this.logConsumerMap = indexConsumers(consumers);
         this.kafkaConsumer = new KafkaConsumer<>(newConfig(brokerList, groupId), new StringDeserializer(), new StringDeserializer());

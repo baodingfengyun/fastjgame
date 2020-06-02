@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import com.wjybxx.fastjgame.utils.concurrent.unbounded.TaskQueueFactory;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.unbounded.WaitStrategyFactory;
 
@@ -45,7 +46,7 @@ public class DefaultEventLoop extends TemplateEventLoop {
         super(parent, threadFactory, rejectedExecutionHandler, waitStrategyFactory);
     }
 
-    public DefaultEventLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler, int taskBatchSize, @Nonnull WaitStrategyFactory waitStrategyFactory) {
-        super(parent, threadFactory, rejectedExecutionHandler, taskBatchSize, waitStrategyFactory);
+    public DefaultEventLoop(@Nullable EventLoopGroup parent, @Nonnull ThreadFactory threadFactory, @Nonnull RejectedExecutionHandler rejectedExecutionHandler, @Nonnull WaitStrategyFactory waitStrategyFactory, @Nullable TaskQueueFactory taskQueueFactory, int taskBatchSize) {
+        super(parent, threadFactory, rejectedExecutionHandler, waitStrategyFactory, taskQueueFactory, taskBatchSize);
     }
 }

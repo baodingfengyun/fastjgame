@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.concurrenttest;
+package com.wjybxx.fastjgame.queue;
 
 import org.jctools.queues.*;
 
