@@ -146,7 +146,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * @param threadFactory            线程工厂
      * @param rejectedExecutionHandler 拒绝策略
      * @param ringBufferSize           环形缓冲区大小
-     * @param taskBatchSize            批量拉取(执行)任务数(小于等于0则不限制)
+     * @param taskBatchSize            批量执行任务数，设定合理的任务数可避免执行任务耗费太多时间。
      */
     public DisruptorEventLoop(@Nullable EventLoopGroup parent,
                               @Nonnull ThreadFactory threadFactory,
@@ -163,7 +163,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
      * @param rejectedExecutionHandler 拒绝策略
      * @param waitStrategyFactory      等待策略工厂
      * @param ringBufferSize           环形缓冲区大小
-     * @param taskBatchSize            批量拉取(执行)任务数(小于等于0则不限制)
+     * @param taskBatchSize            批量执行任务数，设定合理的任务数可避免执行任务耗费太多时间。
      */
     public DisruptorEventLoop(@Nullable EventLoopGroup parent,
                               @Nonnull ThreadFactory threadFactory,
@@ -495,7 +495,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                         nextSequence = runTaskBatch(nextSequence, batchEndSequence);
 
                         // 标记这批事件已处理 - 在执行safeLoop之前允许生产者继续填充
-                        sequence.set(availableSequence);
+                        sequence.set(batchEndSequence);
 
                         // 每处理一批任务，执行一次循环
                         safeLoopOnce();
