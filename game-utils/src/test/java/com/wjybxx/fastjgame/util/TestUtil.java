@@ -21,6 +21,8 @@ import com.wjybxx.fastjgame.utils.TimeUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
 
 /**
@@ -29,6 +31,8 @@ import java.util.concurrent.locks.LockSupport;
  * date - 2020/6/2
  */
 public class TestUtil {
+
+    public static final long TEST_TIMEOUT = 15 * 1000;
 
     public static void joinQuietly(Thread thread) {
         try {
@@ -49,8 +53,8 @@ public class TestUtil {
         sleepQuietly(runTimeMs);
         eventLoop.shutdownNow();
 
-        joinQuietly(producer);
         eventLoop.terminationFuture().join();
+        joinQuietly(producer);
     }
 
     public static void startAndJoin(Thread[] producer, EventLoop eventLoop, long runTimeMs) {
@@ -60,7 +64,20 @@ public class TestUtil {
         sleepQuietly(runTimeMs);
         eventLoop.shutdownNow();
 
-        Arrays.stream(producer).forEach(TestUtil::joinQuietly);
         eventLoop.terminationFuture().join();
+        Arrays.stream(producer).forEach(TestUtil::joinQuietly);
+    }
+
+    public static void startAndJoin(List<Thread> threads, AtomicBoolean stop, long runTimeMs) {
+        threads.forEach(Thread::start);
+
+        sleepQuietly(runTimeMs);
+        stop.set(true);
+
+        threads.forEach(TestUtil::joinQuietly);
+
+        // 重置
+        stop.set(false);
+
     }
 }

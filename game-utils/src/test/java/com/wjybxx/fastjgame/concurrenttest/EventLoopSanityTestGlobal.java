@@ -17,29 +17,48 @@
 package com.wjybxx.fastjgame.concurrenttest;
 
 import com.wjybxx.fastjgame.util.TestUtil;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.utils.concurrent.GlobalEventLoop;
 import com.wjybxx.fastjgame.utils.misc.LongHolder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.wjybxx.fastjgame.util.TestUtil.TEST_TIMEOUT;
 import static com.wjybxx.fastjgame.util.TestUtil.sleepQuietly;
 
 /**
- * EventLoop健壮性测试
+ * {@link GlobalEventLoop}健壮性测试
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/6/2
  */
-public abstract class EventLoopSanityTest {
+public class EventLoopSanityTestGlobal {
 
-    abstract EventLoop newEventLoop(RejectedExecutionHandler rejectedExecutionHandler);
+    @Test
+    void testShutdown() {
+        Assertions.assertThrows(UnsupportedOperationException.class, GlobalEventLoop.INSTANCE::shutdown);
+    }
+
+    @Test
+    void testShutdownNow() {
+        Assertions.assertThrows(UnsupportedOperationException.class, GlobalEventLoop.INSTANCE::shutdownNow);
+    }
+
+    @Test
+    void testAutoShutdown() {
+        GlobalEventLoop.INSTANCE.execute(ConcurrentUtils.NO_OP_TASK);
+        Assertions.assertTrue(GlobalEventLoop.INSTANCE.isThreadAlive(), "GlobalEventLoop thread is not live");
+        TestUtil.sleepQuietly(GlobalEventLoop.INSTANCE.getQuietPeriodMs() + 1000);
+        Assertions.assertFalse(GlobalEventLoop.INSTANCE.isThreadAlive(), "GlobalEventLoop thread is alive");
+    }
 
     /**
      * 测试单生产者下的先入先出
@@ -47,36 +66,36 @@ public abstract class EventLoopSanityTest {
     @Timeout(TEST_TIMEOUT)
     @Test
     void testSpFifo() {
-        // 必须使用abort策略，否则生产者无法感知失败
-        final EventLoop eventLoop = newEventLoop(RejectedExecutionHandlers.abort());
+        final AtomicBoolean stop = new AtomicBoolean();
         final LongHolder fail = new LongHolder();
         final LongHolder lastSequence = new LongHolder();
+        final Thread producer = new SpFIFOProducer(stop, fail, lastSequence);
 
-        final Thread producer = new SpFIFOProducer(eventLoop, fail, lastSequence);
-
-        TestUtil.startAndJoin(producer, eventLoop, 1000);
+        TestUtil.startAndJoin(Collections.singletonList(producer), stop, 1000);
 
         Assertions.assertEquals(0, fail.get(), "Observed out of order");
     }
 
     private static class SpFIFOProducer extends Thread {
 
-        final EventLoop eventLoop;
+        final AtomicBoolean stop;
         final LongHolder fail;
         final LongHolder lastSequence;
 
-        private SpFIFOProducer(EventLoop eventLoop, LongHolder fail, LongHolder lastSequence) {
-            this.eventLoop = eventLoop;
+        private SpFIFOProducer(AtomicBoolean stop, LongHolder fail, LongHolder lastSequence) {
+            this.stop = stop;
             this.fail = fail;
             this.lastSequence = lastSequence;
         }
 
         @Override
         public void run() {
+            final EventLoop eventLoop = GlobalEventLoop.INSTANCE;
+
             long sequence = 0;
             lastSequence.set(-1);
 
-            while (!eventLoop.isShutdown()) {
+            while (!stop.get()) {
                 try {
                     eventLoop.execute(new SpFIFOTask(sequence, fail, lastSequence));
                     sequence++;
@@ -117,29 +136,29 @@ public abstract class EventLoopSanityTest {
         final int producerNum = 4;
 
         // 必须使用abort策略，否则生产者无法感知失败
-        final EventLoop eventLoop = newEventLoop(RejectedExecutionHandlers.abort());
+        final AtomicBoolean stop = new AtomicBoolean();
         final LongHolder fail = new LongHolder();
         final long[] lastSequences = new long[producerNum];
 
         final MpFIFOProducer[] producers = new MpFIFOProducer[producerNum];
         for (int index = 0; index < producerNum; index++) {
-            producers[index] = new MpFIFOProducer(eventLoop, index, fail, lastSequences);
+            producers[index] = new MpFIFOProducer(stop, index, fail, lastSequences);
         }
 
-        TestUtil.startAndJoin(producers, eventLoop, 1000);
+        TestUtil.startAndJoin(Arrays.asList(producers), stop, 1000);
 
         Assertions.assertEquals(0, fail.get(), "Observed out of order");
     }
 
     private static class MpFIFOProducer extends Thread {
 
-        final EventLoop eventLoop;
+        final AtomicBoolean stop;
         final int index;
         final LongHolder fail;
         final long[] lastSequences;
 
-        private MpFIFOProducer(EventLoop eventLoop, int index, LongHolder fail, long[] lastSequences) {
-            this.eventLoop = eventLoop;
+        private MpFIFOProducer(AtomicBoolean stop, int index, LongHolder fail, long[] lastSequences) {
+            this.stop = stop;
             this.index = index;
             this.fail = fail;
             this.lastSequences = lastSequences;
@@ -147,10 +166,11 @@ public abstract class EventLoopSanityTest {
 
         @Override
         public void run() {
+            final EventLoop eventLoop = GlobalEventLoop.INSTANCE;
             long sequence = 0;
             lastSequences[index] = -1;
 
-            while (!eventLoop.isShuttingDown()) {
+            while (!stop.get()) {
                 try {
                     eventLoop.execute(new MpFIFOTask(index, fail, lastSequences, sequence));
                     sequence++;

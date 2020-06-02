@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
+import com.wjybxx.fastjgame.utils.annotation.VisibleForTesting;
+
 import javax.annotation.Nonnull;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -114,6 +116,16 @@ public class GlobalEventLoop extends AbstractEventLoop {
     @Override
     public void execute(@Nonnull Runnable task) {
         executorService.execute(() -> safeExecute(task));
+    }
+
+    @VisibleForTesting
+    public boolean isThreadAlive() {
+        return thread.isAlive();
+    }
+
+    @VisibleForTesting
+    public long getQuietPeriodMs() {
+        return QUIET_PERIOD_INTERVAL * 1000;
     }
 
     private final class InnerThreadFactory implements ThreadFactory {
