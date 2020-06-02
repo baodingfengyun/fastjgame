@@ -20,6 +20,8 @@ import com.wjybxx.fastjgame.util.TestUtil;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.utils.misc.LongHolder;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.RejectedExecutionException;
@@ -31,31 +33,42 @@ import java.util.concurrent.RejectedExecutionException;
  */
 public abstract class EventLoopSanityTest {
 
-    private static final ThreadLocal<Long> fifoLastSequence = new ThreadLocal<>();
-
     abstract EventLoop newEventLoop(RejectedExecutionHandler rejectedExecutionHandler);
 
     @Test
     void testFifo() {
+        // 必须使用abort策略，否则生产者无法感知失败
         final EventLoop eventLoop = newEventLoop(RejectedExecutionHandlers.abort());
-        final Thread producer = new FIFOProducer(eventLoop);
+        final LongHolder fail = new LongHolder();
+        final LongHolder lastSequence = new LongHolder();
+
+        final Thread producer = new FIFOProducer(eventLoop, fail, lastSequence);
+
         TestUtil.startAndJoin(producer, eventLoop, 1000);
+
+        Assertions.assertEquals(0, fail.get(), "Observed out of order");
     }
 
     private static class FIFOProducer extends Thread {
 
         private final EventLoop eventLoop;
+        private final LongHolder fail;
+        private final LongHolder lastSequence;
 
-        private FIFOProducer(EventLoop eventLoop) {
+        private FIFOProducer(EventLoop eventLoop, LongHolder fail, LongHolder lastSequence) {
             this.eventLoop = eventLoop;
+            this.fail = fail;
+            this.lastSequence = lastSequence;
         }
 
         @Override
         public void run() {
             long sequence = 0;
+            lastSequence.set(-1);
+
             while (!eventLoop.isShutdown()) {
                 try {
-                    eventLoop.execute(new FIFOTask(sequence));
+                    eventLoop.execute(new FIFOTask(sequence, fail, lastSequence));
                     sequence++;
                 } catch (RejectedExecutionException ignore) {
                     TestUtil.sleepQuietly(1);
@@ -67,24 +80,21 @@ public abstract class EventLoopSanityTest {
     private static class FIFOTask implements Runnable {
 
         long sequence;
+        LongHolder fail;
+        LongHolder lastSequence;
 
-        FIFOTask(long sequence) {
+        FIFOTask(long sequence, LongHolder fail, LongHolder lastSequence) {
             this.sequence = sequence;
+            this.fail = fail;
+            this.lastSequence = lastSequence;
         }
 
         @Override
         public void run() {
-            final Long lastSequence = fifoLastSequence.get();
-            if (lastSequence == null) {
-                fifoLastSequence.set(sequence);
-                return;
+            if (sequence != lastSequence.get() + 1) {
+                fail.incAndGet();
             }
-
-            if (sequence != lastSequence + 1) {
-                throw new IllegalStateException("sequence " + sequence + ", lastSequence " + lastSequence);
-            }
-
-            fifoLastSequence.set(sequence);
+            lastSequence.set(sequence);
         }
     }
 

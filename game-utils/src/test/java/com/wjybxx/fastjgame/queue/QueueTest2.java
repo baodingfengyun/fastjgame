@@ -41,7 +41,7 @@ public class QueueTest2 {
 
     public static void main(String[] args) {
         // -1 给消费者
-        int threadNum = 4;
+        int threadNum = Runtime.getRuntime().availableProcessors() - 1;
         testQueue(threadNum, new ConcurrentLinkedQueue<>());
         testQueue(threadNum, new LinkedBlockingQueue<>());
         testQueue(threadNum, new ArrayBlockingQueue<>(TASK_NUM));
