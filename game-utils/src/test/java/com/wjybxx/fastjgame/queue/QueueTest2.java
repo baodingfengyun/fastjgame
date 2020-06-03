@@ -27,6 +27,21 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * 又一个不靠谱的队列性能测试（1s吞吐量）
+ * <p>
+ * ConcurrentLinkedQueue producer 7 consumer 1 runTimeMs 1000 producerOffer 9827677 consumerPoll 9827667
+ * LinkedBlockingQueue producer 7 consumer 1 runTimeMs 1000 producerOffer 5602092 consumerPoll 5602077
+ * ArrayBlockingQueue producer 7 consumer 1 runTimeMs 1000 producerOffer 5767041 consumerPoll 4718465
+ * MpscArrayQueue producer 7 consumer 1 runTimeMs 1000 producerOffer 10294790 consumerPoll 10294783
+ * MpscLinkedQueue producer 7 consumer 1 runTimeMs 1000 producerOffer 46930227 consumerPoll 46563794
+ * MpscUnboundedArrayQueue producer 7 consumer 1 runTimeMs 1000 producerOffer 9833952 consumerPoll 9821956
+ * MpscUnboundedXaddArrayQueue producer 7 consumer 1 runTimeMs 1000 producerOffer 48831745 consumerPoll 48380345
+ * <p>
+ * {@link MpscUnboundedXaddArrayQueue}稳定4000W+，偶尔破5000W。
+ * {@link MpscLinkedQueue}极限能破4000W，但多数时候都不超过2000W，差到极致可能只有500W（应该是缓存行命中率低导致的）。
+ * {@link MpscUnboundedArrayQueue}{@link MpscArrayQueue}基本1000W+，
+ * {@link ConcurrentLinkedQueue}900W+，偶尔破1000W。
+ * {@link LinkedBlockingQueue}600W上下。
+ * {@link ArrayBlockingQueue}500W上下。
  *
  * @author wjybxx
  * @version 1.0

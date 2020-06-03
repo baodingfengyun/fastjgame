@@ -28,6 +28,8 @@ import org.jctools.queues.MpscUnboundedArrayQueue;
 import org.jctools.queues.MpscUnboundedXaddArrayQueue;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 /**
  * 测试1s吞吐量
  * <p>
@@ -95,7 +97,7 @@ public class EventLoopThroughputTest {
             for (int index = 0; index < producerNum; index++) {
                 producers[index] = new Producer(eventLoop);
             }
-            TestUtil.startAndJoin(producers, eventLoop, 1000);
+            TestUtil.startAndJoin(Arrays.asList(producers), eventLoop, 1000);
             System.out.println(eventLoop.getClass().getName() + ", producerNum " + producerNum + ", count " + ThroughputTask.count);
         } finally {
             ThroughputTask.count = 0;
@@ -118,7 +120,6 @@ public class EventLoopThroughputTest {
             }
         }
     }
-
 
     private static class ThroughputTask implements Runnable {
 

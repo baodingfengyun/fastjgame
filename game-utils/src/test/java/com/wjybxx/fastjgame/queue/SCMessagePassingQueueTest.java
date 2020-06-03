@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.queue;
 
 import org.jctools.queues.MessagePassingQueue;
-import org.jctools.queues.MpscArrayQueue;
 import org.jctools.queues.SpscLinkedQueue;
 
 /**
@@ -33,11 +32,9 @@ public class SCMessagePassingQueueTest {
     private static volatile boolean stop = false;
 
     public static void main(String[] args) throws InterruptedException {
-        MessagePassingQueue<String> messageQueue = new MpscArrayQueue<>(8);
+        MessagePassingQueue<String> messageQueue = new SpscLinkedQueue<>();
 
         new Producer(messageQueue).start();
-        new Producer(messageQueue).start();
-
         new Consumer(messageQueue).start();
 
         try {

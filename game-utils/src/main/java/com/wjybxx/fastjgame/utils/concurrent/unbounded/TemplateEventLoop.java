@@ -39,7 +39,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 事件循环的模板实现。
- * 它是无界事件循环的超类，如果期望使用有界队列，请使用{@link DisruptorEventLoop}或覆盖{@link #newTaskQueue()}方法创建有界队列。
  * 等待策略实现与{@link DisruptorEventLoop}的等待策略是一致的。
  *
  * @author wjybxx
@@ -100,10 +99,10 @@ public class TemplateEventLoop extends AbstractEventLoop {
      * <p>
      * Q: 理论上底层都是基于数组的，那么无界队列的性能应该远高于有界队列，那为什么{@link MpscUnboundedArrayQueue}的吞吐量高竞争下低于{@link MpscArrayQueue}？
      * A: 我之前没意识到这个问题，其实是因为{@link MpscUnboundedArrayQueue}仍然考虑了消费者的进度，目的是节省空间，只在必要的时候下创建新的数组，
-     * 而{@link MpscUnboundedXaddArrayQueue}完全不考虑消费者的进度，和{@link LinkedBlockingQueue}类似，因此在offer时性能极高，但是会增加空间。
+     * 而{@link MpscUnboundedXaddArrayQueue}完全不考虑消费者的进度，和{@link MpscLinkedQueue}类似，因此在offer时性能极高，但是会增加空间。
      * 两者的策略分别是空间换时间和时间换空间。
      * <p>
-     * {@link MpscUnboundedXaddArrayQueue}有最高的吞吐量，大概是{@link MpscArrayQueue}和RingBuffer的5倍（5000W比1000W）。
+     * {@link MpscUnboundedXaddArrayQueue}有最高的吞吐量，大概是{@link MpscArrayQueue}和RingBuffer的5倍（5000W比1000W）（低竞争下也有2-3倍）。
      * {@link MpscArrayQueue}性能比{@link RingBuffer}高一些，但资源利用率差一点。
      * {@link MpscUnboundedArrayQueue}性能比{@link RingBuffer}稍差一点，但是是无界队列。
      * {@link MpscLinkedQueue}的表现不稳定，性能的好的时候仅次于{@link MpscUnboundedXaddArrayQueue}，慢的时候差于{@link ConcurrentLinkedQueue}，

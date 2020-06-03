@@ -31,7 +31,7 @@ public class InnerPingPongMessageTO implements SocketPingPongMessageTO {
 
     private final PingPongMessage message;
 
-    public InnerPingPongMessageTO(PingPongMessage message) {
+    InnerPingPongMessageTO(PingPongMessage message) {
         this.message = message;
     }
 

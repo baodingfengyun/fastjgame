@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.concurrenttest;
 
 import com.wjybxx.fastjgame.util.TestUtil;
+import com.wjybxx.fastjgame.utils.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
@@ -25,10 +26,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import java.util.Arrays;
 import java.util.concurrent.RejectedExecutionException;
 
 import static com.wjybxx.fastjgame.util.TestUtil.TEST_TIMEOUT;
-import static com.wjybxx.fastjgame.util.TestUtil.sleepQuietly;
 
 /**
  * EventLoop健壮性测试
@@ -42,78 +43,11 @@ public abstract class EventLoopSanityTest {
     abstract EventLoop newEventLoop(RejectedExecutionHandler rejectedExecutionHandler);
 
     /**
-     * 测试单生产者下的先入先出
+     * 对于每一个生产者而言，都应该满足先入先出
      */
     @Timeout(TEST_TIMEOUT)
     @Test
-    void testSpFifo() {
-        // 必须使用abort策略，否则生产者无法感知失败
-        final EventLoop eventLoop = newEventLoop(RejectedExecutionHandlers.abort());
-        final LongHolder fail = new LongHolder();
-        final LongHolder lastSequence = new LongHolder();
-
-        final Thread producer = new SpFIFOProducer(eventLoop, fail, lastSequence);
-
-        TestUtil.startAndJoin(producer, eventLoop, 1000);
-
-        Assertions.assertEquals(0, fail.get(), "Observed out of order");
-    }
-
-    private static class SpFIFOProducer extends Thread {
-
-        final EventLoop eventLoop;
-        final LongHolder fail;
-        final LongHolder lastSequence;
-
-        private SpFIFOProducer(EventLoop eventLoop, LongHolder fail, LongHolder lastSequence) {
-            this.eventLoop = eventLoop;
-            this.fail = fail;
-            this.lastSequence = lastSequence;
-        }
-
-        @Override
-        public void run() {
-            long sequence = 0;
-            lastSequence.set(-1);
-
-            while (!eventLoop.isShutdown()) {
-                try {
-                    eventLoop.execute(new SpFIFOTask(sequence, fail, lastSequence));
-                    sequence++;
-                } catch (RejectedExecutionException ignore) {
-                    sleepQuietly(1);
-                }
-            }
-        }
-    }
-
-    private static class SpFIFOTask implements Runnable {
-
-        long sequence;
-        LongHolder fail;
-        LongHolder lastSequence;
-
-        SpFIFOTask(long sequence, LongHolder fail, LongHolder lastSequence) {
-            this.sequence = sequence;
-            this.fail = fail;
-            this.lastSequence = lastSequence;
-        }
-
-        @Override
-        public void run() {
-            if (sequence != lastSequence.get() + 1) {
-                fail.incAndGet();
-            }
-            lastSequence.set(sequence);
-        }
-    }
-
-    /**
-     * 测试多生产下各自的先入先出
-     */
-    @Timeout(TEST_TIMEOUT)
-    @Test
-    void testMpFifo() {
+    void testFifo() {
         final int producerNum = 4;
 
         // 必须使用abort策略，否则生产者无法感知失败
@@ -121,24 +55,24 @@ public abstract class EventLoopSanityTest {
         final LongHolder fail = new LongHolder();
         final long[] lastSequences = new long[producerNum];
 
-        final MpFIFOProducer[] producers = new MpFIFOProducer[producerNum];
+        final FIFOProducer[] producers = new FIFOProducer[producerNum];
         for (int index = 0; index < producerNum; index++) {
-            producers[index] = new MpFIFOProducer(eventLoop, index, fail, lastSequences);
+            producers[index] = new FIFOProducer(eventLoop, index, fail, lastSequences);
         }
 
-        TestUtil.startAndJoin(producers, eventLoop, 1000);
+        TestUtil.startAndJoin(Arrays.asList(producers), eventLoop, 1000);
 
         Assertions.assertEquals(0, fail.get(), "Observed out of order");
     }
 
-    private static class MpFIFOProducer extends Thread {
+    private static class FIFOProducer extends Thread {
 
         final EventLoop eventLoop;
         final int index;
         final LongHolder fail;
         final long[] lastSequences;
 
-        private MpFIFOProducer(EventLoop eventLoop, int index, LongHolder fail, long[] lastSequences) {
+        private FIFOProducer(EventLoop eventLoop, int index, LongHolder fail, long[] lastSequences) {
             this.eventLoop = eventLoop;
             this.index = index;
             this.fail = fail;
@@ -152,7 +86,7 @@ public abstract class EventLoopSanityTest {
 
             while (!eventLoop.isShuttingDown()) {
                 try {
-                    eventLoop.execute(new MpFIFOTask(index, fail, lastSequences, sequence));
+                    eventLoop.execute(new FIFOTask(fail, lastSequences, index, sequence));
                     sequence++;
                 } catch (RejectedExecutionException ignore) {
                     TestUtil.sleepQuietly(1);
@@ -161,14 +95,15 @@ public abstract class EventLoopSanityTest {
         }
     }
 
-    private static class MpFIFOTask implements Runnable {
+    private static class FIFOTask implements Runnable {
 
-        int index;
         LongHolder fail;
         long[] lastSequences;
+
+        int index;
         long sequence;
 
-        MpFIFOTask(int index, LongHolder fail, long[] lastSequences, long sequence) {
+        FIFOTask(LongHolder fail, long[] lastSequences, int index, long sequence) {
             this.index = index;
             this.sequence = sequence;
             this.fail = fail;
@@ -183,4 +118,35 @@ public abstract class EventLoopSanityTest {
             lastSequences[index] = sequence;
         }
     }
+
+    @Test
+    void testShutdown() {
+        final EventLoop eventLoop = newEventLoop(RejectedExecutionHandlers.abort());
+        eventLoop.shutdown();
+        Assertions.assertTrue(eventLoop.isShuttingDown(), "shutdown invoked, but state is not shuttingDone");
+    }
+
+    @Test
+    void testShutdownNow() {
+        final EventLoop eventLoop = newEventLoop(RejectedExecutionHandlers.abort());
+        eventLoop.shutdownNow();
+        Assertions.assertTrue(eventLoop.isShutdown(), "shutdownNow invoked, but state is not shutdown");
+    }
+
+    @Test
+    void testTerminated() {
+        final EventLoop eventLoop = newEventLoop(RejectedExecutionHandlers.abort());
+        eventLoop.shutdownNow();
+        eventLoop.terminationFuture().join();
+        Assertions.assertTrue(eventLoop.isTerminated(), "join completed, but eventLoop is not terminated");
+    }
+
+    @Test
+    void testReject() {
+        final EventLoop eventLoop = newEventLoop(RejectedExecutionHandlers.abort());
+        eventLoop.shutdown();
+        Assertions.assertThrows(RejectedExecutionException.class, () -> eventLoop.execute(ConcurrentUtils.NO_OP_TASK),
+                "shutdown invoked, but the task was not rejected");
+    }
+
 }

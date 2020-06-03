@@ -137,9 +137,9 @@ class OuterUtils {
             messageQueue.getCacheQueue().addLast(outerSocketMessage);
         }
 
-        if (messageQueue.getPendingMessages() <= maxPendingMessages / 2
-                && messageQueue.getCacheMessages() >= maxPendingMessages / 2) {
-            // 缓存的足够多了，尝试发送
+        if (messageQueue.getCacheMessages() >= maxPendingMessages / 2
+                && messageQueue.getPendingMessages() <= maxPendingMessages / 2) {
+            // 缓存的足够多了，尝试发送（如果待确认的消息超过限制的半数，那么不发送）
             emit(channel, messageQueue, maxPendingMessages, ackDeadline);
         }
     }

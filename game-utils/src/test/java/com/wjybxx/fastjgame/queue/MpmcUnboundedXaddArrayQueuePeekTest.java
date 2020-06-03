@@ -34,16 +34,21 @@ public class MpmcUnboundedXaddArrayQueuePeekTest {
     private static final int poolSize = 4;
     private static final int capacity = chunkSize * poolSize;
 
+    private static Thread mainThread;
     private static volatile boolean stop = false;
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
+        mainThread = Thread.currentThread();
+
         MessagePassingQueue<Long> messageQueue = new MpmcUnboundedXaddArrayQueue<>(chunkSize, poolSize);
-        new Producer(messageQueue, 600).start();
-        new Consumer(messageQueue, 1000).start();
+        new Producer(messageQueue, 800).start();
+        new Consumer(messageQueue, 600).start();
         new Peeker(messageQueue).start();
 
         try {
             Thread.sleep(10 * 1000);
+        } catch (InterruptedException ignore) {
+
         } finally {
             stop = true;
         }
@@ -64,13 +69,12 @@ public class MpmcUnboundedXaddArrayQueuePeekTest {
         @Override
         public void run() {
             while (!stop) {
-                if (messageQueue.size() >= capacity - chunkSize) {
-                    LockSupport.parkNanos(sleepNanos);
-                    continue;
-                }
-
                 if (messageQueue.offer(sequence)) {
                     sequence++;
+                }
+
+                if (messageQueue.size() >= capacity - chunkSize) {
+                    LockSupport.parkNanos(sleepNanos);
                 }
             }
         }
@@ -118,6 +122,8 @@ public class MpmcUnboundedXaddArrayQueuePeekTest {
                 }
 
                 if (peekedSequence < lastPeekedSequence) {
+                    mainThread.interrupt();
+
                     String msg = String.format("peekedSequence %s, lastPeekedSequence %s", peekedSequence, lastPeekedSequence);
                     throw new IllegalStateException(msg);
                 }

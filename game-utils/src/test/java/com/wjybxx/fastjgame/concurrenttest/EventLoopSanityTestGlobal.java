@@ -26,12 +26,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.wjybxx.fastjgame.util.TestUtil.TEST_TIMEOUT;
-import static com.wjybxx.fastjgame.util.TestUtil.sleepQuietly;
 
 /**
  * {@link GlobalEventLoop}健壮性测试
@@ -41,6 +39,83 @@ import static com.wjybxx.fastjgame.util.TestUtil.sleepQuietly;
  * date - 2020/6/2
  */
 public class EventLoopSanityTestGlobal {
+
+    /**
+     * 对于每一个生产者而言，都应该满足先入先出
+     */
+    @Timeout(TEST_TIMEOUT)
+    @Test
+    void testFifo() {
+        final int producerNum = 4;
+
+        final AtomicBoolean stop = new AtomicBoolean();
+        final LongHolder fail = new LongHolder();
+        final long[] lastSequences = new long[producerNum];
+
+        final FIFOProducer[] producers = new FIFOProducer[producerNum];
+        for (int index = 0; index < producerNum; index++) {
+            producers[index] = new FIFOProducer(stop, index, fail, lastSequences);
+        }
+
+        TestUtil.startAndJoin(Arrays.asList(producers), stop, 1000);
+
+        Assertions.assertEquals(0, fail.get(), "Observed out of order");
+    }
+
+    private static class FIFOProducer extends Thread {
+
+        final AtomicBoolean stop;
+        final int index;
+        final LongHolder fail;
+        final long[] lastSequences;
+
+        private FIFOProducer(AtomicBoolean stop, int index, LongHolder fail, long[] lastSequences) {
+            this.stop = stop;
+            this.index = index;
+            this.fail = fail;
+            this.lastSequences = lastSequences;
+        }
+
+        @Override
+        public void run() {
+            final EventLoop eventLoop = GlobalEventLoop.INSTANCE;
+            long sequence = 0;
+            lastSequences[index] = -1;
+
+            while (!stop.get()) {
+                try {
+                    eventLoop.execute(new FIFOTask(fail, lastSequences, index, sequence));
+                    sequence++;
+                } catch (RejectedExecutionException ignore) {
+                    TestUtil.sleepQuietly(1);
+                }
+            }
+        }
+    }
+
+    private static class FIFOTask implements Runnable {
+
+        LongHolder fail;
+        long[] lastSequences;
+
+        int index;
+        long sequence;
+
+        FIFOTask(LongHolder fail, long[] lastSequences, int index, long sequence) {
+            this.index = index;
+            this.sequence = sequence;
+            this.fail = fail;
+            this.lastSequences = lastSequences;
+        }
+
+        @Override
+        public void run() {
+            if (sequence != lastSequences[index] + 1) {
+                fail.incAndGet();
+            }
+            lastSequences[index] = sequence;
+        }
+    }
 
     @Test
     void testShutdown() {
@@ -60,147 +135,4 @@ public class EventLoopSanityTestGlobal {
         Assertions.assertFalse(GlobalEventLoop.INSTANCE.isThreadAlive(), "GlobalEventLoop thread is alive");
     }
 
-    /**
-     * 测试单生产者下的先入先出
-     */
-    @Timeout(TEST_TIMEOUT)
-    @Test
-    void testSpFifo() {
-        final AtomicBoolean stop = new AtomicBoolean();
-        final LongHolder fail = new LongHolder();
-        final LongHolder lastSequence = new LongHolder();
-        final Thread producer = new SpFIFOProducer(stop, fail, lastSequence);
-
-        TestUtil.startAndJoin(Collections.singletonList(producer), stop, 1000);
-
-        Assertions.assertEquals(0, fail.get(), "Observed out of order");
-    }
-
-    private static class SpFIFOProducer extends Thread {
-
-        final AtomicBoolean stop;
-        final LongHolder fail;
-        final LongHolder lastSequence;
-
-        private SpFIFOProducer(AtomicBoolean stop, LongHolder fail, LongHolder lastSequence) {
-            this.stop = stop;
-            this.fail = fail;
-            this.lastSequence = lastSequence;
-        }
-
-        @Override
-        public void run() {
-            final EventLoop eventLoop = GlobalEventLoop.INSTANCE;
-
-            long sequence = 0;
-            lastSequence.set(-1);
-
-            while (!stop.get()) {
-                try {
-                    eventLoop.execute(new SpFIFOTask(sequence, fail, lastSequence));
-                    sequence++;
-                } catch (RejectedExecutionException ignore) {
-                    sleepQuietly(1);
-                }
-            }
-        }
-    }
-
-    private static class SpFIFOTask implements Runnable {
-
-        long sequence;
-        LongHolder fail;
-        LongHolder lastSequence;
-
-        SpFIFOTask(long sequence, LongHolder fail, LongHolder lastSequence) {
-            this.sequence = sequence;
-            this.fail = fail;
-            this.lastSequence = lastSequence;
-        }
-
-        @Override
-        public void run() {
-            if (sequence != lastSequence.get() + 1) {
-                fail.incAndGet();
-            }
-            lastSequence.set(sequence);
-        }
-    }
-
-    /**
-     * 测试多生产下各自的先入先出
-     */
-    @Timeout(TEST_TIMEOUT)
-    @Test
-    void testMpFifo() {
-        final int producerNum = 4;
-
-        // 必须使用abort策略，否则生产者无法感知失败
-        final AtomicBoolean stop = new AtomicBoolean();
-        final LongHolder fail = new LongHolder();
-        final long[] lastSequences = new long[producerNum];
-
-        final MpFIFOProducer[] producers = new MpFIFOProducer[producerNum];
-        for (int index = 0; index < producerNum; index++) {
-            producers[index] = new MpFIFOProducer(stop, index, fail, lastSequences);
-        }
-
-        TestUtil.startAndJoin(Arrays.asList(producers), stop, 1000);
-
-        Assertions.assertEquals(0, fail.get(), "Observed out of order");
-    }
-
-    private static class MpFIFOProducer extends Thread {
-
-        final AtomicBoolean stop;
-        final int index;
-        final LongHolder fail;
-        final long[] lastSequences;
-
-        private MpFIFOProducer(AtomicBoolean stop, int index, LongHolder fail, long[] lastSequences) {
-            this.stop = stop;
-            this.index = index;
-            this.fail = fail;
-            this.lastSequences = lastSequences;
-        }
-
-        @Override
-        public void run() {
-            final EventLoop eventLoop = GlobalEventLoop.INSTANCE;
-            long sequence = 0;
-            lastSequences[index] = -1;
-
-            while (!stop.get()) {
-                try {
-                    eventLoop.execute(new MpFIFOTask(index, fail, lastSequences, sequence));
-                    sequence++;
-                } catch (RejectedExecutionException ignore) {
-                    TestUtil.sleepQuietly(1);
-                }
-            }
-        }
-    }
-
-    private static class MpFIFOTask implements Runnable {
-
-        int index;
-        LongHolder fail;
-        long[] lastSequences;
-        long sequence;
-
-        MpFIFOTask(int index, LongHolder fail, long[] lastSequences, long sequence) {
-            this.index = index;
-            this.sequence = sequence;
-            this.fail = fail;
-            this.lastSequences = lastSequences;
-        }
-
-        @Override
-        public void run() {
-            if (sequence != lastSequences[index] + 1) {
-                fail.incAndGet();
-            }
-            lastSequences[index] = sequence;
-        }
-    }
 }

@@ -32,7 +32,7 @@ public class OuterPingPongMessageTO implements SocketPingPongMessageTO {
     private final long ack;
     private PingPongMessage message;
 
-    public OuterPingPongMessageTO(long ack, PingPongMessage message) {
+    OuterPingPongMessageTO(long ack, PingPongMessage message) {
         this.ack = ack;
         this.message = message;
     }
