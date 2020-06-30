@@ -97,6 +97,6 @@ public class ThreadUtils {
         return STACK_WALKER.walk(stackFrameStream -> stackFrameStream.limit(deep + 1)
                 .reduce((stackFrame, stackFrame2) -> stackFrame2)
                 .map(Object::toString))
-                .orElseThrow();
+                .orElse("Unknown source");
     }
 }
