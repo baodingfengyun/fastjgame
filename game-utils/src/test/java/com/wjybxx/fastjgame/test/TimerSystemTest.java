@@ -62,15 +62,13 @@ public class TimerSystemTest {
         // 局部变量是为了调试(debug能获取到引用)
         final TimerHandle handle1 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
             System.out.println("two second " + System.currentTimeMillis());
-        });
-
-        final TimerHandle handle2 = timerSystem.newTimeout(TimeUtils.SEC, handle -> {
-            System.out.println("one second " + System.currentTimeMillis());
             timerSystem.newTimeout(0, handle01 -> System.out.println("handle01"));
         });
 
-        final TimerHandle handle3 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
-            System.out.println("two second2 " + System.currentTimeMillis());
+        final TimerHandle handle2 = timerSystem.newTimeout(2 * TimeUtils.SEC, TimerSystemTest::handle02);
+
+        final TimerHandle handle3 = timerSystem.newTimeout(TimeUtils.SEC, timerHandle -> {
+            System.out.println("one second " + System.currentTimeMillis());
         });
 
         final TimerHandle handle4 = timerSystem.newFixedDelay(0, 3 * TimeUtils.SEC, handle -> {
@@ -101,4 +99,10 @@ public class TimerSystemTest {
 
         timerSystem.close();
     }
+
+    private static void handle02(TimerHandle handle) {
+        System.out.println("two second2 " + System.currentTimeMillis());
+        handle.timerSystem().newTimeout(0, handle02 -> System.out.println("handle02"));
+    }
+
 }

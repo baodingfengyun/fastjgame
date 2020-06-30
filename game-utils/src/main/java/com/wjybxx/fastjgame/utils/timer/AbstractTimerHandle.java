@@ -137,7 +137,8 @@ abstract class AbstractTimerHandle implements TimerHandle {
         return this;
     }
 
-    DefaultTimerSystem timerSystem() {
+    @Override
+    public final DefaultTimerSystem timerSystem() {
         return timerSystem;
     }
 

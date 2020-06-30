@@ -32,6 +32,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 public interface TimerHandle {
 
     /**
+     * 获取关联的timerSystem
+     */
+    TimerSystem timerSystem();
+
+    /**
      * 设置附加属性(使得task在运行的时候可以获取该值)。
      * 注意：attachment在timer关闭或取消时不会自动删除，当你不需要使用时，可以尽早的释放它(设置为null)。
      *
