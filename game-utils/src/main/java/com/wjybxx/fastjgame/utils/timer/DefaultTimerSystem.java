@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.utils.timer;
 
+import com.wjybxx.fastjgame.utils.ThreadUtils;
+import com.wjybxx.fastjgame.utils.exception.InfiniteLoopException;
 import com.wjybxx.fastjgame.utils.timeprovider.TimeProvider;
 import com.wjybxx.fastjgame.utils.timeprovider.TimeProviders;
 import org.slf4j.Logger;
@@ -40,10 +42,6 @@ public class DefaultTimerSystem implements TimerSystem {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultTimerSystem.class);
     /**
-     * 无效的timerId
-     */
-    private static final int INVALID_TIMER_ID = -1;
-    /**
      * 默认空间大小，使用JDK默认大小
      */
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
@@ -60,6 +58,7 @@ public class DefaultTimerSystem implements TimerSystem {
      * 用于获取当前时间
      */
     private final TimeProvider timeProvider;
+
     /**
      * 用于分配timerId。
      * 如果是静态的将存在线程安全问题(或使用AtomicLong) - 不想产生不必要的竞争，因此每个timerSystem一个。
@@ -69,10 +68,19 @@ public class DefaultTimerSystem implements TimerSystem {
      * 是否已关闭
      */
     private boolean closed = false;
+
     /**
      * 正在执行回调的timer
      */
-    private long runningTimerId = INVALID_TIMER_ID;
+    private AbstractTimerHandle runningTimer = null;
+    /**
+     * 当前帧的时间戳
+     */
+    private long curTickTimeMillis;
+    /**
+     * 当前帧数（int足够）
+     */
+    private int curTickFrame = 0;
 
     public DefaultTimerSystem() {
         this(DEFAULT_TIME_PROVIDER, DEFAULT_INITIAL_CAPACITY);
@@ -135,8 +143,23 @@ public class DefaultTimerSystem implements TimerSystem {
             // 先初始化，才能获得首次执行时间
             timerHandle.init();
             timerQueue.add(timerHandle);
+            checkInterruptTick(timerHandle);
         }
         return timerHandle;
+    }
+
+    private <T extends AbstractTimerHandle> void checkInterruptTick(T timerHandle) {
+        if (runningTimer == null) {
+            return;
+        }
+
+        if (curTickTimeMillis < timerHandle.getNextExecuteTimeMs()) {
+            return;
+        }
+
+        // tick过程中创建了一个要立即执行的timer，那么tick到这个timer的时候，强制中断，进入下一帧的时候继续。
+        timerHandle.setNextExecuteFrameThreshold(curTickFrame + 1);
+        logger.warn("Added a timer for immediate execution, tick will by interrupted, caller info:\n" + ThreadUtils.getCallerInfo(4));
     }
 
     @Override
@@ -144,23 +167,42 @@ public class DefaultTimerSystem implements TimerSystem {
         if (closed) {
             return;
         }
-        tickTimer();
+
+        if (runningTimer != null) {
+            throw new InfiniteLoopException("may caused by timer call tick, runningTimer " + runningTimer);
+        }
+
+        // 由于该timerSystem是基于缓存时间戳tick的，因此需要缓存该时间戳用于别处判断
+        final long curTimeMillis = timeProvider.curTimeMillis();
+
+        curTickTimeMillis = curTimeMillis;
+        curTickFrame++;
+
+        try {
+            tickTimer(curTimeMillis);
+        } finally {
+            runningTimer = null;
+        }
     }
 
     /**
      * 检查周期性执行的timer
      */
-    private void tickTimer() {
+    private void tickTimer(final long curTimeMillis) {
         AbstractTimerHandle timerHandle;
-        final long curTimeMillis = timeProvider.curTimeMillis();
-
         while ((timerHandle = timerQueue.peek()) != null) {
             // 优先级最高的timer不需要执行，那么后面的也不需要执行
             if (curTimeMillis < timerHandle.getNextExecuteTimeMs()) {
                 return;
             }
+
+            // timer对帧数有要求（避免无限循环）
+            if (curTickFrame < timerHandle.getNextExecuteFrameThreshold()) {
+                return;
+            }
+
             // 先弹出队列，并记录正在执行
-            runningTimerId = timerQueue.poll().getTimerId();
+            runningTimer = timerQueue.poll();
 
             do {
                 callbackSafely(timerHandle, curTimeMillis);
@@ -171,8 +213,6 @@ public class DefaultTimerSystem implements TimerSystem {
                 // 如果未取消的话，压入队列稍后执行
                 timerQueue.offer(timerHandle);
             }
-            // 清除标记
-            runningTimerId = INVALID_TIMER_ID;
         }
     }
 
@@ -231,10 +271,10 @@ public class DefaultTimerSystem implements TimerSystem {
     }
 
     /**
-     * 删除一个timer
+     * 删除一个已关闭的timer
      */
-    void remove(AbstractTimerHandle timerHandle) {
-        if (timerHandle.getTimerId() != runningTimerId) {
+    void removeClosedTimer(AbstractTimerHandle timerHandle) {
+        if (timerHandle != runningTimer) {
             timerQueue.remove(timerHandle);
         }
     }
@@ -243,18 +283,18 @@ public class DefaultTimerSystem implements TimerSystem {
      * 调整handle在timerSystem中的优先级
      * (这不是个频繁的操作，暂时先删除再插入，先不做优化)
      *
-     * @param <T>    定时器句柄类型
-     * @param handle 定时器句柄
+     * @param <T>         定时器句柄类型
+     * @param timerHandle 定时器句柄
      */
-    <T extends AbstractTimerHandle> void adjust(T handle) {
-        if (runningTimerId == handle.getTimerId()) {
+    <T extends AbstractTimerHandle> void adjust(T timerHandle) {
+        if (runningTimer == timerHandle) {
             // 正在执行的时候调整间隔
-            handle.adjustNextExecuteTime();
+            timerHandle.adjustNextExecuteTime();
         } else {
             // 其它时候调整间隔
-            timerQueue.remove(handle);
-            handle.adjustNextExecuteTime();
-            timerQueue.add(handle);
+            timerQueue.remove(timerHandle);
+            timerHandle.adjustNextExecuteTime();
+            timerQueue.add(timerHandle);
         }
     }
 

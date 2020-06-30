@@ -116,4 +116,13 @@ class FixedDelayHandleImp extends AbstractTimerHandle implements FixedDelayHandl
         super.setExceptionHandler(exceptionHandler);
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "FixedDelayHandleImp{" +
+                "initialDelay=" + initialDelay +
+                ", delay=" + delay +
+                ", lastExecuteTimeMs=" + lastExecuteTimeMs +
+                '}';
+    }
 }

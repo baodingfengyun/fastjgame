@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import java.util.Set;
+
 /**
  * @author wjybxx
  * @version 1.0
@@ -23,6 +25,11 @@ package com.wjybxx.fastjgame.utils;
  * github - https://github.com/hl845740757
  */
 public class ThreadUtils {
+
+    /**
+     * J9中新的的{@link StackWalker}，拥有更好的性能，因为它可以只创建需要的栈帧，而不是像异常一样总是获得所有栈帧的信息。
+     */
+    private static final StackWalker STACK_WALKER = StackWalker.getInstance(Set.of(StackWalker.Option.SHOW_HIDDEN_FRAMES));
 
     /**
      * 恢复中断。
@@ -77,4 +84,19 @@ public class ThreadUtils {
         }
     }
 
+    /**
+     * 获取调用者信息
+     *
+     * @param deep 当前方法的深度
+     * @return 调用者信息
+     */
+    public static String getCallerInfo(int deep) {
+        // +1 对应当前方法的栈帧
+        // Q: 为什么使用limit而不是skip?
+        // A: 如果方法被内联，则skip跳过的栈帧可能不正确，因此使用limit，并选择最后一个栈帧
+        return STACK_WALKER.walk(stackFrameStream -> stackFrameStream.limit(deep + 1)
+                .reduce((stackFrame, stackFrame2) -> stackFrame2)
+                .map(Object::toString))
+                .orElseThrow();
+    }
 }

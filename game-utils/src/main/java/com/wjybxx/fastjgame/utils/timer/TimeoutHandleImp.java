@@ -71,4 +71,11 @@ class TimeoutHandleImp extends AbstractTimerHandle implements TimeoutHandle {
         super.setExceptionHandler(exceptionHandler);
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "TimeoutHandleImp{" +
+                "timeout=" + timeout +
+                '}';
+    }
 }

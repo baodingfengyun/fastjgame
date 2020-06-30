@@ -63,6 +63,12 @@ abstract class AbstractTimerHandle implements TimerHandle {
      * 该属性是为了避免堆结构被破坏。
      */
     private long nextExecuteTimeMs;
+
+    /**
+     * 下次执行的最小帧要求
+     */
+    private int nextExecuteFrameThreshold;
+
     /**
      * 是否已终止
      */
@@ -110,7 +116,7 @@ abstract class AbstractTimerHandle implements TimerHandle {
     public void close() {
         if (!closed) {
             closed = true;
-            timerSystem.remove(this);
+            timerSystem.removeClosedTimer(this);
         }
     }
 
@@ -149,6 +155,14 @@ abstract class AbstractTimerHandle implements TimerHandle {
 
     final long getNextExecuteTimeMs() {
         return nextExecuteTimeMs;
+    }
+
+    int getNextExecuteFrameThreshold() {
+        return nextExecuteFrameThreshold;
+    }
+
+    void setNextExecuteFrameThreshold(int nextExecuteFrameThreshold) {
+        this.nextExecuteFrameThreshold = nextExecuteFrameThreshold;
     }
 
     final void setClosed() {

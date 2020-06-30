@@ -78,7 +78,7 @@ public class SimpleTimeProvider implements CachedTimeProvider {
      * 切换到缓存策略
      */
     public void changeToCacheStrategy() {
-        this.timeProvider = TimeProviders.newCachedTimeProvider(System.currentTimeMillis(), false);
+        this.timeProvider = TimeProviders.newCachedTimeProvider(System.currentTimeMillis());
     }
 
     /**

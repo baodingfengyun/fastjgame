@@ -112,4 +112,13 @@ class FixedRateHandleImp extends AbstractTimerHandle implements FixedRateHandle 
         super.setExceptionHandler(exceptionHandler);
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "FixedRateHandleImp{" +
+                "initialDelay=" + initialDelay +
+                ", period=" + period +
+                ", lastExecuteTimeMs=" + lastExecuteTimeMs +
+                '}';
+    }
 }

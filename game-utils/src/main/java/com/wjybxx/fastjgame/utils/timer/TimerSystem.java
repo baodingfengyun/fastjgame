@@ -25,16 +25,19 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 定时器系统，非线程安全。
  *
  * <h3>时序保证</h3>
- * 1. {@link #newTimeout(long, TimerTask)}类型的任务之间，有严格的时序保证，当过期时间(超时时间)相同时，先提交的一定先执行。
+ * 1. {@link #newTimeout(long, TimerTask)}和{@link #nextTick(TimerTask)}类型的任务之间，有严格的时序保证，当过期时间(超时时间)相同时，先提交的一定先执行。
  * 2. {@link #newFixedDelay(long, long, TimerTask)} {@link #newFixRate(long, long, TimerTask)}类型的任务，与其它任何一个任务都不具备时序保证。
- *
  * <p>
  * Q: 为什么继承{@link TimeProvider}？
  * A: timer的运行一定依赖于一个时钟，可以把该时钟告诉给用户。
- * </p>
+ * <p>
+ * 注意：子类实现必须在保证时序的条件下解决可能的死循环问题。
+ * Q: 死循环是如何产生的？
+ * A: 如果用户基于{@link #newTimeout(long, TimerTask)}实现循环，则可能添加一个立即执行的timer，而{@link TimerSystem}的没有独立线程的，因此循环创建立即执行的timer，
+ * 则可能陷入死循环。这种情况一般不是有意为之，而是某些特殊情况下产生的，比如：下次执行的延迟是计算出来的，而算出来的延迟总是为0或负数。
  *
  * @author wjybxx
- * @version 1.0
+ * @version 1.1
  * date - 2019/8/7
  * github - https://github.com/hl845740757
  */
@@ -45,7 +48,6 @@ public interface TimerSystem extends TimeProvider {
 
     /**
      * 下一次{@link #tick()}的时候执行。
-     * 注意：如果当前正在{@link #tick()}中，则会在当前{@link #tick()}执行。
      *
      * @param task 需要执行的任务
      * @return Timer对应的句柄
@@ -65,9 +67,6 @@ public interface TimerSystem extends TimeProvider {
     @Nonnull
     TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task);
 
-    /**
-     * 首次延迟为delay，如果期望立即执行，请调用{@link #newFixedDelay(long, long, TimerTask)}，并指定首次延迟为0
-     */
     @Nonnull
     default FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask task) {
         return newFixedDelay(delay, delay, task);
@@ -75,8 +74,8 @@ public interface TimerSystem extends TimeProvider {
 
     /**
      * 以固定的延迟执行任务。
-     * 它保证的是：两次任务的执行间隔大于等于指定延迟时间。
-     * (注意：任何周期性的任务之间都不具备时序保证)
+     * 它保证的是：任务的执行间隔大于等于指定延迟时间。
+     * (注意：任何周期性的任务与其它任务之间都不具备时序保证)
      *
      * @param initialDelay 首次执行延迟，毫秒。
      * @param delay        执行间隔，毫秒，必须大于0
@@ -86,9 +85,6 @@ public interface TimerSystem extends TimeProvider {
     @Nonnull
     FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task);
 
-    /**
-     * 首次延迟为period，如果期望立即执行，请调用{@link #newFixRate(long, long, TimerTask)}，并指定首次延迟为0
-     */
     @Nonnull
     default FixedRateHandle newFixRate(long period, @Nonnull TimerTask task) {
         return newFixRate(period, period, task);
@@ -97,7 +93,7 @@ public interface TimerSystem extends TimeProvider {
     /**
      * 以固定的频率执行指定任务。
      * 它保证的是：任务的执行次数尽量达到目标。一般情况下不需要使用该类型，一般任务建议使用{@link #newFixedDelay(long, long, TimerTask)}。
-     * (注意：任何周期性的任务之间都不具备时序保证)
+     * (注意：任何周期性的任务与其它任务之间都不具备时序保证)
      *
      * @param initialDelay 首次执行延迟，毫秒。
      * @param period       执行周期，毫秒，必须大于0
@@ -111,7 +107,9 @@ public interface TimerSystem extends TimeProvider {
 
     /**
      * 检查timer执行。
-     * 为什么有该方法？因为它没有独立的线程，必须有某个地方来通知它进行检查。
+     * <p>
+     * Q: 为什么有该方法？
+     * A: 因为它没有独立的线程，必须有某个地方来通知它进行检查。因此，递归调用tick将抛出异常。
      */
     void tick();
 

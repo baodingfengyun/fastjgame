@@ -43,18 +43,25 @@ public final class TimeProviders {
     }
 
     /**
-     * 创建一个支持缓存的时间提供器，你需要调用{@link CachedTimeProvider#update(long)}更新时间值。
+     * 创建一个支持缓存的时间提供器，但不是线程安全的。
+     * 你需要调用{@link CachedTimeProvider#update(long)}更新时间值。
      *
      * @param curTimeMillis 初始系统时间
-     * @param threadSafe    是否需要线程安全保障
      * @return timeProvider
      */
-    public static CachedTimeProvider newCachedTimeProvider(long curTimeMillis, boolean threadSafe) {
-        if (threadSafe) {
-            return new ThreadSafeCachedTimeProvider(curTimeMillis);
-        } else {
-            return new UnsharableCachedTimeProvider(curTimeMillis);
-        }
+    public static CachedTimeProvider newCachedTimeProvider(long curTimeMillis) {
+        return new UnsharableCachedTimeProvider(curTimeMillis);
+    }
+
+    /**
+     * 创建一个支持缓存的时间提供器，且可以多线程安全访问。
+     * 你需要调用{@link CachedTimeProvider#update(long)}更新时间值。
+     *
+     * @param curTimeMillis 初始系统时间
+     * @return timeProvider
+     */
+    public static CachedTimeProvider newThreadSafeCachedTimeProvider(long curTimeMillis) {
+        return new ThreadSafeCachedTimeProvider(curTimeMillis);
     }
 
     /**

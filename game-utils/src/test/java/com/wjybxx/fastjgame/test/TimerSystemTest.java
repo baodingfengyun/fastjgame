@@ -19,6 +19,8 @@
 package com.wjybxx.fastjgame.test;
 
 import com.wjybxx.fastjgame.utils.TimeUtils;
+import com.wjybxx.fastjgame.utils.timeprovider.CachedTimeProvider;
+import com.wjybxx.fastjgame.utils.timeprovider.TimeProviders;
 import com.wjybxx.fastjgame.utils.timer.DefaultTimerSystem;
 import com.wjybxx.fastjgame.utils.timer.ExceptionHandlers;
 import com.wjybxx.fastjgame.utils.timer.TimerHandle;
@@ -55,7 +57,8 @@ public class TimerSystemTest {
 
     @SuppressWarnings("unused")
     public static void main(String[] args) {
-        TimerSystem timerSystem = new DefaultTimerSystem();
+        final CachedTimeProvider timeProvider = TimeProviders.newCachedTimeProvider(System.currentTimeMillis());
+        final TimerSystem timerSystem = new DefaultTimerSystem(timeProvider);
         // 局部变量是为了调试(debug能获取到引用)
         final TimerHandle handle1 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
             System.out.println("two second " + System.currentTimeMillis());
@@ -63,6 +66,7 @@ public class TimerSystemTest {
 
         final TimerHandle handle2 = timerSystem.newTimeout(TimeUtils.SEC, handle -> {
             System.out.println("one second " + System.currentTimeMillis());
+            timerSystem.newTimeout(0, handle01 -> System.out.println("handle01"));
         });
 
         final TimerHandle handle3 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
@@ -86,6 +90,8 @@ public class TimerSystemTest {
         }).setExceptionHandler(ExceptionHandlers.CLOSE);
 
         IntStream.rangeClosed(1, 10).forEach(index -> {
+            timeProvider.update(System.currentTimeMillis());
+
             timerSystem.tick();
             // 睡眠的时长不同，会打乱执行节奏
             int sleepTimeSec = ThreadLocalRandom.current().nextInt(1, 10);
