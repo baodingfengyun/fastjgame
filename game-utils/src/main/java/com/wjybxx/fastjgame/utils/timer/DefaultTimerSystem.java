@@ -159,7 +159,13 @@ public class DefaultTimerSystem implements TimerSystem {
 
         // tick过程中创建了一个要立即执行的timer，那么tick到这个timer的时候，强制中断，进入下一帧的时候继续。
         timerHandle.setNextExecuteFrameThreshold(curTickFrame + 1);
-        logger.warn("Added a timer for immediate execution, tick will be interrupted, caller info:\n" + ThreadUtils.getCallerInfo(4));
+
+        logger.error("Added a timer for immediate execution, tick will be interrupted, caller info:\n" +
+                ThreadUtils.getCallerInfo(DefaultTimerSystem::isOtherClass));
+    }
+
+    private static boolean isOtherClass(StackWalker.StackFrame stackFrame) {
+        return stackFrame.getDeclaringClass() != DefaultTimerSystem.class;
     }
 
     @Override

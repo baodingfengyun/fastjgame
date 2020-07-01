@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils;
 
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * @author wjybxx
@@ -29,7 +30,10 @@ public class ThreadUtils {
     /**
      * J9中新的的{@link StackWalker}，拥有更好的性能，因为它可以只创建需要的栈帧，而不是像异常一样总是获得所有栈帧的信息。
      */
-    private static final StackWalker STACK_WALKER = StackWalker.getInstance(Set.of(StackWalker.Option.SHOW_HIDDEN_FRAMES));
+    private static final StackWalker STACK_WALKER = StackWalker.getInstance(Set.of(
+            StackWalker.Option.SHOW_HIDDEN_FRAMES,
+            StackWalker.Option.SHOW_REFLECT_FRAMES,
+            StackWalker.Option.RETAIN_CLASS_REFERENCE));
 
     /**
      * 恢复中断。
@@ -85,7 +89,8 @@ public class ThreadUtils {
     }
 
     /**
-     * 获取调用者信息
+     * 获取调用者信息。
+     * ps：该方法的性能更好，但可读性差，且不易维护。
      *
      * @param deep 当前方法的深度
      * @return 调用者信息
@@ -99,4 +104,28 @@ public class ThreadUtils {
                 .map(Object::toString))
                 .orElse("Unknown source");
     }
+
+    /**
+     * 获取调用者信息。
+     * ps: 该方法使用不当可能性能较差，但有更好的可读性和更好的可扩展性。
+     * <p>
+     * 注意：
+     * 1. {@link StackWalker.StackFrame#getFileName()}可能为null，如lambda表达式。
+     * 2. {@link StackWalker.StackFrame#getLineNumber()}可能为负数，如lambda表达式，jni方法。
+     * 3. {@link StackWalker.StackFrame#getMethodName()} name是延迟初始化的，存在额外开销，可以考虑使用{@link StackWalker.StackFrame#getDeclaringClass()}代替。
+     * 4. 可能需要考虑方法被内联产生的堆栈变化。
+     *
+     * @param filter 过滤器
+     * @return 调用者信息
+     */
+    public static String getCallerInfo(Predicate<StackWalker.StackFrame> filter) {
+        // 暂时使用getDeclaringClass过滤自己，这样可以降低开销，但对该类中的其它方法可能产生影响，如果以后有影响则需要改为名字判断
+        return STACK_WALKER.walk(stackFrameStream -> stackFrameStream
+                .filter(stackFrame -> stackFrame.getDeclaringClass() != ThreadUtils.class)
+                .filter(filter)
+                .findFirst()
+                .map(Object::toString))
+                .orElse("Unknown source");
+    }
+
 }
