@@ -165,7 +165,8 @@ public class DefaultTimerSystem implements TimerSystem {
     }
 
     private static boolean isOtherClass(StackWalker.StackFrame stackFrame) {
-        return stackFrame.getDeclaringClass() != DefaultTimerSystem.class;
+        // 需要处理超类或子类调用(如nextTick调用newTimeout)
+        return !TimerSystem.class.isAssignableFrom(stackFrame.getDeclaringClass());
     }
 
     @Override

@@ -59,10 +59,14 @@ public class TimerSystemTest {
     public static void main(String[] args) {
         final CachedTimeProvider timeProvider = TimeProviders.newCachedTimeProvider(System.currentTimeMillis());
         final TimerSystem timerSystem = new DefaultTimerSystem(timeProvider);
+
         // 局部变量是为了调试(debug能获取到引用)
+
+        final TimerHandle handle0 = timerSystem.newTimeout(2 * TimeUtils.SEC, TimerSystemTest::nextTick);
+
         final TimerHandle handle1 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
             System.out.println("two second " + System.currentTimeMillis());
-            timerSystem.newTimeout(0, handle01 -> System.out.println("handle01"));
+            timerSystem.newTimeout(0, handle01 -> System.out.println("newTimeout - handle01"));
         });
 
         final TimerHandle handle2 = timerSystem.newTimeout(2 * TimeUtils.SEC, TimerSystemTest::handle02);
@@ -100,9 +104,14 @@ public class TimerSystemTest {
         timerSystem.close();
     }
 
+    private static void nextTick(TimerHandle handle) {
+        System.out.println("two second2 " + System.currentTimeMillis());
+        handle.timerSystem().nextTick(handle0 -> System.out.println("nextTick - handle0"));
+    }
+
     private static void handle02(TimerHandle handle) {
         System.out.println("two second2 " + System.currentTimeMillis());
-        handle.timerSystem().newTimeout(0, handle02 -> System.out.println("handle02"));
+        handle.timerSystem().newTimeout(0, handle02 -> System.out.println("newTimeout - handle02"));
     }
 
 }
