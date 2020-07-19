@@ -57,7 +57,7 @@ class TimeoutHandleImp extends AbstractTimerHandle implements TimeoutHandle {
     @Override
     protected final void afterExecuteOnce(long curTimeMs) {
         // 执行一次之后就结束了。
-        setClosed();
+        closeWithoutRemove();
     }
 
     protected void adjustNextExecuteTime() {

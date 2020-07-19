@@ -42,7 +42,7 @@ abstract class AbstractTimerHandle implements TimerHandle {
     /**
      * 该handle关联的timerTask
      */
-    private final TimerTask timerTask;
+    private TimerTask timerTask;
     /**
      * 定时器id，先添加的必定更小...
      */
@@ -67,11 +67,6 @@ abstract class AbstractTimerHandle implements TimerHandle {
      * 下次执行的最小帧要求
      */
     private int nextExecuteFrameThreshold;
-
-    /**
-     * 是否已终止
-     */
-    private boolean closed = false;
 
     AbstractTimerHandle(DefaultTimerSystem timerSystem, TimerTask timerTask) {
         this.timerSystem = timerSystem;
@@ -101,7 +96,7 @@ abstract class AbstractTimerHandle implements TimerHandle {
 
     @Override
     public long runDelay() {
-        if (closed) {
+        if (isClosed()) {
             return -1;
         }
         return Math.max(0, nextExecuteTimeMs - timerSystem.curTimeMillis());
@@ -109,15 +104,23 @@ abstract class AbstractTimerHandle implements TimerHandle {
 
     @Override
     public void close() {
-        if (!closed) {
-            closed = true;
+        if (timerTask != null) {
+            // 避免用户无意识的持有handle导致内存泄漏
+            timerTask = null;
             timerSystem.removeClosedTimer(this);
         }
     }
 
+    /**
+     * 关闭timer，但不从队列中中删除
+     */
+    public void closeWithoutRemove() {
+        timerTask = null;
+    }
+
     @Override
     public boolean isClosed() {
-        return closed;
+        return timerTask == null;
     }
 
     @Override
@@ -147,10 +150,6 @@ abstract class AbstractTimerHandle implements TimerHandle {
 
     void setNextExecuteFrameThreshold(int nextExecuteFrameThreshold) {
         this.nextExecuteFrameThreshold = nextExecuteFrameThreshold;
-    }
-
-    final void setClosed() {
-        this.closed = true;
     }
 
     /**

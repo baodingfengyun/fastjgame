@@ -138,7 +138,7 @@ public class DefaultTimerSystem implements TimerSystem {
     private <T extends AbstractTimerHandle> T tryAddTimerAndInit(T timerHandle) {
         if (closed) {
             // timer系统已关闭，不压入队列
-            timerHandle.setClosed();
+            timerHandle.closeWithoutRemove();
         } else {
             // 先初始化，才能获得首次执行时间
             timerHandle.init();
@@ -240,7 +240,7 @@ public class DefaultTimerSystem implements TimerSystem {
         } catch (final Throwable cause) {
             // 出现异常时关闭timer
             logger.warn("onExceptionCaught caught exception!", cause);
-            timerHandle.setClosed();
+            timerHandle.closeWithoutRemove();
         }
 
         if (!timerHandle.isClosed()) {
@@ -270,7 +270,7 @@ public class DefaultTimerSystem implements TimerSystem {
     private static void closeQueue(Queue<AbstractTimerHandle> queue) {
         AbstractTimerHandle handle;
         while ((handle = queue.poll()) != null) {
-            handle.setClosed();
+            handle.closeWithoutRemove();
         }
     }
 
