@@ -15,8 +15,6 @@
  */
 package com.wjybxx.fastjgame.utils.timer;
 
-import javax.annotation.Nonnull;
-
 /**
  * 只执行一次的Timer的handle。
  * {@link TimerSystem#newTimeout(long, TimerTask)}
@@ -64,12 +62,6 @@ class TimeoutHandleImp extends AbstractTimerHandle implements TimeoutHandle {
 
     protected void adjustNextExecuteTime() {
         setNextExecuteTimeMs(getCreateTimeMs() + timeout);
-    }
-
-    @Override
-    public TimeoutHandle setExceptionHandler(@Nonnull ExceptionHandler exceptionHandler) {
-        super.setExceptionHandler(exceptionHandler);
-        return this;
     }
 
     @Override

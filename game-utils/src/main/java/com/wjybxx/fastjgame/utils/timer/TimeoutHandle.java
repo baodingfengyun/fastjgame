@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.utils.timer;
 
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -46,6 +45,4 @@ public interface TimeoutHandle extends TimerHandle {
      */
     boolean setTimeout(long timeout);
 
-    @Override
-    TimeoutHandle setExceptionHandler(@Nonnull ExceptionHandler exceptionHandler);
 }

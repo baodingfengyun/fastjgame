@@ -238,17 +238,9 @@ public class DefaultTimerSystem implements TimerSystem {
         try {
             timerHandle.run();
         } catch (final Throwable cause) {
-            try {
-                timerHandle.getExceptionHandler().onExceptionCaught(timerHandle, cause);
-            } catch (final Throwable unExpectedException) {
-                // 判断rethrow
-                if (unExpectedException != cause) {
-                    cause.addSuppressed(unExpectedException);
-                }
-                logger.warn("onExceptionCaught caught exception!", cause);
-                // 在处理异常时再出现异常，一定会关闭timer
-                timerHandle.setClosed();
-            }
+            // 出现异常时关闭timer
+            logger.warn("onExceptionCaught caught exception!", cause);
+            timerHandle.setClosed();
         }
 
         if (!timerHandle.isClosed()) {
