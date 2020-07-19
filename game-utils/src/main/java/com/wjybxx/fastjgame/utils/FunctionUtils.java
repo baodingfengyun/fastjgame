@@ -18,10 +18,7 @@ package com.wjybxx.fastjgame.utils;
 
 import it.unimi.dsi.fastutil.shorts.ShortConsumer;
 
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.IntConsumer;
-import java.util.function.LongConsumer;
+import java.util.function.*;
 
 /**
  * 常用函数式方法
@@ -54,10 +51,13 @@ public final class FunctionUtils {
     private static final LongConsumer _emptyLongConsumer = v -> {
     };
 
+    private static final Predicate<?> _alwaysTrue = v -> true;
 
-    private FunctionUtils() {
+    private static final Predicate<?> _alwaysFalse = v -> false;
 
-    }
+    private static final BiPredicate<?, ?> _alwaysTrue2 = (t, u) -> true;
+
+    private static final BiPredicate<?, ?> _alwaysFalse2 = (t, u) -> false;
 
     @SuppressWarnings("unchecked")
     public static <T, U> BiConsumer<T, U> emptyBiConsumer() {
@@ -81,21 +81,24 @@ public final class FunctionUtils {
         return _emptyLongConsumer;
     }
 
-    public static <T> boolean TRUE(T t) {
-        return true;
+    @SuppressWarnings("unchecked")
+    public static <T> Predicate<T> alwaysTrue() {
+        return (Predicate<T>) _alwaysTrue;
     }
 
-    public static <T> boolean FALSE(T t) {
-        return false;
+    @SuppressWarnings("unchecked")
+    public static <T> Predicate<T> alwaysFalse() {
+        return (Predicate<T>) _alwaysFalse;
     }
 
-    // ---------------------------------- obj - obj -----------------------------
-    public static <T, U> boolean TRUE(T t, U u) {
-        return true;
+    @SuppressWarnings("unchecked")
+    public static <T, U> BiPredicate<T, U> alwaysTrue2() {
+        return (BiPredicate<T, U>) _alwaysTrue2;
     }
 
-    public static <T, U> boolean FALSE(T t, U u) {
-        return false;
+    @SuppressWarnings("unchecked")
+    public static <T, U> BiPredicate<T, U> alwaysFalse2() {
+        return (BiPredicate<T, U>) _alwaysFalse2;
     }
 
 }

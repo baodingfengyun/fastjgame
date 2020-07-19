@@ -95,7 +95,7 @@ public final class CuratorFacade {
      * 关闭该门面持有的资源
      */
     public void shutdown() {
-        CollectionUtils.removeIfAndThen(allocateNodeCache, FunctionUtils::TRUE, CloseableUtils::closeQuietly);
+        CollectionUtils.removeIfAndThen(allocateNodeCache, FunctionUtils.alwaysTrue(), CloseableUtils::closeQuietly);
     }
 
     /**

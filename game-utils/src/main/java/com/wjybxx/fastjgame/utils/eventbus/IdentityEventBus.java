@@ -16,9 +16,12 @@
 
 package com.wjybxx.fastjgame.utils.eventbus;
 
+import com.wjybxx.fastjgame.utils.FunctionUtils;
+
 import javax.annotation.Nonnull;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * 一个特殊的EventBus实现，它适用于这样的场合：
@@ -26,8 +29,6 @@ import java.util.Map;
  * <p>
  * 如果{@link #post(Object)}抛出的事件为 {@link GenericEvent}，则以{@link GenericEvent#child()}的类型进行分发。
  * 如果{@link #post(Object)}抛出的事件非 {@link GenericEvent}，则以{@code event}的类型进行分发。
- * <p>
- * 你可以通过重写{@link #accept(Class)}和{@link #acceptGeneric(Class)}限定支持的事件。
  *
  * @author wjybxx
  * @version 1.0
@@ -41,13 +42,21 @@ public class IdentityEventBus implements EventBus {
      * eventKey：{@link Class}
      */
     private final Map<Class<?>, EventHandler<?>> handlerMap;
+    private final Predicate<Class<?>> filter;
+    private final Predicate<Class<? extends GenericEvent<?>>> genericFilter;
 
     public IdentityEventBus() {
         this(EventBusUtils.DEFAULT_EXPECTED_SIZE);
     }
 
     public IdentityEventBus(int expectedSize) {
-        handlerMap = new IdentityHashMap<>(expectedSize);
+        this(expectedSize, FunctionUtils.alwaysTrue(), FunctionUtils.alwaysTrue());
+    }
+
+    public IdentityEventBus(int expectedSize, Predicate<Class<?>> filter, Predicate<Class<? extends GenericEvent<?>>> genericFilter) {
+        this.handlerMap = new IdentityHashMap<>(expectedSize);
+        this.filter = filter;
+        this.genericFilter = genericFilter;
     }
 
     @Override
@@ -79,8 +88,8 @@ public class IdentityEventBus implements EventBus {
      *
      * @return 如果返回false，则会忽略该对应的handler注册
      */
-    protected boolean accept(@Nonnull Class<?> eventType) {
-        return true;
+    private boolean accept(@Nonnull Class<?> eventType) {
+        return filter.test(eventType);
     }
 
     @Override
@@ -95,8 +104,8 @@ public class IdentityEventBus implements EventBus {
      *
      * @return 如果返回false，则会忽略该对应的handler注册
      */
-    protected boolean acceptGeneric(Class<? extends GenericEvent<?>> genericType) {
-        return true;
+    private boolean acceptGeneric(Class<? extends GenericEvent<?>> genericType) {
+        return genericFilter.test(genericType);
     }
 
     private void addHandlerImp(Class<?> keyClass, EventHandler<?> handler) {

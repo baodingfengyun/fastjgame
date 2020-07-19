@@ -92,7 +92,7 @@ public class HttpSessionManager {
      */
     public void clean() {
         CollectionUtils.removeIfAndThen(sessionWrapperMap,
-                FunctionUtils::TRUE,
+                FunctionUtils.alwaysTrue2(),
                 this::afterRemoved);
     }
 

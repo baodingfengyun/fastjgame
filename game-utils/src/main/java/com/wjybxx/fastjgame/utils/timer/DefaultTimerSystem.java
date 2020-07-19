@@ -153,15 +153,20 @@ public class DefaultTimerSystem implements TimerSystem {
             return;
         }
 
-        if (curTickTimeMillis < timerHandle.getNextExecuteTimeMs()) {
+        if (timerHandle.getNextExecuteTimeMs() > curTickTimeMillis) {
             return;
         }
 
         // tick过程中创建了一个要立即执行的timer，那么tick到这个timer的时候，强制中断，进入下一帧的时候继续。
+        // 如果插在既有要执行的timer的后面，那么理论上是没有破坏性的，因为它并没有影响当前帧要执行的timer
+        // 而尝试插在既有要执行的timer的前面，则是个危险的操作，因为它影响了当前帧要执行的timer
         timerHandle.setNextExecuteFrameThreshold(curTickFrame + 1);
 
-        logger.error("Added a timer for immediate execution, tick will be interrupted, caller info:\n" +
-                ThreadUtils.getCallerInfo(DefaultTimerSystem::isOtherClass));
+        if (timerHandle.getNextExecuteTimeMs() < curTickTimeMillis) {
+            // 尝试查找既有要执行的timer的前面，记录调用方信息
+            logger.error("Added a timer for immediate execution, tick will be interrupted, caller info:\n" +
+                    ThreadUtils.getCallerInfo(DefaultTimerSystem::isOtherClass));
+        }
     }
 
     private static boolean isOtherClass(StackWalker.StackFrame stackFrame) {

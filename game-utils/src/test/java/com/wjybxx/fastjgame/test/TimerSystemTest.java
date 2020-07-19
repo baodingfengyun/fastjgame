@@ -66,7 +66,7 @@ public class TimerSystemTest {
 
         final TimerHandle handle1 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
             System.out.println("two second " + System.currentTimeMillis());
-            timerSystem.newTimeout(0, handle01 -> System.out.println("newTimeout - handle01"));
+            timerSystem.newTimeout(-1, handle01 -> System.out.println("newTimeout - handle01"));
         });
 
         final TimerHandle handle2 = timerSystem.newTimeout(2 * TimeUtils.SEC, TimerSystemTest::handle02);
@@ -111,7 +111,7 @@ public class TimerSystemTest {
 
     private static void handle02(TimerHandle handle) {
         System.out.println("two second2 " + System.currentTimeMillis());
-        handle.timerSystem().newTimeout(0, handle02 -> System.out.println("newTimeout - handle02"));
+        handle.timerSystem().newTimeout(-2, handle02 -> System.out.println("newTimeout - handle02"));
     }
 
 }

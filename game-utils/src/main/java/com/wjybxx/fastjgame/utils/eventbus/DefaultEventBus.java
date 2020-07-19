@@ -17,15 +17,16 @@
 package com.wjybxx.fastjgame.utils.eventbus;
 
 import com.google.common.collect.Maps;
+import com.wjybxx.fastjgame.utils.FunctionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * EventBus的一个简单实现，它默认支持所有的普通事件和所有的泛型事件，并不对事件做任何要求。
- * 你可以通过重写{@link #accept(Class)}和{@link #acceptGeneric(Class)}限定支持的事件。
  * <p>
  * 1. 它并不是一个线程安全的对象。
  * 2. 它也不是一个标准的EventBus实现，比如就没有取消注册的接口，也没有单独的dispatcher、Registry
@@ -44,13 +45,21 @@ public class DefaultEventBus implements EventBus {
      * eventKey：{@link Class} 或 {@link GenericEventKey}
      */
     private final Map<Object, EventHandler<?>> handlerMap;
+    private final Predicate<Class<?>> filter;
+    private final Predicate<Class<? extends GenericEvent<?>>> genericFilter;
 
     public DefaultEventBus() {
         this(EventBusUtils.DEFAULT_EXPECTED_SIZE);
     }
 
     public DefaultEventBus(int expectedSize) {
-        handlerMap = Maps.newHashMapWithExpectedSize(expectedSize);
+        this(expectedSize, FunctionUtils.alwaysTrue(), FunctionUtils.alwaysTrue());
+    }
+
+    public DefaultEventBus(int expectedSize, Predicate<Class<?>> filter, Predicate<Class<? extends GenericEvent<?>>> genericFilter) {
+        this.handlerMap = Maps.newHashMapWithExpectedSize(expectedSize);
+        this.filter = filter;
+        this.genericFilter = genericFilter;
     }
 
     @Override
@@ -81,8 +90,8 @@ public class DefaultEventBus implements EventBus {
      *
      * @return 如果返回false，则会忽略该对应的handler注册
      */
-    protected boolean accept(@Nonnull Class<?> eventType) {
-        return true;
+    private boolean accept(@Nonnull Class<?> eventType) {
+        return filter.test(eventType);
     }
 
     @Override
@@ -97,8 +106,8 @@ public class DefaultEventBus implements EventBus {
      *
      * @return 如果返回false，则会忽略该对应的handler注册
      */
-    protected boolean acceptGeneric(Class<? extends GenericEvent<?>> genericType) {
-        return true;
+    private boolean acceptGeneric(Class<? extends GenericEvent<?>> genericType) {
+        return genericFilter.test(genericType);
     }
 
     private <T> void addHandlerImp(@Nonnull Object eventKey, @Nonnull EventHandler<? super T> handler) {

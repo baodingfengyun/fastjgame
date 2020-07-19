@@ -71,7 +71,7 @@ public class DefaultSessionRegistry implements SessionRegistry {
     @Override
     public void closeAll() {
         CollectionUtils.removeIfAndThen(sessionMap.values(),
-                FunctionUtils::TRUE,
+                FunctionUtils.alwaysTrue(),
                 AbstractSession::closeForcibly);
     }
 }

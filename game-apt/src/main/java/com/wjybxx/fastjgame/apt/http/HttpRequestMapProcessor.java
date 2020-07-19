@@ -206,7 +206,14 @@ public class HttpRequestMapProcessor extends MyAbstractProcessor {
 
     private static String makePath(@Nullable String parentPath, @Nonnull String childPath) {
         // 格式都是 /parent/child
-        return parentPath == null ? childPath : parentPath + childPath;
+        if (parentPath == null || parentPath.equals("/")) {
+            return childPath;
+        }
+        if (parentPath.endsWith("/")) {
+            return parentPath + childPath.substring(1);
+        } else {
+            return parentPath + childPath;
+        }
     }
 
     /**
