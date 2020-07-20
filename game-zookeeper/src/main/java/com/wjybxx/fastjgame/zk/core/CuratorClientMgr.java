@@ -92,7 +92,7 @@ public class CuratorClientMgr {
         }
 
         // Curator有一点非常坑爹
-        // 内部使用的是守护线程，如果用户指定了线程工厂，设置错误的化，则可能导致JVM无法退出。
+        // 内部使用的是守护线程，如果用户指定了线程工厂，设置错误的话，则可能导致JVM无法退出。
         // 我们在此拦截，以保证安全性
         final ThreadFactory daemonThreadFactory = new ThreadFactoryBuilder()
                 .setThreadFactory(builder.getThreadFactory())

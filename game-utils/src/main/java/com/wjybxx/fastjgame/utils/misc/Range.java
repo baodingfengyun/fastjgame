@@ -18,6 +18,8 @@ package com.wjybxx.fastjgame.utils.misc;
 
 import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
 
+import java.util.Objects;
+
 /**
  * 范围
  * <p>
@@ -40,6 +42,8 @@ public class Range {
 
     public Range(long begin, long end, Mode mode) {
         validateRange(begin, end);
+        Objects.requireNonNull(mode, "mode");
+
         this.begin = begin;
         this.end = end;
         this.mode = mode;
@@ -106,6 +110,29 @@ public class Range {
     @Override
     public String toString() {
         return "Range[" + begin + "," + end + "," + mode + "]";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Range that = (Range) o;
+        return begin == that.begin
+                && end == that.end
+                && mode == that.mode;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Long.hashCode(begin);
+        result = 31 * result + Long.hashCode(end);
+        result = 31 * result + mode.hashCode();
+        return result;
     }
 
     // =================================  开放工具方法   =====================================
