@@ -88,14 +88,14 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
         @SuppressWarnings("unchecked") final RpcMethodProxy<T> methodProxy = proxyMapping.get(methodKey);
         if (null == methodProxy) {
             promise.tryFailure(new IllegalArgumentException("Unknown methodKey " + methodKey));
-            logger.warn("{} send unregistered request, methodKey={}, parameters={}",
+            logger.warn("rcv unknown request, session {}, methodKey={}, parameters={}",
                     context.session().sessionId(), methodKey, params);
             return;
         }
         try {
             methodProxy.invoke(context, params, promise);
         } catch (Exception e) {
-            logger.warn("handle {} rpcRequest caught exception, methodKey={}, parameters={}",
+            logger.warn("invoke caught exception, session {}, methodKey={}, parameters={}",
                     context.session().sessionId(), methodKey, params, e);
         }
     }

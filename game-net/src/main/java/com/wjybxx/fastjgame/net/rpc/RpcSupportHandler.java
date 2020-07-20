@@ -205,8 +205,8 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
 
         @Override
-        public boolean isOneWay() {
-            return false;
+        public boolean isRpc() {
+            return true;
         }
 
         @Override
@@ -215,7 +215,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
         }
 
         @Override
-        public boolean isSync() {
+        public boolean isSyncRpc() {
             return sync;
         }
     }

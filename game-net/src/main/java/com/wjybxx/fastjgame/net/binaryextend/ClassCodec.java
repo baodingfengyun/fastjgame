@@ -32,6 +32,7 @@ import java.util.Map;
  * date - 2020/2/18
  * github - https://github.com/hl845740757
  */
+@SuppressWarnings({"rawtypes"})
 public class ClassCodec implements PojoCodecImpl<Class> {
 
     /**

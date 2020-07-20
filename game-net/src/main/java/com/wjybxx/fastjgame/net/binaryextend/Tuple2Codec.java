@@ -19,33 +19,29 @@ package com.wjybxx.fastjgame.net.binaryextend;
 import com.wjybxx.fastjgame.net.binary.ObjectReader;
 import com.wjybxx.fastjgame.net.binary.ObjectWriter;
 import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
-import com.wjybxx.fastjgame.utils.misc.Range;
+import com.wjybxx.fastjgame.utils.misc.Tuple2;
 
 /**
  * @author wjybxx
  * @version 1.0
- * date - 2020/4/12
+ * date - 2020/7/20
  */
-@SuppressWarnings("unused")
-public class RangeCodec implements PojoCodecImpl<Range> {
+@SuppressWarnings({"rawtypes"})
+public class Tuple2Codec implements PojoCodecImpl<Tuple2> {
 
     @Override
-    public Class<Range> getEncoderClass() {
-        return Range.class;
+    public Class<Tuple2> getEncoderClass() {
+        return Tuple2.class;
     }
 
     @Override
-    public Range readObject(ObjectReader reader) throws Exception {
-        final long start = reader.readLong();
-        final long end = reader.readLong();
-        final Range.Mode mode = Range.Mode.forNumber(reader.readInt());
-        return new Range(start, end, mode);
+    public Tuple2 readObject(ObjectReader reader) throws Exception {
+        return new Tuple2<>(reader.readObject(), reader.readObject());
     }
 
     @Override
-    public void writeObject(Range instance, ObjectWriter writer) throws Exception {
-        writer.writeLong(instance.begin);
-        writer.writeLong(instance.end);
-        writer.writeInt(instance.mode.number);
+    public void writeObject(Tuple2 instance, ObjectWriter writer) throws Exception {
+        writer.writeObject(instance.first);
+        writer.writeObject(instance.second);
     }
 }

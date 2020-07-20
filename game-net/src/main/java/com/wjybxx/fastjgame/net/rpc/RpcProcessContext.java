@@ -38,20 +38,28 @@ public interface RpcProcessContext {
     Session session();
 
     /**
-     * 是否是单项通知。
-     * 如果是单项通知的话，表示不关心调用结果。
+     * 是否是普通rpc调用。
+     * 如果是普通rpc调用，表示关心调用结果。
      */
-    boolean isOneWay();
-
-    /**
-     * 如果是rpc调用时，返回该调用的唯一标识(该session下唯一)。
-     * 如果不是rpc调用，则该返回值不确定，且没有意义。
-     */
-    long requestGuid();
+    boolean isRpc();
 
     /**
      * 是否是同步rpc调用
      */
-    boolean isSync();
+    boolean isSyncRpc();
+
+    /**
+     * 如果是rpc调用时，返回该调用的唯一标识(该session下唯一)。
+     * 如果不是rpc调用，则该返回值没有意义，可能返回任意值。
+     */
+    long requestGuid();
+
+    /**
+     * 是否是单项通知。
+     * 如果是单项通知的话，表示不关心调用结果。
+     */
+    default boolean isOneWay() {
+        return !isRpc();
+    }
 
 }

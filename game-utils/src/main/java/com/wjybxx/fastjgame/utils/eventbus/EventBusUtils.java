@@ -65,7 +65,9 @@ class EventBusUtils {
         try {
             handler.onEvent(event);
         } catch (Throwable e) {
-            logger.warn("An exception was thrown by " + handler.getClass().getName() + ".onEvent()", e);
+            final String handlerName = handler.getClass().getName();
+            final String eventName = event.getClass().getName();
+            logger.warn("handlerName " + handlerName + ", eventName" + eventName, e);
         }
     }
 

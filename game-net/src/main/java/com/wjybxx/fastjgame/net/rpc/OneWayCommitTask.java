@@ -59,8 +59,8 @@ public class OneWayCommitTask implements RpcProcessContext, CommitTask {
     }
 
     @Override
-    public boolean isOneWay() {
-        return true;
+    public boolean isRpc() {
+        return false;
     }
 
     @Override
@@ -69,7 +69,7 @@ public class OneWayCommitTask implements RpcProcessContext, CommitTask {
     }
 
     @Override
-    public boolean isSync() {
+    public boolean isSyncRpc() {
         return false;
     }
 }

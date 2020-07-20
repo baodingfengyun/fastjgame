@@ -23,7 +23,7 @@ package com.wjybxx.fastjgame.utils.exception;
  * @version 1.0
  * date - 2020/6/30
  */
-public class InfiniteLoopException extends RuntimeException{
+public class InfiniteLoopException extends RuntimeException {
 
     public InfiniteLoopException() {
     }
