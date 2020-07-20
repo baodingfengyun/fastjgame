@@ -51,23 +51,19 @@ public class DefaultTimerSystem implements TimerSystem {
     private static final TimeProvider DEFAULT_TIME_PROVIDER = TimeProviders.realtimeProvider();
 
     /**
-     * timer队列
-     */
-    private final PriorityQueue<AbstractTimerHandle> timerQueue;
-    /**
      * 用于获取当前时间
      */
     private final TimeProvider timeProvider;
+    /**
+     * timer队列
+     */
+    private PriorityQueue<AbstractTimerHandle> timerQueue;
 
     /**
      * 用于分配timerId。
      * 如果是静态的将存在线程安全问题(或使用AtomicLong) - 不想产生不必要的竞争，因此每个timerSystem一个。
      */
     private long timerIdSequencer = 0;
-    /**
-     * 是否已关闭
-     */
-    private boolean closed = false;
 
     /**
      * 正在执行回调的timer
@@ -136,7 +132,7 @@ public class DefaultTimerSystem implements TimerSystem {
      * 将timer压入队列，并进行适当的初始化。
      */
     private <T extends AbstractTimerHandle> T tryAddTimerAndInit(T timerHandle) {
-        if (closed) {
+        if (isClosed()) {
             // timer系统已关闭，不压入队列
             timerHandle.closeWithoutRemove();
         } else {
@@ -176,7 +172,7 @@ public class DefaultTimerSystem implements TimerSystem {
 
     @Override
     public void tick() {
-        if (closed) {
+        if (isClosed()) {
             return;
         }
 
@@ -201,8 +197,11 @@ public class DefaultTimerSystem implements TimerSystem {
      * 检查周期性执行的timer
      */
     private void tickTimer(final long curTimeMillis) {
+        PriorityQueue<AbstractTimerHandle> timerQueue;
         AbstractTimerHandle timerHandle;
-        while ((timerHandle = timerQueue.peek()) != null) {
+        int curTickFrame = this.curTickFrame;
+
+        while ((timerQueue = this.timerQueue) != null && (timerHandle = timerQueue.peek()) != null) {
             // 优先级最高的timer不需要执行，那么后面的也不需要执行
             if (curTimeMillis < timerHandle.getNextExecuteTimeMs()) {
                 return;
@@ -238,9 +237,11 @@ public class DefaultTimerSystem implements TimerSystem {
         try {
             timerHandle.run();
         } catch (final Throwable cause) {
-            // 出现异常时关闭timer
-            logger.warn("onExceptionCaught caught exception!", cause);
-            timerHandle.closeWithoutRemove();
+            if (timerHandle.isAutoCloseOnExceptionCaught()) {
+                // 出现异常时关闭timer
+                timerHandle.closeWithoutRemove();
+            }
+            logger.warn("timerHandle.run caught exception!", cause);
         }
 
         if (!timerHandle.isClosed()) {
@@ -250,16 +251,22 @@ public class DefaultTimerSystem implements TimerSystem {
 
     @Override
     public boolean isClosed() {
-        return closed;
+        return timerQueue == null;
     }
 
     @Override
     public void close() {
-        if (closed) {
+        if (timerQueue == null) {
             return;
         }
-        closed = true;
+
+        // 某个回调尝试关闭整个timer系统，不是个好的实践
+        if (runningTimer != null) {
+            runningTimer.closeWithoutRemove();
+        }
+
         closeQueue(timerQueue);
+        timerQueue = null;
     }
 
     /**

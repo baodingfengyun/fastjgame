@@ -85,6 +85,20 @@ public interface TimerSystem extends TimeProvider {
     @Nonnull
     FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task);
 
+    /**
+     * 创建一个用于心跳的定时器，它在出现异常时不自动关闭
+     *
+     * @param delay 执行间隔，毫秒，必须大于0
+     * @param task  定时执行的任务
+     * @return Timer对应的句柄
+     */
+    @Nonnull
+    default FixedDelayHandle newHeartbeatTimer(long delay, @Nonnull TimerTask task) {
+        final FixedDelayHandle fixedDelay = newFixedDelay(delay, delay, task);
+        fixedDelay.setAutoCloseOnExceptionCaught(false);
+        return fixedDelay;
+    }
+
     @Nonnull
     default FixedRateHandle newFixRate(long period, @Nonnull TimerTask task) {
         return newFixRate(period, period, task);

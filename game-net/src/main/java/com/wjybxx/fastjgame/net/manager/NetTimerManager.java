@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class NetTimerManager {
+public class NetTimerManager implements TimerSystem{
 
     private static final int INIT_TIMER_CAPACITY = 1024;
 
@@ -42,48 +42,68 @@ public class NetTimerManager {
         timerSystem = new DefaultTimerSystem(netTimeManager, INIT_TIMER_CAPACITY);
     }
 
-    public void tick() {
-        timerSystem.tick();
+    @Override
+    public TimeoutHandle nextTick(@Nonnull TimerTask task) {
+        return timerSystem.nextTick(task);
     }
 
-    public void close() {
-        timerSystem.close();
-    }
-
+    @Override
     @Nonnull
     public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task) {
         return timerSystem.newTimeout(timeout, task);
     }
 
-    @Nonnull
-    public TimeoutHandle nextTick(@Nonnull TimerTask task) {
-        return timerSystem.nextTick(task);
-    }
-
-    @Nonnull
-    public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task) {
-        return timerSystem.newFixedDelay(initialDelay, delay, task);
-    }
-
+    @Override
     @Nonnull
     public FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask task) {
         return timerSystem.newFixedDelay(delay, task);
     }
 
+    @Override
     @Nonnull
-    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask task) {
-        return timerSystem.newFixRate(initialDelay, period, task);
+    public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task) {
+        return timerSystem.newFixedDelay(initialDelay, delay, task);
     }
 
+    @Override
+    @Nonnull
+    public FixedDelayHandle newHeartbeatTimer(long delay, @Nonnull TimerTask task) {
+        return timerSystem.newHeartbeatTimer(delay, task);
+    }
+
+    @Override
     @Nonnull
     public FixedRateHandle newFixRate(long period, @Nonnull TimerTask task) {
         return timerSystem.newFixRate(period, task);
     }
 
+    @Override
+    @Nonnull
+    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask task) {
+        return timerSystem.newFixRate(initialDelay, period, task);
+    }
+
+    @Override
+    public void tick() {
+        timerSystem.tick();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return timerSystem.isClosed();
+    }
+
+    @Override
+    public void close() {
+        timerSystem.close();
+    }
+
+    @Override
     public long curTimeMillis() {
         return timerSystem.curTimeMillis();
     }
 
+    @Override
     public int curTimeSeconds() {
         return timerSystem.curTimeSeconds();
     }

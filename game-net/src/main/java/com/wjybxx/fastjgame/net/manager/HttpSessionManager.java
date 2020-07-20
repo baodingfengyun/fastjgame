@@ -58,7 +58,7 @@ public class HttpSessionManager {
         this.netEventLoopManager = netEventLoopManager;
         this.netTimeManager = netTimeManager;
 
-        netTimerManager.newFixedDelay(TICK_INTERVAL * TimeUtils.SEC, this::checkSessionTimeout);
+        netTimerManager.newHeartbeatTimer(TICK_INTERVAL * TimeUtils.SEC, this::checkSessionTimeout);
     }
 
     /**

@@ -40,10 +40,6 @@ abstract class AbstractTimerHandle implements TimerHandle {
      */
     private final DefaultTimerSystem timerSystem;
     /**
-     * 该handle关联的timerTask
-     */
-    private TimerTask timerTask;
-    /**
      * 定时器id，先添加的必定更小...
      */
     private final long timerId;
@@ -52,6 +48,14 @@ abstract class AbstractTimerHandle implements TimerHandle {
      */
     private final long createTimeMs;
 
+    /**
+     * 该handle关联的timerTask
+     */
+    private TimerTask timerTask;
+    /**
+     * 出现异常时是否自动关闭timer
+     */
+    private boolean autoCloseOnExceptionCaught = true;
     /**
      * 上下文/附加属性
      */
@@ -70,9 +74,14 @@ abstract class AbstractTimerHandle implements TimerHandle {
 
     AbstractTimerHandle(DefaultTimerSystem timerSystem, TimerTask timerTask) {
         this.timerSystem = timerSystem;
-        this.timerTask = timerTask;
         this.timerId = timerSystem.nextTimerId();
         this.createTimeMs = timerSystem.curTimeMillis();
+        this.timerTask = timerTask;
+    }
+
+    @Override
+    public final DefaultTimerSystem timerSystem() {
+        return timerSystem;
     }
 
     @Override
@@ -95,7 +104,7 @@ abstract class AbstractTimerHandle implements TimerHandle {
     }
 
     @Override
-    public long runDelay() {
+    public long nextDelay() {
         if (isClosed()) {
             return -1;
         }
@@ -124,8 +133,13 @@ abstract class AbstractTimerHandle implements TimerHandle {
     }
 
     @Override
-    public final DefaultTimerSystem timerSystem() {
-        return timerSystem;
+    public boolean isAutoCloseOnExceptionCaught() {
+        return autoCloseOnExceptionCaught;
+    }
+
+    @Override
+    public void setAutoCloseOnExceptionCaught(boolean autoCloseOnExceptionCaught) {
+        this.autoCloseOnExceptionCaught = autoCloseOnExceptionCaught;
     }
 
     long getCreateTimeMs() {

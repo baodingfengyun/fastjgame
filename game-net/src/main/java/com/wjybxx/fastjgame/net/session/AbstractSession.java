@@ -84,7 +84,7 @@ public abstract class AbstractSession implements Session {
         this.sessionRegistry = sessionRegistry;
         this.pipeline = new DefaultSessionPipeline(this, managerWrapper.getNetTimeManager());
         this.netEventLoop = managerWrapper.getNetEventLoopManager().getEventLoop();
-        this.tickHandle = managerWrapper.getNetTimerManager().newFixedDelay(TICK_INTERVAL, this::tick);
+        this.tickHandle = managerWrapper.getNetTimerManager().newHeartbeatTimer(TICK_INTERVAL, this::tick);
         sessionRegistry.registerSession(this);
     }
 

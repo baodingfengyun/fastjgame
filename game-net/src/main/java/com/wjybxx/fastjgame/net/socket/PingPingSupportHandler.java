@@ -61,7 +61,7 @@ public class PingPingSupportHandler extends SessionDuplexHandlerAdapter {
         lastWriteTime = ctx.timerSystem().curTimeMillis();
 
         // 心跳检测timer
-        ctx.timerSystem().newFixedDelay(pingIntervalMs, pingIntervalMs, this::checkPing);
+        ctx.timerSystem().newHeartbeatTimer(pingIntervalMs, this::checkPing);
     }
 
     private void checkPing(TimerHandle handle) throws Exception {

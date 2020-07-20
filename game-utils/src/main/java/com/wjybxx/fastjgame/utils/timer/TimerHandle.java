@@ -59,7 +59,7 @@ public interface TimerHandle {
      *
      * @return -1 表示已停止，否则返回大于等于0的值。
      */
-    long runDelay();
+    long nextDelay();
 
     /**
      * 尝试关闭该handle关联的TimerTask，如果handle关联的timer早已关闭，则该方法什么也不会做。
@@ -73,4 +73,15 @@ public interface TimerHandle {
      */
     boolean isClosed();
 
+    /**
+     * 在出现异常时，是否自动关闭，主要用于周期执行的timer。
+     * 注意：默认情况会关闭timer
+     */
+    boolean isAutoCloseOnExceptionCaught();
+
+    /**
+     * 设置在执行出现异常时是否关闭timer
+     * 注意：如果使用timer实现心跳逻辑，那么最好设值为false（不关闭），否则可能导致严重错误
+     */
+    void setAutoCloseOnExceptionCaught(boolean autoClose);
 }
