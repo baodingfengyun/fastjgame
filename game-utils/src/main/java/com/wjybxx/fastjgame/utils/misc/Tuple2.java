@@ -26,10 +26,10 @@ import java.util.Objects;
  * @version 1.0
  * date - 2020/7/20
  */
-public class Tuple2<A, B> {
+public final class Tuple2<A, B> {
 
-    public final A first;
-    public final B second;
+    private final A first;
+    private final B second;
 
     public Tuple2(A first, B second) {
         this.first = first;
@@ -45,7 +45,7 @@ public class Tuple2<A, B> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -55,11 +55,12 @@ public class Tuple2<A, B> {
         }
 
         final Tuple2<?, ?> that = (Tuple2<?, ?>) o;
-        return Objects.equals(first, that.first) && Objects.equals(second, that.second);
+        return Objects.equals(first, that.first)
+                && Objects.equals(second, that.second);
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return 31 * Objects.hashCode(first) + Objects.hashCode(second);
     }
 }

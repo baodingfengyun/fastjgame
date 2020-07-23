@@ -54,7 +54,7 @@ public interface GuidGenerator extends Closeable {
     /**
      * 分配一个该生成器所属命名空间下唯一的id。
      *
-     * @apiNote 它既不保证连续性，也不保证有序性。
+     * @apiNote 是否有序以及是否递增取决于实现
      */
     long next();
 

@@ -19,22 +19,33 @@ package com.wjybxx.fastjgame.utils.misc;
 import java.util.Objects;
 
 /**
- * 三元组
- * <p>
- * Q: 为什么定义为final类？
- * A: 三元组已经降低了可读性，再增加元素就是灾难，当需要更多的元素时应该定义自己的类对象。
+ * 三元组<br>
+ * 三元组已经降低了可读性，再增加元素就是灾难，当需要更多的元素时应该定义自己的类对象。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/7/20
  */
-public final class Tuple3<A, B, C> extends Tuple2<A, B> {
+public final class Tuple3<A, B, C> {
 
-    public final C third;
+    private final Tuple2<A, B> tuple2;
+    private final C third;
 
     public Tuple3(A first, B second, C third) {
-        super(first, second);
+        this.tuple2 = new Tuple2<>(first, second);
         this.third = third;
+    }
+
+    public Tuple2<A, B> asTuple2() {
+        return tuple2;
+    }
+
+    public A getFirst() {
+        return tuple2.getFirst();
+    }
+
+    public B getSecond() {
+        return tuple2.getSecond();
     }
 
     public C getThird() {
@@ -42,7 +53,7 @@ public final class Tuple3<A, B, C> extends Tuple2<A, B> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -51,16 +62,14 @@ public final class Tuple3<A, B, C> extends Tuple2<A, B> {
             return false;
         }
 
-        if (!super.equals(o)) {
-            return false;
-        }
-
         Tuple3<?, ?, ?> that = (Tuple3<?, ?, ?>) o;
-        return Objects.equals(third, that.third);
+
+        return tuple2.equals(that.tuple2)
+                && Objects.equals(third, that.third);
     }
 
     @Override
-    public int hashCode() {
-        return 31 * super.hashCode() + Objects.hashCode(third);
+    public final int hashCode() {
+        return 31 * tuple2.hashCode() + Objects.hashCode(third);
     }
 }
