@@ -41,7 +41,7 @@ public class Tuple2Codec implements PojoCodecImpl<Tuple2> {
 
     @Override
     public void writeObject(Tuple2 instance, ObjectWriter writer) throws Exception {
-        writer.writeObject(instance.first);
-        writer.writeObject(instance.second);
+        writer.writeObject(instance.getFirst());
+        writer.writeObject(instance.getSecond());
     }
 }
