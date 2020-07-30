@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.db.core.repository;
+package com.wjybxx.fastjgame.db.core;
 
 import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 

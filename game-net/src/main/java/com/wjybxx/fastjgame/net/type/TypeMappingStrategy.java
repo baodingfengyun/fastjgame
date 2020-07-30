@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.db.core;
+package com.wjybxx.fastjgame.net.type;
 
 /**
  * 消息映射策略，自己决定消息类到消息id的映射。

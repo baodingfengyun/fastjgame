@@ -53,4 +53,11 @@ public class DoubleHolder {
         this.value = value;
         return r;
     }
+
+    @Override
+    public String toString() {
+        return "DoubleHolder{" +
+                "value=" + value +
+                '}';
+    }
 }

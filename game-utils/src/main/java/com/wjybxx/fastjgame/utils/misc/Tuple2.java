@@ -63,4 +63,12 @@ public final class Tuple2<A, B> {
     public final int hashCode() {
         return 31 * Objects.hashCode(first) + Objects.hashCode(second);
     }
+
+    @Override
+    public String toString() {
+        return "Tuple2{" +
+                "first=" + first +
+                ", second=" + second +
+                '}';
+    }
 }

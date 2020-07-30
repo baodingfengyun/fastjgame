@@ -75,9 +75,6 @@ public class IdentityEventBus implements EventBus {
 
     @Override
     public final <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
-        if (GenericEvent.class.isAssignableFrom(eventType)) {
-            throw new UnsupportedOperationException();
-        }
         if (accept(eventType)) {
             addHandlerImp(eventType, handler);
         }

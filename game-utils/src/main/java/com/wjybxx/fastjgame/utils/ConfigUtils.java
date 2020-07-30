@@ -186,15 +186,15 @@ public class ConfigUtils {
      * 使用默认的数组分隔符和键值对分隔符解析字符串。
      *
      * @param content     字符串内容
-     * @param keyParser   键解析器
-     * @param valueParser 值解析器
+     * @param keyMapper   键类型映射
+     * @param valueMapper 值类型映射
      * @param <K>         键类型
      * @param <V>         值类型
      * @return map 保持有序
      */
-    public static <K, V> Map<K, V> parseToMap(String content, Function<String, K> keyParser, Function<String, V> valueParser) {
+    public static <K, V> Map<K, V> parseToMap(String content, Function<String, K> keyMapper, Function<String, V> valueMapper) {
         return parseToMap(content, DEFAULT_ARRAY_DELIMITER, DEFAULT_KEY_VALUE_DELIMITER,
-                keyParser, valueParser);
+                keyMapper, valueMapper);
     }
 
     /**
@@ -204,14 +204,14 @@ public class ConfigUtils {
      * @param content        字符串内容
      * @param arrayDelimiter 数组分隔符
      * @param kvDelimiter    键值对分隔符
-     * @param keyParser      键类型映射
-     * @param valueParser    值类型映射
+     * @param keyMapper      键类型映射
+     * @param valueMapper    值类型映射
      * @param <K>            键类型
      * @param <V>            值类型
      * @return Map NonNull 保持有序
      */
     public static <K, V> Map<K, V> parseToMap(String content, String arrayDelimiter, String kvDelimiter,
-                                              Function<String, K> keyParser, Function<String, V> valueParser) {
+                                              Function<String, K> keyMapper, Function<String, V> valueMapper) {
         if (StringUtils.isBlank(content)) {
             return new LinkedHashMap<>();
         }
@@ -219,13 +219,13 @@ public class ConfigUtils {
         Map<K, V> result = CollectionUtils.newLinkedHashMapWithExpectedSize(kvPairArray.length);
         for (String kvPairStr : kvPairArray) {
             String[] kvPair = kvPairStr.split(kvDelimiter, 2);
-            K key = keyParser.apply(kvPair[0]);
+            K key = keyMapper.apply(kvPair[0]);
             // 校验重复
             if (result.containsKey(key)) {
                 throw new RuntimeException(content + " find duplicate key " + kvPair[0]);
             }
             // 解析成功
-            result.put(key, valueParser.apply(kvPair[1]));
+            result.put(key, valueMapper.apply(kvPair[1]));
         }
         return result;
     }
@@ -237,14 +237,14 @@ public class ConfigUtils {
      * @param map            键值对
      * @param arrayDelimiter 数组分隔符
      * @param kvDelimiter    键值对分隔符
-     * @param keyMapper      键类型映射
-     * @param valueMapper    值类型映射
+     * @param keyEncoder     键类型编码器
+     * @param valueEncoder   值类型编码器
      * @param <K>            键类型
      * @param <V>            值类型
      * @return String NonNull
      */
     public static <K, V> String toString(Map<K, V> map, String arrayDelimiter, String kvDelimiter,
-                                         Function<K, String> keyMapper, Function<V, String> valueMapper) {
+                                         Function<K, String> keyEncoder, Function<V, String> valueEncoder) {
         if (null == map || map.isEmpty()) {
             return "";
         }
@@ -255,9 +255,9 @@ public class ConfigUtils {
                 sb.append(arrayDelimiter);
             }
             // eg: k=v 这里其实校验是否产生了重复的key字符串会更好
-            sb.append(keyMapper.apply(entry.getKey()));
+            sb.append(keyEncoder.apply(entry.getKey()));
             sb.append(kvDelimiter);
-            sb.append(valueMapper.apply(entry.getValue()));
+            sb.append(valueEncoder.apply(entry.getValue()));
         }
         return sb.toString();
     }

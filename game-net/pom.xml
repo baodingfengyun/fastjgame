@@ -84,12 +84,6 @@
             <artifactId>protobuf-java</artifactId>
             <version>3.11.1</version>
         </dependency>
-        <dependency>
-            <groupId>com.wjybxx.fastjgame</groupId>
-            <artifactId>game-db-api</artifactId>
-            <version>1.0</version>
-            <scope>compile</scope>
-        </dependency>
 
     </dependencies>
 

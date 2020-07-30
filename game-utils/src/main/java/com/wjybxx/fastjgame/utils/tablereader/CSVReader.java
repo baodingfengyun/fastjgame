@@ -15,6 +15,7 @@
  */
 package com.wjybxx.fastjgame.utils.tablereader;
 
+import com.wjybxx.fastjgame.utils.CloseableUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -85,12 +86,6 @@ public class CSVReader extends TableReader<CSVRecord> {
 
     @Override
     public void close() throws Exception {
-        if (null != parser) {
-            try {
-                parser.close();
-            } catch (Exception e) {
-                logger.info("parser.close", e);
-            }
-        }
+        CloseableUtils.closeSafely(parser);
     }
 }

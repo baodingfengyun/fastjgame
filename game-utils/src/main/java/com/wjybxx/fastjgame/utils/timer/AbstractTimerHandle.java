@@ -123,7 +123,7 @@ abstract class AbstractTimerHandle implements TimerHandle {
     /**
      * 关闭timer，但不从队列中中删除
      */
-    public void closeWithoutRemove() {
+    void closeWithoutRemove() {
         timerTask = null;
     }
 
@@ -165,11 +165,6 @@ abstract class AbstractTimerHandle implements TimerHandle {
     void setNextExecuteFrameThreshold(int nextExecuteFrameThreshold) {
         this.nextExecuteFrameThreshold = nextExecuteFrameThreshold;
     }
-
-    /**
-     * timer创建时进行初始化。
-     */
-    protected abstract void init();
 
     /**
      * 任务执行一次之后，更新状态下次执行时间

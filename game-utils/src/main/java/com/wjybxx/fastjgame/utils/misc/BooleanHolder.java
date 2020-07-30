@@ -53,5 +53,12 @@ public class BooleanHolder {
         this.value = value;
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "BooleanHolder{" +
+                "value=" + value +
+                '}';
+    }
 }
 

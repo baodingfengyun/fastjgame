@@ -14,19 +14,38 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.utils;
+package com.wjybxx.fastjgame.db.core;
 
-import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
+import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
 
 /**
+ * 资源库
+ *
  * @author wjybxx
  * @version 1.0
- * date - 2020/4/24
+ * date - 2020/5/8
  */
-public class RpcUtils {
+@UnstableApi
+public interface Repository<T extends PersistableObject> {
 
-    public static boolean isRpcTimeout(Throwable cause) {
-        return cause == RpcTimeoutException.INSTANCE;
-    }
+    /**
+     * 适用于首次
+     */
+    void store(T instance);
+
+    /**
+     * 适用于更新
+     */
+    void update(T instance);
+
+    /**
+     * 从持久化数据中删除给定对象
+     */
+    void remove(long id);
+
+    /**
+     * 通过id获取指定对象
+     */
+    T ofId(long id);
 
 }

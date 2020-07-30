@@ -20,7 +20,6 @@ import com.google.auto.service.AutoService;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.wjybxx.fastjgame.apt.core.MyAbstractProcessor;
-import com.wjybxx.fastjgame.apt.db.DBEntityProcessor;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 import com.wjybxx.fastjgame.apt.utils.BeanUtils;
 
@@ -49,6 +48,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     // 使用这种方式可以脱离对utils，net包的依赖
     private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.SerializableClass";
     private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.SerializableField";
+    public static final String IMPL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.Impl";
 
     private static final String CODEC_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.PojoCodecImpl";
     private static final String ABSTRACT_CODEC_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.AbstractPojoCodecImpl";
@@ -68,9 +68,6 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
     private TypeElement serializableClassElement;
     private DeclaredType serializableFieldDeclaredType;
-
-    private TypeElement dbEntityTypeElement;
-    private DeclaredType dbFieldDeclaredType;
     private DeclaredType impDeclaredType;
 
     private DeclaredType indexableEnumDeclaredType;
@@ -88,7 +85,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Set.of(SERIALIZABLE_CLASS_CANONICAL_NAME, DBEntityProcessor.DB_ENTITY_CANONICAL_NAME);
+        return Set.of(SERIALIZABLE_CLASS_CANONICAL_NAME);
     }
 
     @Override
@@ -105,10 +102,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
 
         serializableClassElement = elementUtils.getTypeElement(SERIALIZABLE_CLASS_CANONICAL_NAME);
         serializableFieldDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SERIALIZABLE_FIELD_CANONICAL_NAME));
-
-        dbEntityTypeElement = elementUtils.getTypeElement(DBEntityProcessor.DB_ENTITY_CANONICAL_NAME);
-        dbFieldDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(DBEntityProcessor.DB_FIELD_CANONICAL_NAME));
-        impDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(DBEntityProcessor.IMPL_CANONICAL_NAME));
+        impDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(IMPL_CANONICAL_NAME));
 
         indexableEnumDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_ENUM_CANONICAL_NAME));
         indexableObjectDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(BeanUtils.INDEXABLE_OBJECT_CANONICAL_NAME));
@@ -131,7 +125,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     @Override
     protected boolean doProcess(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         // 该注解只有类可以使用
-        @SuppressWarnings("unchecked") final Set<TypeElement> allTypeElements = (Set<TypeElement>) roundEnv.getElementsAnnotatedWithAny(serializableClassElement, dbEntityTypeElement);
+        @SuppressWarnings("unchecked") final Set<TypeElement> allTypeElements = (Set<TypeElement>) roundEnv.getElementsAnnotatedWith(serializableClassElement);
         for (TypeElement typeElement : allTypeElements) {
             try {
                 checkBase(typeElement);
@@ -329,11 +323,10 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
     }
 
     /**
-     * 用于 {@link DBEntityProcessor#DB_FIELD_CANONICAL_NAME}注解和{@link #SERIALIZABLE_FIELD_CANONICAL_NAME}注解的字段是可以序列化的
+     * {@link #SERIALIZABLE_FIELD_CANONICAL_NAME}注解的字段是可以序列化的
      */
     boolean isSerializableField(VariableElement variableElement) {
-        return AutoUtils.isAnnotationPresent(typeUtils, variableElement, serializableFieldDeclaredType)
-                || AutoUtils.isAnnotationPresent(typeUtils, variableElement, dbFieldDeclaredType);
+        return AutoUtils.isAnnotationPresent(typeUtils, variableElement, serializableFieldDeclaredType);
     }
 
     /**
@@ -361,7 +354,7 @@ public class SerializableClassProcessor extends MyAbstractProcessor {
         final TypeMirror implTypeMirror = getFieldImplAnnotationValue(variableElement);
         if (implTypeMirror == null) {
             messager.printMessage(Diagnostic.Kind.ERROR,
-                    "Abstract MapOrCollection must contains impl annotation " + DBEntityProcessor.IMPL_CANONICAL_NAME,
+                    "Abstract MapOrCollection must contains impl annotation " + IMPL_CANONICAL_NAME,
                     variableElement);
             return;
         }

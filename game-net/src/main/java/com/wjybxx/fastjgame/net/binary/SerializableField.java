@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.db.annotation.Impl;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

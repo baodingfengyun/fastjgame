@@ -53,4 +53,10 @@ public class ObjectHolder<T> {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "ObjectHolder{" +
+                "value=" + value +
+                '}';
+    }
 }

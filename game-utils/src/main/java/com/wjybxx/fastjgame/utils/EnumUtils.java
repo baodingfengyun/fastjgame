@@ -167,7 +167,7 @@ public class EnumUtils {
         }
     }
 
-    private static <T extends IndexableEnum> boolean isArrayAvailable(int minNumber, int maxNumber, int length, boolean fastQuery) {
+    private static boolean isArrayAvailable(int minNumber, int maxNumber, int length, boolean fastQuery) {
         if (ArrayBasedMapper.matchDefaultFactor(minNumber, maxNumber, length)) {
             return true;
         }

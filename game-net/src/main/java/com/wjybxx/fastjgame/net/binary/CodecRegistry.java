@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.db.core.TypeId;
-import com.wjybxx.fastjgame.db.core.TypeModelMapper;
+import com.wjybxx.fastjgame.net.type.TypeId;
+import com.wjybxx.fastjgame.net.type.TypeModelMapper;
 
 import javax.annotation.Nullable;
 

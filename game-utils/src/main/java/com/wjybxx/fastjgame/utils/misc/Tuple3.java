@@ -72,4 +72,13 @@ public final class Tuple3<A, B, C> {
     public final int hashCode() {
         return 31 * tuple2.hashCode() + Objects.hashCode(third);
     }
+
+    @Override
+    public String toString() {
+        return "Tuple3{" +
+                "first=" + tuple2.getFirst() +
+                ", second=" + tuple2.getSecond() +
+                ", third=" + third +
+                '}';
+    }
 }

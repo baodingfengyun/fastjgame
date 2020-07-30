@@ -65,7 +65,7 @@
 
         <dependency>
             <groupId>com.wjybxx.fastjgame</groupId>
-            <artifactId>game-utils</artifactId>
+            <artifactId>game-net</artifactId>
             <version>1.0</version>
         </dependency>
 

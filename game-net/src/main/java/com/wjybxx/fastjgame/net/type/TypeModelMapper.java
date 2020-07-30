@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.db.core;
+package com.wjybxx.fastjgame.net.type;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;

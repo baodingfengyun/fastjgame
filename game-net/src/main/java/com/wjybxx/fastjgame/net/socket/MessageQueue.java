@@ -71,7 +71,8 @@ public final class MessageQueue {
     private Deque<OuterSocketMessage> pendingQueue = new ArrayDeque<>();
 
     /**
-     * 未发送的消息队列,还没有尝试过发送的消息
+     * 未发送的消息队列，还没有尝试过发送的消息。
+     * 使用{@link LinkedList}是因为需要回收内存。
      */
     private Deque<OuterSocketMessage> cacheQueue = new LinkedList<>();
 

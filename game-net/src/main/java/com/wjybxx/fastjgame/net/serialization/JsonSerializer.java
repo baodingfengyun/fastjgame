@@ -16,11 +16,11 @@
 
 package com.wjybxx.fastjgame.net.serialization;
 
-import com.wjybxx.fastjgame.db.core.TypeId;
-import com.wjybxx.fastjgame.db.core.TypeModel;
-import com.wjybxx.fastjgame.db.core.TypeModelMapper;
 import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.misc.BufferPool;
+import com.wjybxx.fastjgame.net.type.TypeId;
+import com.wjybxx.fastjgame.net.type.TypeModel;
+import com.wjybxx.fastjgame.net.type.TypeModelMapper;
 import com.wjybxx.fastjgame.utils.JsonUtils;
 import io.netty.buffer.*;
 import org.apache.commons.lang3.ArrayUtils;

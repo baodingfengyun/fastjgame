@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class NetTimerManager implements TimerSystem{
+public class NetTimerManager implements TimerSystem {
 
     private static final int INIT_TIMER_CAPACITY = 1024;
 

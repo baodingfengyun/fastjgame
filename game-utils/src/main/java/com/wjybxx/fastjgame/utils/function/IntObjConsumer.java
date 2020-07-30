@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils.function;
 
 import java.util.Objects;
+import java.util.function.ObjIntConsumer;
 
 /**
  * @author wjybxx
@@ -25,7 +26,12 @@ import java.util.Objects;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface IntObjConsumer<V> {
+public interface IntObjConsumer<V> extends ObjIntConsumer<V> {
+
+    @Override
+    default void accept(V v, int value) {
+        accept(value, v);
+    }
 
     void accept(int k, V v);
 

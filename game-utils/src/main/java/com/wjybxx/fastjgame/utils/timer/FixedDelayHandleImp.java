@@ -80,11 +80,6 @@ class FixedDelayHandleImp extends AbstractTimerHandle implements FixedDelayHandl
     }
 
     @Override
-    protected final void init() {
-        setNextExecuteTimeMs(getCreateTimeMs() + initialDelay);
-    }
-
-    @Override
     protected final void afterExecuteOnce(long curTimeMs) {
         // 上次执行时间为真实时间
         lastExecuteTimeMs = curTimeMs;

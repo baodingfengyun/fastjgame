@@ -27,20 +27,6 @@ package com.wjybxx.fastjgame.utils.function;
 public interface Functions {
 
     @FunctionalInterface
-    interface Function1<R, A> {
-
-        R apply(A a);
-
-    }
-
-    @FunctionalInterface
-    interface Function2<R, A, B> {
-
-        R apply(A a, B b);
-
-    }
-
-    @FunctionalInterface
     interface Function3<R, A, B, C> {
 
         R apply(A a, B b, C c);

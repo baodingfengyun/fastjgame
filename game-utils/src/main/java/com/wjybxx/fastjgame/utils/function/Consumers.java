@@ -27,20 +27,6 @@ package com.wjybxx.fastjgame.utils.function;
 public interface Consumers {
 
     @FunctionalInterface
-    interface Consumer1<A> {
-
-        void accept(A a);
-
-    }
-
-    @FunctionalInterface
-    interface Consumer2<A, B> {
-
-        void accept(A a, B b);
-
-    }
-
-    @FunctionalInterface
     interface Consumer3<A, B, C> {
 
         void accept(A a, B b, C c);

@@ -79,11 +79,6 @@ class FixedRateHandleImp extends AbstractTimerHandle implements FixedRateHandle 
     }
 
     @Override
-    protected final void init() {
-        setNextExecuteTimeMs(getCreateTimeMs() + initialDelay);
-    }
-
-    @Override
     protected final void afterExecuteOnce(long curTimeMs) {
         // 上次执行时间非真实时间
         lastExecuteTimeMs = getNextExecuteTimeMs();

@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.net.serialization;
 
 import com.google.protobuf.Message;
 import com.google.protobuf.ProtocolMessageEnum;
-import com.wjybxx.fastjgame.db.core.TypeId;
-import com.wjybxx.fastjgame.db.core.TypeMappingStrategy;
-import com.wjybxx.fastjgame.db.core.TypeModel;
+import com.wjybxx.fastjgame.net.type.TypeId;
+import com.wjybxx.fastjgame.net.type.TypeMappingStrategy;
+import com.wjybxx.fastjgame.net.type.TypeModel;
 
 /**
  * 基于hash的消息映射方法，由类的简单名计算hash值。

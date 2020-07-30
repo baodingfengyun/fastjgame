@@ -14,11 +14,8 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.db.impl;
+package com.wjybxx.fastjgame.net.type;
 
-import com.wjybxx.fastjgame.db.core.TypeId;
-import com.wjybxx.fastjgame.db.core.TypeModel;
-import com.wjybxx.fastjgame.db.core.TypeModelMapper;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;

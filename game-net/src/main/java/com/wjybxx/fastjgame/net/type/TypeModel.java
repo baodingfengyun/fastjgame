@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.db.core;
+package com.wjybxx.fastjgame.net.type;
 
 import com.wjybxx.fastjgame.utils.dsl.ValueObject;
 import org.checkerframework.checker.nullness.qual.NonNull;

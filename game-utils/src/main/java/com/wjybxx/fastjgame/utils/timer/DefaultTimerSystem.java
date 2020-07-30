@@ -137,7 +137,7 @@ public class DefaultTimerSystem implements TimerSystem {
             timerHandle.closeWithoutRemove();
         } else {
             // 先初始化，才能获得首次执行时间
-            timerHandle.init();
+            timerHandle.adjustNextExecuteTime();
             timerQueue.add(timerHandle);
             checkInterruptTick(timerHandle);
         }
@@ -302,7 +302,7 @@ public class DefaultTimerSystem implements TimerSystem {
             // 正在执行的时候调整间隔
             timerHandle.adjustNextExecuteTime();
         } else {
-            // 其它时候调整间隔
+            // 其它时候调整间隔(必须先删除才可以修改优先级)
             timerQueue.remove(timerHandle);
             timerHandle.adjustNextExecuteTime();
             timerQueue.add(timerHandle);

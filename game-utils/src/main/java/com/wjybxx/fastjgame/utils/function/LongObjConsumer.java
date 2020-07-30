@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.utils.function;
 
 import java.util.Objects;
+import java.util.function.ObjLongConsumer;
 
 /**
  * @author wjybxx
@@ -25,7 +26,12 @@ import java.util.Objects;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface LongObjConsumer<V> {
+public interface LongObjConsumer<V> extends ObjLongConsumer<V> {
+
+    @Override
+    default void accept(V v, long value) {
+        accept(value, v);
+    }
 
     void accept(long k, V v);
 

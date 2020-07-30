@@ -15,15 +15,15 @@
  */
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.db.core.TypeMappingStrategy;
-import com.wjybxx.fastjgame.db.core.TypeModelMapper;
-import com.wjybxx.fastjgame.db.impl.DefaultTypeModelMapper;
 import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.binary.CodecScanner;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.net.serialization.HashTypeMappingStrategy;
 import com.wjybxx.fastjgame.net.serialization.JsonSerializer;
+import com.wjybxx.fastjgame.net.type.DefaultTypeModelMapper;
+import com.wjybxx.fastjgame.net.type.TypeMappingStrategy;
+import com.wjybxx.fastjgame.net.type.TypeModelMapper;
 
 import java.util.stream.Collectors;
 

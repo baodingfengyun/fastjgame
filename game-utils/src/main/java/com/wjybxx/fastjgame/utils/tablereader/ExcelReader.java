@@ -16,6 +16,7 @@
 package com.wjybxx.fastjgame.utils.tablereader;
 
 import com.monitorjbl.xlsx.StreamingReader;
+import com.wjybxx.fastjgame.utils.CloseableUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -66,12 +67,6 @@ public class ExcelReader extends TableReader<Row> {
 
     @Override
     public void close() throws Exception {
-        if (null != workbook) {
-            try {
-                workbook.close();
-            } catch (Exception e) {
-                logger.info("workbook.close", e);
-            }
-        }
+        CloseableUtils.closeSafely(workbook);
     }
 }

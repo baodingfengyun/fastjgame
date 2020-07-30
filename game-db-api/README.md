@@ -35,7 +35,7 @@ A: 对于key能简单转换为字符串的map，可以直接当做普通对象�
     // 可以缓存一定长度的key-value名字，比如缓存128个，由统一的地方负责makeKeyName(index) makeValueName(index)，小于128的直接从缓存数组取。
     int index = 0;
     writer.writeStartObject("mapFieldName");
-    for(Map.Entry<K,V> entry: map) {
+    for(Map.Entry<K,V> entry: map.entrySet()) {
         writer.writeName("k" + index);
         // key写这里
         writeKey(writer, entry.getKey());

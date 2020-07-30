@@ -41,4 +41,12 @@ public class LongPair {
     public long getSecond() {
         return second;
     }
+
+    @Override
+    public String toString() {
+        return "LongPair{" +
+                "first=" + first +
+                ", second=" + second +
+                '}';
+    }
 }

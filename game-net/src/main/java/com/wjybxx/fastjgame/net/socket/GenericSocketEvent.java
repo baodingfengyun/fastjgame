@@ -47,4 +47,12 @@ public class GenericSocketEvent<T extends SocketEvent> implements GenericEvent<T
     public boolean isForAcceptor() {
         return forAcceptor;
     }
+
+    @Override
+    public String toString() {
+        return "GenericSocketEvent{" +
+                "child=" + child +
+                ", forAcceptor=" + forAcceptor +
+                '}';
+    }
 }

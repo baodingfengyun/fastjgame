@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.db.annotation;
+package com.wjybxx.fastjgame.net.binary;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

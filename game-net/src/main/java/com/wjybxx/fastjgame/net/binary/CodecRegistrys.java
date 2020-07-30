@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.db.core.TypeId;
-import com.wjybxx.fastjgame.db.core.TypeModel;
-import com.wjybxx.fastjgame.db.core.TypeModelMapper;
+import com.wjybxx.fastjgame.net.type.TypeId;
+import com.wjybxx.fastjgame.net.type.TypeModel;
+import com.wjybxx.fastjgame.net.type.TypeModelMapper;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
 import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;

@@ -20,10 +20,10 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.Message;
 import com.google.protobuf.Parser;
-import com.wjybxx.fastjgame.db.core.TypeId;
-import com.wjybxx.fastjgame.db.core.TypeModel;
-import com.wjybxx.fastjgame.db.core.TypeModelMapper;
-import com.wjybxx.fastjgame.db.impl.DefaultTypeModelMapper;
+import com.wjybxx.fastjgame.net.type.DefaultTypeModelMapper;
+import com.wjybxx.fastjgame.net.type.TypeId;
+import com.wjybxx.fastjgame.net.type.TypeModel;
+import com.wjybxx.fastjgame.net.type.TypeModelMapper;
 
 import java.io.IOException;
 import java.util.IdentityHashMap;

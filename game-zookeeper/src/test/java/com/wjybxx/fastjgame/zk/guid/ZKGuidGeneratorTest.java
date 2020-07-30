@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.zk.guid;
 import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.zk.core.BackoffRetryForever;
 import com.wjybxx.fastjgame.zk.core.CuratorClientMgr;
-import com.wjybxx.fastjgame.zk.guid.ZKGuidGenerator;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 
 /**
@@ -41,8 +40,8 @@ public class ZKGuidGeneratorTest {
 
         final CuratorClientMgr curatorClientMgr = new CuratorClientMgr(builder, new DefaultThreadFactory("CURATOR_BACKGROUD"));
         try {
-            doTest(curatorClientMgr, "playerGuidGenerator");
-            doTest(curatorClientMgr, "monsterGuidGenerator");
+            doTest(curatorClientMgr, "game");
+            doTest(curatorClientMgr, "log");
         } finally {
             curatorClientMgr.shutdown();
         }
@@ -50,13 +49,10 @@ public class ZKGuidGeneratorTest {
 
     private static void doTest(CuratorClientMgr curatorClientMgr, String name) {
         final int cacheSize = 100;
-        final ZKGuidGenerator guidGenerator = new ZKGuidGenerator(curatorClientMgr, name, cacheSize);
-        try {
+        try (final ZKGuidGenerator guidGenerator = new ZKGuidGenerator(curatorClientMgr, name, cacheSize)) {
             for (int index = 0; index < cacheSize * 3; index++) {
                 System.out.println("nameSpace: " + name + ", guid: " + guidGenerator.next());
             }
-        } finally {
-            guidGenerator.close();
         }
     }
 

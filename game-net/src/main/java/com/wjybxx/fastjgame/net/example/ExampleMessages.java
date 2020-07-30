@@ -15,9 +15,7 @@
  */
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.db.annotation.DBEntity;
-import com.wjybxx.fastjgame.db.annotation.DBField;
-import com.wjybxx.fastjgame.db.annotation.Impl;
+import com.wjybxx.fastjgame.net.binary.Impl;
 import com.wjybxx.fastjgame.net.binary.SerializableClass;
 import com.wjybxx.fastjgame.net.binary.SerializableField;
 import com.wjybxx.fastjgame.utils.EnumUtils;
@@ -98,66 +96,6 @@ public final class ExampleMessages {
         static SceneConfig forIndex(IntPair key) {
             // 当做查询就好
             return new SceneConfig(key.getFirst(), key.getSecond());
-        }
-    }
-
-
-    @DBEntity(name = "db_bean")
-    public static class DBBean {
-
-        @DBField(name = "guid")
-        private long guid;
-
-        @DBField(name = "name")
-        private String name;
-
-        @SerializableField
-        private String sex;
-
-        @SerializableField
-        private boolean success;
-
-        @SerializableField
-        private Boolean ok;
-
-        public long getGuid() {
-            return guid;
-        }
-
-        public void setGuid(long guid) {
-            this.guid = guid;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getSex() {
-            return sex;
-        }
-
-        public void setSex(String sex) {
-            this.sex = sex;
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
-
-        public void setSuccess(boolean success) {
-            this.success = success;
-        }
-
-        public Boolean getOk() {
-            return ok;
-        }
-
-        public void setOk(Boolean ok) {
-            this.ok = ok;
         }
     }
 

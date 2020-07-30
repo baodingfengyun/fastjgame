@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.redis.guid;
 
-import com.wjybxx.fastjgame.redis.guid.RedisGuidGenerator;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolAbstract;
 
@@ -29,13 +28,10 @@ import redis.clients.jedis.JedisPoolAbstract;
 public class JedisGuidGeneratorTest {
 
     public static void main(String[] args) {
-        final JedisPoolAbstract jedisPool = newJedisPool();
-        try {
+        try (JedisPoolAbstract jedisPool = newJedisPool()) {
             doTest(jedisPool, "player");
             System.out.println("-------------------------------------------");
             doTest(jedisPool, "monster");
-        } finally {
-            jedisPool.close();
         }
     }
 
@@ -45,14 +41,10 @@ public class JedisGuidGeneratorTest {
 
     private static void doTest(JedisPoolAbstract jedisPool, String name) {
         final int cacheSize = 100;
-        final RedisGuidGenerator guidGenerator = new RedisGuidGenerator(jedisPool, name, cacheSize);
-        try {
+        try (final RedisGuidGenerator guidGenerator = new RedisGuidGenerator(jedisPool, name, cacheSize)) {
             for (int index = 0; index < cacheSize * 3; index++) {
                 System.out.println("nameSpace: " + name + ", guid: " + guidGenerator.next());
             }
-        } finally {
-            guidGenerator.close();
         }
-
     }
 }
