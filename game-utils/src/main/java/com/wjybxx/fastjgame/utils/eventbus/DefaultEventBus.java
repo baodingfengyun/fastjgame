@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.utils.eventbus;
 
 import com.google.common.collect.Maps;
-import com.wjybxx.fastjgame.utils.FunctionUtils;
+import com.wjybxx.fastjgame.utils.function.FunctionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;

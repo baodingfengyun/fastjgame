@@ -22,4 +22,4 @@
  * date - 2019/6/6 15:06
  * github - https://github.com/hl845740757
  */
-package com.wjybxx.fastjgame.utils.tablereader;
+package com.wjybxx.fastjgame.utils.excel;

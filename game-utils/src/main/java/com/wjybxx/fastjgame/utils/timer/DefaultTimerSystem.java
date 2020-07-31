@@ -18,8 +18,8 @@ package com.wjybxx.fastjgame.utils.timer;
 
 import com.wjybxx.fastjgame.utils.ThreadUtils;
 import com.wjybxx.fastjgame.utils.exception.InfiniteLoopException;
-import com.wjybxx.fastjgame.utils.timeprovider.TimeProvider;
-import com.wjybxx.fastjgame.utils.timeprovider.TimeProviders;
+import com.wjybxx.fastjgame.utils.time.TimeProvider;
+import com.wjybxx.fastjgame.utils.time.TimeProviders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

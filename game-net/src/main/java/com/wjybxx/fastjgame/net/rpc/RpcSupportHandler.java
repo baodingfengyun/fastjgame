@@ -141,7 +141,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
             final RpcTimeoutInfo rpcTimeoutInfo = rpcTimeoutInfoMap.remove(requestGuid);
             if (null != rpcTimeoutInfo) {
-                commitRpcResponse(rpcTimeoutInfo, responseMessage.getErrorCode(), responseMessage.getBody());
+                commitRpcResponse(rpcTimeoutInfo.rpcPromise, responseMessage.getErrorCode(), responseMessage.getBody());
             }
             // else 可能超时了
         } else {
@@ -150,18 +150,16 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
     }
 
     /**
-     * @param rpcTimeoutInfo rpc请求时的一些信息
-     * @param body           期望提交的rpc调用结果。
+     * @param rpcPromise 接收结果的promise
+     * @param body       期望提交的rpc调用结果。
      */
-    @SuppressWarnings("unchecked")
-    private <V> void commitRpcResponse(RpcTimeoutInfo rpcTimeoutInfo, RpcErrorCode errorCode, Object body) {
+    private <V> void commitRpcResponse(Promise<V> rpcPromise, RpcErrorCode errorCode, Object body) {
         if (errorCode.isSuccess()) {
-            final Promise<V> rpcPromise = (Promise<V>) rpcTimeoutInfo.rpcPromise;
-            final V result = (V) body;
+            @SuppressWarnings("unchecked") final V result = (V) body;
             rpcPromise.trySuccess(result);
         } else {
             final Throwable cause = new DefaultRpcServerException(errorCode, String.valueOf(body));
-            rpcTimeoutInfo.rpcPromise.tryFailure(cause);
+            rpcPromise.tryFailure(cause);
         }
     }
 

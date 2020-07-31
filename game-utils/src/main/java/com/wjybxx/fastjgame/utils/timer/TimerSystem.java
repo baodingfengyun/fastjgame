@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.timer;
 
-import com.wjybxx.fastjgame.utils.timeprovider.TimeProvider;
+import com.wjybxx.fastjgame.utils.time.TimeProvider;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;

@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import com.wjybxx.fastjgame.utils.concurrent.ConcurrentUtils;
 
 /**
  * 单向消息支持

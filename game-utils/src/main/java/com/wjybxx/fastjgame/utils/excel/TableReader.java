@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.wjybxx.fastjgame.utils.tablereader;
+package com.wjybxx.fastjgame.utils.excel;
 
-import com.wjybxx.fastjgame.utils.ExcelCsvUtils;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 
@@ -34,7 +33,7 @@ import java.util.*;
  * github - https://github.com/hl845740757
  * @apiNote 如果你自己有自己的实现，请注意在{@link #close()}中关闭流等资源。
  */
-public abstract class TableReader<T> implements AutoCloseable {
+abstract class TableReader<T> implements AutoCloseable {
 
     /**
      * 读取表格的模板方法

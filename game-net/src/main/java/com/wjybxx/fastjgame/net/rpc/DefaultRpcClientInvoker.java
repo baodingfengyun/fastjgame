@@ -19,10 +19,10 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.net.exception.RpcSessionClosedException;
 import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.utils.FunctionUtils;
 import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.utils.function.FunctionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

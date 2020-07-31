@@ -25,7 +25,7 @@ import com.wjybxx.fastjgame.net.rpc.RpcSupportHandler;
 import com.wjybxx.fastjgame.net.session.*;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import com.wjybxx.fastjgame.utils.concurrent.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.Promise;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;

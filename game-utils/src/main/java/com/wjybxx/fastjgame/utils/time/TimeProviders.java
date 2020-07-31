@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.timeprovider;
+package com.wjybxx.fastjgame.utils.time;
 
 
 import javax.annotation.concurrent.NotThreadSafe;

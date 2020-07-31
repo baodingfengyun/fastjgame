@@ -23,9 +23,9 @@ import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.http.HttpSessionImp;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.utils.CollectionUtils;
-import com.wjybxx.fastjgame.utils.FunctionUtils;
-import com.wjybxx.fastjgame.utils.TimeUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.function.FunctionUtils;
+import com.wjybxx.fastjgame.utils.time.TimeUtils;
 import com.wjybxx.fastjgame.utils.timer.TimerHandle;
 import io.netty.channel.Channel;
 

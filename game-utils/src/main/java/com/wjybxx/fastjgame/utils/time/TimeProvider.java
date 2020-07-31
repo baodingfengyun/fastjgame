@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.timeprovider;
+package com.wjybxx.fastjgame.utils.time;
 
 /**
- * 可缓存的系统时间提供器，主要目的：减少{@link System#currentTimeMillis()}调用。
+ * 系统时间提供者
+ * 线程安全性取决于实现，该接口并不要求所有子类都是线程安全的。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/11/29
+ * date - 2019/8/9
  * github - https://github.com/hl845740757
  */
-public interface CachedTimeProvider extends TimeProvider {
-
-    @Override
-    long curTimeMillis();
-
-    @Override
-    int curTimeSeconds();
+public interface TimeProvider {
 
     /**
-     * 尝试更新系统时间
+     * 获取系统毫秒时间戳
      *
-     * @param curTimeMillis 指定的系统毫秒时间
-     * @return 更新成功则返回true
+     * @return 毫秒
      */
-    boolean update(long curTimeMillis);
+    long curTimeMillis();
+
+    /**
+     * 获取系统秒数时间戳
+     *
+     * @return 秒
+     */
+    int curTimeSeconds();
+
 }

@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.concurrenttest;
 
 import com.wjybxx.fastjgame.util.TestUtil;
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
+import com.wjybxx.fastjgame.utils.concurrent.ConcurrentUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.GlobalEventLoop;
 import com.wjybxx.fastjgame.utils.misc.LongHolder;

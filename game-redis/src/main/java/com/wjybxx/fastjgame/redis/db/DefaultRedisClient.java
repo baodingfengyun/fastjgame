@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.redis.db;
 
-import com.wjybxx.fastjgame.utils.FunctionUtils;
+import com.wjybxx.fastjgame.utils.function.FunctionUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
 

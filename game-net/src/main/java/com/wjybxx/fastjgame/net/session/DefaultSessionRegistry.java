@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.utils.CollectionUtils;
-import com.wjybxx.fastjgame.utils.FunctionUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.utils.function.FunctionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

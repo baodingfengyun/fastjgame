@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.util;
 
-import com.wjybxx.fastjgame.utils.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.TimeUtils;
+import com.wjybxx.fastjgame.utils.concurrent.ConcurrentUtils;
+import com.wjybxx.fastjgame.utils.time.TimeUtils;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
 
 import java.util.List;

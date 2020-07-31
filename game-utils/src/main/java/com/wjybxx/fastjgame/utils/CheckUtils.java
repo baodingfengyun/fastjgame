@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.utils;
 
+import java.util.Objects;
+
 /**
  * 检查工具类
  *
@@ -27,6 +29,16 @@ package com.wjybxx.fastjgame.utils;
 public class CheckUtils {
 
     private CheckUtils() {
+    }
+
+    public static String requireNotNullAndNotEmpty(final String value, final String name) {
+        Objects.requireNonNull(value, name);
+
+        if (value.isEmpty()) {
+            throw new IllegalArgumentException(name + " is empty");
+        }
+
+        return value;
     }
 
     /**

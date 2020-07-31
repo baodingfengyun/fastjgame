@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.manager;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.utils.timeprovider.SimpleTimeProvider;
+import com.wjybxx.fastjgame.utils.time.SimpleTimeProvider;
 
 /**
  * NetEventLoop时间管理器

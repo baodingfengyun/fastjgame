@@ -18,9 +18,9 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.utils.TimeUtils;
-import com.wjybxx.fastjgame.utils.timeprovider.CachedTimeProvider;
-import com.wjybxx.fastjgame.utils.timeprovider.TimeProviders;
+import com.wjybxx.fastjgame.utils.time.TimeUtils;
+import com.wjybxx.fastjgame.utils.time.CachedTimeProvider;
+import com.wjybxx.fastjgame.utils.time.TimeProviders;
 import com.wjybxx.fastjgame.utils.timer.DefaultTimerSystem;
 import com.wjybxx.fastjgame.utils.timer.TimerHandle;
 import com.wjybxx.fastjgame.utils.timer.TimerSystem;

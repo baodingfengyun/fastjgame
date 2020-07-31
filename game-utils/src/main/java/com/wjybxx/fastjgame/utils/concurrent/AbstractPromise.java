@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.concurrent;
 
-import com.wjybxx.fastjgame.utils.TimeUtils;
+import com.wjybxx.fastjgame.utils.time.TimeUtils;
 
 import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandles;

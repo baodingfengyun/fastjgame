@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.utils.configwrapper;
+package com.wjybxx.fastjgame.utils.config;
 
 
 import javax.annotation.concurrent.Immutable;

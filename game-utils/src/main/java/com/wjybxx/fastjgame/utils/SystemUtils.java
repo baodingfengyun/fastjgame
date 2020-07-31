@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.utils;
 
-import com.wjybxx.fastjgame.utils.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.utils.configwrapper.PropertiesConfigWrapper;
+import com.wjybxx.fastjgame.utils.config.ConfigWrapper;
+import com.wjybxx.fastjgame.utils.config.PropertiesConfigWrapper;
 
 /**
  * 系统属性工具类

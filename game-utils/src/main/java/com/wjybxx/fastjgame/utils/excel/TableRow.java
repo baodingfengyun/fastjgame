@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.wjybxx.fastjgame.utils.tablereader;
+package com.wjybxx.fastjgame.utils.excel;
 
-import com.wjybxx.fastjgame.utils.configwrapper.Params;
+import com.wjybxx.fastjgame.utils.config.Params;
 
 import java.util.Map;
 import java.util.Set;

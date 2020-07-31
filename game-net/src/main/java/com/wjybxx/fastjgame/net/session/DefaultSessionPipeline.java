@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.timeprovider.TimeProvider;
+import com.wjybxx.fastjgame.utils.time.TimeProvider;
 import com.wjybxx.fastjgame.utils.timer.DefaultTimerSystem;
 import com.wjybxx.fastjgame.utils.timer.TimerSystem;
 import org.slf4j.Logger;

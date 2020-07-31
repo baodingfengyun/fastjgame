@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.wjybxx.fastjgame.utils.tablereader;
+package com.wjybxx.fastjgame.utils.excel;
 
 import com.wjybxx.fastjgame.utils.CollectionUtils;
-import com.wjybxx.fastjgame.utils.configwrapper.ConfigWrapper;
-import com.wjybxx.fastjgame.utils.configwrapper.MapConfigWrapper;
+import com.wjybxx.fastjgame.utils.config.ConfigWrapper;
+import com.wjybxx.fastjgame.utils.config.MapConfigWrapper;
 
 import java.util.Collections;
 import java.util.Map;

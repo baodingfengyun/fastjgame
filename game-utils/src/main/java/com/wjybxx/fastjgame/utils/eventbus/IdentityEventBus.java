@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.utils.eventbus;
 
-import com.wjybxx.fastjgame.utils.FunctionUtils;
+import com.wjybxx.fastjgame.utils.function.FunctionUtils;
 
 import javax.annotation.Nonnull;
 import java.util.IdentityHashMap;

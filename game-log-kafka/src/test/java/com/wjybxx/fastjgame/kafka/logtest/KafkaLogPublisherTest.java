@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.kafka.logtest;
 
 import com.wjybxx.fastjgame.kafka.log.KafkaLogPublisher;
 import com.wjybxx.fastjgame.log.core.LogPublisher;
-import com.wjybxx.fastjgame.utils.TimeUtils;
+import com.wjybxx.fastjgame.utils.time.TimeUtils;
 import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
 

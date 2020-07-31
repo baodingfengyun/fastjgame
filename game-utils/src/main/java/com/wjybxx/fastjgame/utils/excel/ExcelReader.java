@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.wjybxx.fastjgame.utils.tablereader;
+package com.wjybxx.fastjgame.utils.excel;
 
 import com.monitorjbl.xlsx.StreamingReader;
 import com.wjybxx.fastjgame.utils.CloseableUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,9 +33,8 @@ import java.util.Iterator;
  * date - 2019/5/11 16:18
  * github - https://github.com/hl845740757
  */
-public class ExcelReader extends TableReader<Row> {
+class ExcelReader extends TableReader<Row> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExcelReader.class);
     /**
      * 读取表格时产生的缓存
      */

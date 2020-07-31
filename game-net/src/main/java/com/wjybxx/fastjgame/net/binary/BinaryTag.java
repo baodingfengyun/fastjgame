@@ -72,14 +72,14 @@ public enum BinaryTag implements IndexableEnum {
     /**
      * 集合支持
      * 如果一个字段/参数的声明类型是{@link Collection}，那么那么适用该类型。
-     * 如果需要更细化的集合需求，请了解{@link com.wjybxx.fastjgame.db.annotation.Impl}注解
+     * 如果需要更细化的集合需求，请了解{@link com.wjybxx.fastjgame.net.binary.Impl}注解
      */
     COLLECTION(12),
 
     /**
      * Map支持
      * 如果一个字段/参数的声明类型是{@link Map}，那么适用该类型。
-     * 如果需要更细化的map需求，请了解{@link com.wjybxx.fastjgame.db.annotation.Impl}注解
+     * 如果需要更细化的map需求，请了解{@link com.wjybxx.fastjgame.net.binary.Impl}注解
      */
     MAP(13),
 
