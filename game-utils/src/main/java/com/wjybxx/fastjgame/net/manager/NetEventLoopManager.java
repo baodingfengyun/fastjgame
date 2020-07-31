@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.manager;
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.module.NetEventLoopModule;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoopHolder;
+import com.wjybxx.fastjgame.util.concurrent.EventLoopHolder;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

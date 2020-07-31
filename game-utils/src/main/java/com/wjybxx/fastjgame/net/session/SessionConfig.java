@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.net.rpc.RpcRequestDispatcher;
 import com.wjybxx.fastjgame.net.serialization.Serializer;
-import com.wjybxx.fastjgame.utils.CheckUtils;
+import com.wjybxx.fastjgame.util.CheckUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;

@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.rpc.*;
-import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
+import com.wjybxx.fastjgame.util.concurrent.ListenableFuture;
 
 /**
  * 示例rpcService

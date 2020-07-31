@@ -24,7 +24,7 @@ import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
 import com.wjybxx.fastjgame.net.utils.NettyAdapters;
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.util.concurrent.Promise;
 import io.netty.channel.ChannelFuture;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;

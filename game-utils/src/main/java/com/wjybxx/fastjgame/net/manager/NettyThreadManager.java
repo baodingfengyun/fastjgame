@@ -21,7 +21,7 @@ import com.wjybxx.fastjgame.net.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.misc.PortRange;
 import com.wjybxx.fastjgame.net.socket.DefaultSocketPort;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
-import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.util.concurrent.DefaultThreadFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;

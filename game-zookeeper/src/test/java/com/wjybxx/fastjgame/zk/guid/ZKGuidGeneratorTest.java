@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.zk.guid;
 
-import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.util.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.zk.core.BackoffRetryForever;
 import com.wjybxx.fastjgame.zk.core.CuratorClientMgr;
 import org.apache.curator.framework.CuratorFrameworkFactory;

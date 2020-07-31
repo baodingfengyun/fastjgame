@@ -25,9 +25,9 @@ import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.SocketPort;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
-import com.wjybxx.fastjgame.utils.concurrent.GlobalEventLoop;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.util.concurrent.GlobalEventLoop;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;

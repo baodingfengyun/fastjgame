@@ -20,10 +20,10 @@ import com.wjybxx.fastjgame.kafka.log.KafkaLogPuller;
 import com.wjybxx.fastjgame.log.core.GameLog;
 import com.wjybxx.fastjgame.log.core.LogConsumer;
 import com.wjybxx.fastjgame.log.core.LogPuller;
-import com.wjybxx.fastjgame.utils.concurrent.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.util.concurrent.ConcurrentUtils;
+import com.wjybxx.fastjgame.util.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.RejectedExecutionHandlers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

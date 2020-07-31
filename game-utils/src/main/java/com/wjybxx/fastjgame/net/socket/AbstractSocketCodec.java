@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.net.serialization.Serializer;
-import com.wjybxx.fastjgame.utils.CodecUtils;
+import com.wjybxx.fastjgame.util.CodecUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;

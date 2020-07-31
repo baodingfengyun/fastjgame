@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.utils.misc.MethodSpec;
+import com.wjybxx.fastjgame.util.misc.MethodSpec;
 
 /**
  * Rpc方法描述信息

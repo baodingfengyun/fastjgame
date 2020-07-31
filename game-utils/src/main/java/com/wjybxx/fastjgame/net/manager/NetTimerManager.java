@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.manager;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.utils.timer.*;
+import com.wjybxx.fastjgame.util.timer.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;

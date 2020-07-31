@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.zk.core;
 
-import com.wjybxx.fastjgame.utils.MathUtils;
+import com.wjybxx.fastjgame.util.MathUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.RetrySleeper;
 import org.slf4j.Logger;

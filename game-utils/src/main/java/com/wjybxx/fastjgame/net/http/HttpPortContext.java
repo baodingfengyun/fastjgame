@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
 
 /**
  * 绑定的http端口上的一些信息

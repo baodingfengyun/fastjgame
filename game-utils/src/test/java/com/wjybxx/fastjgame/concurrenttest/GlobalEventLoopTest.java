@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrenttest;
 
-import com.wjybxx.fastjgame.utils.concurrent.GlobalEventLoop;
+import com.wjybxx.fastjgame.util.concurrent.GlobalEventLoop;
 
 public class GlobalEventLoopTest {
 

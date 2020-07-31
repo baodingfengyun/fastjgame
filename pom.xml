@@ -18,8 +18,6 @@
     <!-- 子模块 -->
     <modules>
         <module>game-utils</module>
-
-        <module>game-db-api</module>
         <module>game-guid-api</module>
         <module>game-log-api</module>
 

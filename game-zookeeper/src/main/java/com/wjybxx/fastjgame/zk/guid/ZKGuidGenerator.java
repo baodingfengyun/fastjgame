@@ -16,7 +16,7 @@
 package com.wjybxx.fastjgame.zk.guid;
 
 import com.wjybxx.fastjgame.guid.core.GuidGenerator;
-import com.wjybxx.fastjgame.utils.CodecUtils;
+import com.wjybxx.fastjgame.util.CodecUtils;
 import com.wjybxx.fastjgame.zk.core.CuratorClientMgr;
 import com.wjybxx.fastjgame.zk.core.CuratorFacade;
 import com.wjybxx.fastjgame.zk.utils.ZKPathUtils;

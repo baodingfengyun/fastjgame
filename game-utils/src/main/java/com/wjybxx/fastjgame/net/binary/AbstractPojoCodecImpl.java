@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.utils.dsl.IndexableObject;
+import com.wjybxx.fastjgame.util.dsl.IndexableObject;
 
 /**
  * {@link IndexableObject}之外的serializer会继承该类。

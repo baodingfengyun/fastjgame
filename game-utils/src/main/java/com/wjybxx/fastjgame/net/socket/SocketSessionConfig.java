@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.net.session.SessionConfig;
-import com.wjybxx.fastjgame.utils.CheckUtils;
+import com.wjybxx.fastjgame.util.CheckUtils;
 
 /**
  * socket连接配置

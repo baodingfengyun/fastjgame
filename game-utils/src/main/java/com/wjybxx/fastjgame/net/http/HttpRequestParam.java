@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.utils.config.Params;
+import com.wjybxx.fastjgame.util.config.Params;
 import io.netty.handler.codec.http.HttpMethod;
 
 import javax.annotation.concurrent.Immutable;

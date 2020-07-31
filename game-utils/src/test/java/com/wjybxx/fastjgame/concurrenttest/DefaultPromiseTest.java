@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.concurrenttest;
 
-import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
-import com.wjybxx.fastjgame.utils.concurrent.GlobalEventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
+import com.wjybxx.fastjgame.util.concurrent.GlobalEventLoop;
+import com.wjybxx.fastjgame.util.concurrent.Promise;
 
 import java.util.concurrent.ExecutionException;
 

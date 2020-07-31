@@ -16,6 +16,10 @@
 
 package com.wjybxx.fastjgame.net.misc;
 
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -78,5 +82,25 @@ public class HostAndPort {
     @Nonnull
     public static String toString(@Nonnull String host, int port) {
         return host + ":" + port;
+    }
+
+    @SuppressWarnings("unused")
+    private static class Codec implements PojoCodecImpl<HostAndPort> {
+
+        @Override
+        public Class<HostAndPort> getEncoderClass() {
+            return HostAndPort.class;
+        }
+
+        @Override
+        public HostAndPort readObject(ObjectReader reader) throws Exception {
+            return new HostAndPort(reader.readString(), reader.readInt());
+        }
+
+        @Override
+        public void writeObject(HostAndPort instance, ObjectWriter writer) throws Exception {
+            writer.writeString(instance.getHost());
+            writer.writeInt(instance.getPort());
+        }
     }
 }

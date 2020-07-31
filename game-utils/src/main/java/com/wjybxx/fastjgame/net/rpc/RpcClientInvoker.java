@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.utils;
 
-import com.wjybxx.fastjgame.utils.CloseableUtils;
-import com.wjybxx.fastjgame.utils.annotation.UnstableApi;
+import com.wjybxx.fastjgame.util.CloseableUtils;
+import com.wjybxx.fastjgame.util.annotation.UnstableApi;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;

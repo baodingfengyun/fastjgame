@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.Parser;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.util.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

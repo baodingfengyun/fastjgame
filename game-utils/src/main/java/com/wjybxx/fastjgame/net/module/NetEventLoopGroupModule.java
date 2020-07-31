@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.manager.NettyThreadManager;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoopGroup;
+import com.wjybxx.fastjgame.util.concurrent.EventLoopGroup;
 
 /**
  * {@link NetEventLoopGroup}依赖的模块，{@link EventLoopGroup}级别的单例。都是线程安全的实例。

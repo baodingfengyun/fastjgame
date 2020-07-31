@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ProtocolMessageEnum;
-import com.wjybxx.fastjgame.utils.ClassScanner;
+import com.wjybxx.fastjgame.util.ClassScanner;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;

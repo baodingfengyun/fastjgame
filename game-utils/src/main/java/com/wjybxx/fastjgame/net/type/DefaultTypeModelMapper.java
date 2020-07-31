@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.type;
 
-import com.wjybxx.fastjgame.utils.CollectionUtils;
-import com.wjybxx.fastjgame.utils.FastCollectionsUtils;
+import com.wjybxx.fastjgame.util.CollectionUtils;
+import com.wjybxx.fastjgame.util.FastCollectionsUtils;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 

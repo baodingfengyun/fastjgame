@@ -18,8 +18,8 @@ package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.rpc.RpcServerSpec;
-import com.wjybxx.fastjgame.utils.annotation.Internal;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.annotation.Internal;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

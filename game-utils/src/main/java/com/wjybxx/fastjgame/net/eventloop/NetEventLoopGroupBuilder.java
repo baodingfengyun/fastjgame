@@ -16,10 +16,10 @@
 
 package com.wjybxx.fastjgame.net.eventloop;
 
-import com.wjybxx.fastjgame.utils.CheckUtils;
-import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.util.CheckUtils;
+import com.wjybxx.fastjgame.util.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.util.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.util.concurrent.RejectedExecutionHandlers;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ThreadFactory;

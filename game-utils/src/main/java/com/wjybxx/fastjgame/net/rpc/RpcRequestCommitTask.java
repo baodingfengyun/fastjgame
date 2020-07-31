@@ -15,7 +15,7 @@
  */
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.util.concurrent.Promise;
 
 /**
  * rpc请求提交任务

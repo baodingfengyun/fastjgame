@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.type;
 
-import com.wjybxx.fastjgame.utils.MathUtils;
+import com.wjybxx.fastjgame.util.MathUtils;
 
 /**
  * 精简版的类型信息

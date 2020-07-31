@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.redis.db;
 
-import com.wjybxx.fastjgame.utils.misc.MethodSpec;
+import com.wjybxx.fastjgame.util.misc.MethodSpec;
 import redis.clients.jedis.Jedis;
 
 /**

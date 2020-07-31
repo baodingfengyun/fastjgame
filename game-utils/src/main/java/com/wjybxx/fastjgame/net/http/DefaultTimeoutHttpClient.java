@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
-import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

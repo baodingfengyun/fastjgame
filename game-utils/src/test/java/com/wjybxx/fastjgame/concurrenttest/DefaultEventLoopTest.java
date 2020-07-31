@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrenttest;
 
-import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.util.concurrent.*;
 
 /**
  * @author wjybxx

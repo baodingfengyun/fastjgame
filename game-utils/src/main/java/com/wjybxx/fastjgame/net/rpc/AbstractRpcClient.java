@@ -17,9 +17,9 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.exception.RpcSessionNotFoundException;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
-import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
 
 /**
  * {@link RpcClient}抽象实现，提供{@link RpcClientInvoker}的默认实现和，提供{@link #newSessionNotFoundFuture(RpcServerSpec)}

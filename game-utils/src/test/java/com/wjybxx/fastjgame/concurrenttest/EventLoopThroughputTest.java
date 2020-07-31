@@ -17,13 +17,13 @@
 package com.wjybxx.fastjgame.concurrenttest;
 
 import com.wjybxx.fastjgame.util.TestUtil;
-import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.disruptor.YieldWaitStrategyFactory;
-import com.wjybxx.fastjgame.utils.concurrent.unbounded.TaskQueueFactory;
-import com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop;
+import com.wjybxx.fastjgame.util.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.util.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.util.concurrent.disruptor.YieldWaitStrategyFactory;
+import com.wjybxx.fastjgame.util.concurrent.unbounded.TaskQueueFactory;
+import com.wjybxx.fastjgame.util.concurrent.unbounded.TemplateEventLoop;
 import org.jctools.queues.MpscUnboundedArrayQueue;
 import org.jctools.queues.MpscUnboundedXaddArrayQueue;
 import org.junit.jupiter.api.Test;
@@ -34,19 +34,19 @@ import java.util.Arrays;
  * 测试1s吞吐量
  * <p>
  * Disruptor:
- * com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop, producerNum 2, count 17789527
- * com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop, producerNum 4, count 10767447
- * com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop, producerNum 8, count 9611073
+ * com.wjybxx.fastjgame.util.concurrent.disruptor.DisruptorEventLoop, producerNum 2, count 17789527
+ * com.wjybxx.fastjgame.util.concurrent.disruptor.DisruptorEventLoop, producerNum 4, count 10767447
+ * com.wjybxx.fastjgame.util.concurrent.disruptor.DisruptorEventLoop, producerNum 8, count 9611073
  * </p>
  * Template(MpscUnboundedXaddArrayQueue):
- * com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop, producerNum 2, count 40382012
- * com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop, producerNum 4, count 50268831
- * com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop, producerNum 8, count 30447050
+ * com.wjybxx.fastjgame.util.concurrent.unbounded.TemplateEventLoop, producerNum 2, count 40382012
+ * com.wjybxx.fastjgame.util.concurrent.unbounded.TemplateEventLoop, producerNum 4, count 50268831
+ * com.wjybxx.fastjgame.util.concurrent.unbounded.TemplateEventLoop, producerNum 8, count 30447050
  * </p>
  * Template(MpscUnboundedArrayQueue):
- * com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop, producerNum 2, count 19304646
- * com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop, producerNum 4, count 12144394
- * com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop, producerNum 8, count 10351433
+ * com.wjybxx.fastjgame.util.concurrent.unbounded.TemplateEventLoop, producerNum 2, count 19304646
+ * com.wjybxx.fastjgame.util.concurrent.unbounded.TemplateEventLoop, producerNum 4, count 12144394
+ * com.wjybxx.fastjgame.util.concurrent.unbounded.TemplateEventLoop, producerNum 8, count 10351433
  *
  * @author wjybxx
  * @version 1.0
@@ -64,7 +64,7 @@ public class EventLoopThroughputTest {
     private static EventLoop newTemplateEventLoop(TaskQueueFactory factory) {
         return new TemplateEventLoop(null, new DefaultThreadFactory("TEMPLATE"),
                 RejectedExecutionHandlers.discard(),
-                new com.wjybxx.fastjgame.utils.concurrent.unbounded.YieldWaitStrategyFactory(),
+                new com.wjybxx.fastjgame.util.concurrent.unbounded.YieldWaitStrategyFactory(),
                 factory, 1024);
     }
 

@@ -17,10 +17,10 @@
 package com.wjybxx.fastjgame.net.test;
 
 import com.wjybxx.fastjgame.net.http.DefaultTimeoutHttpClient;
-import com.wjybxx.fastjgame.utils.concurrent.DefaultEventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.util.concurrent.DefaultEventLoop;
+import com.wjybxx.fastjgame.util.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.RejectedExecutionHandlers;
 
 import java.io.IOException;
 import java.net.URI;

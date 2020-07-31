@@ -18,12 +18,12 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.utils.time.TimeUtils;
-import com.wjybxx.fastjgame.utils.time.CachedTimeProvider;
-import com.wjybxx.fastjgame.utils.time.TimeProviders;
-import com.wjybxx.fastjgame.utils.timer.DefaultTimerSystem;
-import com.wjybxx.fastjgame.utils.timer.TimerHandle;
-import com.wjybxx.fastjgame.utils.timer.TimerSystem;
+import com.wjybxx.fastjgame.util.time.TimeUtils;
+import com.wjybxx.fastjgame.util.time.CachedTimeProvider;
+import com.wjybxx.fastjgame.util.time.TimeProviders;
+import com.wjybxx.fastjgame.util.timer.DefaultTimerSystem;
+import com.wjybxx.fastjgame.util.timer.TimerHandle;
+import com.wjybxx.fastjgame.util.timer.TimerSystem;
 
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.LockSupport;

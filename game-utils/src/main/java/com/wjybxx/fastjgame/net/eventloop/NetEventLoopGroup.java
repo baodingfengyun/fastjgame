@@ -18,8 +18,8 @@ package com.wjybxx.fastjgame.net.eventloop;
 
 import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FixedEventLoopGroup;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.FixedEventLoopGroup;
 import io.netty.channel.Channel;
 
 import javax.annotation.Nonnull;

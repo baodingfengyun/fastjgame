@@ -38,11 +38,11 @@ import java.util.stream.Collectors;
  */
 public class BeanUtils {
 
-    public static final String INDEXABLE_OBJECT_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.dsl.IndexableObject";
+    public static final String INDEXABLE_OBJECT_CANONICAL_NAME = "com.wjybxx.fastjgame.util.dsl.IndexableObject";
     public static final String FOR_INDEX_METHOD_NAME = "forIndex";
     public static final String GET_INDEX_METHOD_NAME = "getIndex";
 
-    public static final String INDEXABLE_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.dsl.IndexableEnum";
+    public static final String INDEXABLE_ENUM_CANONICAL_NAME = "com.wjybxx.fastjgame.util.dsl.IndexableEnum";
     public static final String FOR_NUMBER_METHOD_NAME = "forNumber";
     public static final String GET_NUMBER_METHOD_NAME = "getNumber";
 

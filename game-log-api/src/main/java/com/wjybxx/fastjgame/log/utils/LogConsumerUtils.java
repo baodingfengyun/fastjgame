@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.log.utils;
 
 import com.wjybxx.fastjgame.log.core.GameLog;
 import com.wjybxx.fastjgame.log.core.LogConsumer;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

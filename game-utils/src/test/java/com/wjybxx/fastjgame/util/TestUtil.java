@@ -16,9 +16,9 @@
 
 package com.wjybxx.fastjgame.util;
 
-import com.wjybxx.fastjgame.utils.concurrent.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.time.TimeUtils;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.ConcurrentUtils;
+import com.wjybxx.fastjgame.util.time.TimeUtils;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;

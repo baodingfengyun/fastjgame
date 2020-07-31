@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.local.LocalPort;
-import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.util.concurrent.*;
 
 /**
  * @author wjybxx

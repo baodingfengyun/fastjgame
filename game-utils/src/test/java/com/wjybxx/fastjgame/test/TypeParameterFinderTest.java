@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.utils.reflect.TypeParameterFinder;
+import com.wjybxx.fastjgame.util.reflect.TypeParameterFinder;
 
 import java.util.Set;
 

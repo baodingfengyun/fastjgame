@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.log.imp;
 import com.wjybxx.fastjgame.log.core.GameLog;
 import com.wjybxx.fastjgame.log.core.LogConsumer;
 import com.wjybxx.fastjgame.log.utils.LogConsumerUtils;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

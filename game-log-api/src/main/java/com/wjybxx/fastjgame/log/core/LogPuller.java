@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.log.core;
 
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
 
 /**
  * 日志拉取工具。

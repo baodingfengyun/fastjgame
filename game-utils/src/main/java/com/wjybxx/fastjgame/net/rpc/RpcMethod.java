@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.util.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.util.concurrent.Promise;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.kafka.logtest;
 
 import com.wjybxx.fastjgame.log.core.GameLog;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
+import com.wjybxx.fastjgame.util.CollectionUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

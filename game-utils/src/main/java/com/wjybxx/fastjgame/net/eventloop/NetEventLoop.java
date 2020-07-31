@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.eventloop;
 
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.eventbus.EventDispatcher;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.eventbus.EventDispatcher;
 
 import javax.annotation.Nonnull;
 

@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
 
 /**
  * JVM 内部端口的实现

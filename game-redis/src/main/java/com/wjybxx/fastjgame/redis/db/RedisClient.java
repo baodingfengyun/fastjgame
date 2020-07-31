@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.redis.db;
 
-import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CompletionException;

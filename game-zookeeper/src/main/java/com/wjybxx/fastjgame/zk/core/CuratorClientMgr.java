@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.zk.core;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.wjybxx.fastjgame.utils.CloseableUtils;
+import com.wjybxx.fastjgame.util.CloseableUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.EnsureContainers;

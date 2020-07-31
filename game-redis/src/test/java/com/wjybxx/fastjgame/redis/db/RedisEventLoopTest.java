@@ -16,12 +16,12 @@
 
 package com.wjybxx.fastjgame.redis.db;
 
-import com.wjybxx.fastjgame.utils.concurrent.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandlers;
-import com.wjybxx.fastjgame.utils.concurrent.unbounded.SleepWaitStrategyFactory;
-import com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop;
+import com.wjybxx.fastjgame.util.concurrent.ConcurrentUtils;
+import com.wjybxx.fastjgame.util.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.RejectedExecutionHandlers;
+import com.wjybxx.fastjgame.util.concurrent.unbounded.SleepWaitStrategyFactory;
+import com.wjybxx.fastjgame.util.concurrent.unbounded.TemplateEventLoop;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 

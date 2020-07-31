@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.socket;
 
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
 
 /**
  * socket端口监听信息 - 存储监听者的一些信息

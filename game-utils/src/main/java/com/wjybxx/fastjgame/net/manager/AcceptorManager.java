@@ -32,7 +32,7 @@ import com.wjybxx.fastjgame.net.socket.SocketEvent;
 import com.wjybxx.fastjgame.net.socket.inner.InnerAcceptorHandler;
 import com.wjybxx.fastjgame.net.socket.outer.OuterAcceptorHandler;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

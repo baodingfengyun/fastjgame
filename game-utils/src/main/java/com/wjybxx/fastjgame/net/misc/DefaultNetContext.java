@@ -30,10 +30,10 @@ import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.socket.*;
 import com.wjybxx.fastjgame.net.ws.WsClientChannelInitializer;
 import com.wjybxx.fastjgame.net.ws.WsServerChannelInitializer;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
-import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
+import com.wjybxx.fastjgame.util.concurrent.Promise;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;

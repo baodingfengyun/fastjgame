@@ -22,11 +22,11 @@ import com.wjybxx.fastjgame.net.http.HttpRequestCommitTask;
 import com.wjybxx.fastjgame.net.http.HttpRequestEvent;
 import com.wjybxx.fastjgame.net.http.HttpSessionImp;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
-import com.wjybxx.fastjgame.utils.CollectionUtils;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.function.FunctionUtils;
-import com.wjybxx.fastjgame.utils.time.TimeUtils;
-import com.wjybxx.fastjgame.utils.timer.TimerHandle;
+import com.wjybxx.fastjgame.util.CollectionUtils;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.function.FunctionUtils;
+import com.wjybxx.fastjgame.util.time.TimeUtils;
+import com.wjybxx.fastjgame.util.timer.TimerHandle;
 import io.netty.channel.Channel;
 
 import javax.annotation.concurrent.NotThreadSafe;

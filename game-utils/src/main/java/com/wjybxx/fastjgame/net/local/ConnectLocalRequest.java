@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.util.concurrent.Promise;
 
 /**
  * 请求与JVM内的另一个线程建立连接

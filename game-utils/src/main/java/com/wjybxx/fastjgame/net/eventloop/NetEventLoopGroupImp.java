@@ -24,11 +24,11 @@ import com.wjybxx.fastjgame.net.misc.DefaultNetContext;
 import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.module.NetEventLoopGroupModule;
 import com.wjybxx.fastjgame.net.utils.NetUtils;
-import com.wjybxx.fastjgame.utils.concurrent.AbstractFixedEventLoopGroup;
-import com.wjybxx.fastjgame.utils.concurrent.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.utils.concurrent.event.EventLoopTerminalEvent;
+import com.wjybxx.fastjgame.util.concurrent.AbstractFixedEventLoopGroup;
+import com.wjybxx.fastjgame.util.concurrent.ConcurrentUtils;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.util.concurrent.event.EventLoopTerminalEvent;
 import io.netty.channel.Channel;
 
 import javax.annotation.Nonnull;

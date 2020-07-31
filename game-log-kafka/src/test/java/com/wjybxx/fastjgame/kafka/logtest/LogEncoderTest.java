@@ -18,7 +18,7 @@ package com.wjybxx.fastjgame.kafka.logtest;
 
 import com.wjybxx.fastjgame.log.core.LogEncoder;
 import com.wjybxx.fastjgame.log.imp.DefaultLogRecord;
-import com.wjybxx.fastjgame.utils.JsonUtils;
+import com.wjybxx.fastjgame.util.JsonUtils;
 
 /**
  * {@link LogEncoder}的简单实现，配合{@link GameLogTest}工作。

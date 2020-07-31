@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.log.core;
 
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
 
 import javax.annotation.Nullable;
 import java.util.Set;

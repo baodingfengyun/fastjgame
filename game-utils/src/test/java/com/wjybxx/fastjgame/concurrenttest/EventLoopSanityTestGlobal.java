@@ -17,10 +17,10 @@
 package com.wjybxx.fastjgame.concurrenttest;
 
 import com.wjybxx.fastjgame.util.TestUtil;
-import com.wjybxx.fastjgame.utils.concurrent.ConcurrentUtils;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.GlobalEventLoop;
-import com.wjybxx.fastjgame.utils.misc.LongHolder;
+import com.wjybxx.fastjgame.util.concurrent.ConcurrentUtils;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.GlobalEventLoop;
+import com.wjybxx.fastjgame.util.misc.LongHolder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;

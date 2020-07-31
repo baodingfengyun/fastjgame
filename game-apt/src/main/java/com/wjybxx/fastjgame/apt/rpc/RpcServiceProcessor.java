@@ -62,8 +62,8 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     private static final String METHOD_REGISTRY_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodProxyRegistry";
 
     private static final String CONTEXT_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcProcessContext";
-    private static final String FUTURE_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.concurrent.ListenableFuture";
-    private static final String FUTURE_UTILS_CANONICAL_NAME = "com.wjybxx.fastjgame.utils.concurrent.FutureUtils";
+    private static final String FUTURE_CANONICAL_NAME = "com.wjybxx.fastjgame.util.concurrent.ListenableFuture";
+    private static final String FUTURE_UTILS_CANONICAL_NAME = "com.wjybxx.fastjgame.util.concurrent.FutureUtils";
 
     private static final String SERVICE_ID_METHOD_NAME = "serviceId";
     private static final String METHOD_ID_METHOD_NAME = "methodId";

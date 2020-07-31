@@ -30,26 +30,34 @@ import java.util.Queue;
 public class BufferPool {
 
     /**
-     * 最大缓冲区大小
+     * 缓冲区大小
      * 64K应该足够游戏内的任何内容了。
      */
-    private static final int MAX_BUFFER_SIZE = 64 * 1024;
+    private static final int BUFFER_SIZE = 64 * 1024;
+    /**
+     * 缓存数量
+     */
+    private static final int POOL_SIZE = 16;
 
     /**
      * 使用队列主要是为了解决用户在序列化的过程中，递归调用序列化方法问题。
      */
-    private static final ThreadLocal<Queue<byte[]>> LOCAL_BUFFER_QUEUE = ThreadLocal.withInitial(ArrayDeque::new);
+    private static final ThreadLocal<Queue<byte[]>> LOCAL_BUFFER_QUEUE = ThreadLocal.withInitial(() -> new ArrayDeque<>(POOL_SIZE));
 
     public static byte[] allocateBuffer() {
         final byte[] buffer = LOCAL_BUFFER_QUEUE.get().poll();
         if (buffer == null) {
-            return new byte[MAX_BUFFER_SIZE];
+            return new byte[BUFFER_SIZE];
         } else {
             return buffer;
         }
     }
 
     public static void releaseBuffer(byte[] buffer) {
-        LOCAL_BUFFER_QUEUE.get().offer(buffer);
+        final Queue<byte[]> queue = LOCAL_BUFFER_QUEUE.get();
+        if (queue.size() >= POOL_SIZE) {
+            return;
+        }
+        queue.offer(buffer);
     }
 }

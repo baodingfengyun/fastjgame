@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
 
 import java.io.IOException;
 import java.net.http.HttpRequest;

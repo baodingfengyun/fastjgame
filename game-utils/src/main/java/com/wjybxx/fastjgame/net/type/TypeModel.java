@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.type;
 
-import com.wjybxx.fastjgame.utils.dsl.ValueObject;
+import com.wjybxx.fastjgame.util.dsl.ValueObject;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.annotation.Nonnull;

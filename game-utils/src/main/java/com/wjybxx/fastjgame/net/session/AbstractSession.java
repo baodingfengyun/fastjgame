@@ -19,10 +19,10 @@ package com.wjybxx.fastjgame.net.session;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
 import com.wjybxx.fastjgame.net.manager.NetManagerWrapper;
 import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.utils.annotation.Internal;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoopUtils;
-import com.wjybxx.fastjgame.utils.timer.TimerHandle;
+import com.wjybxx.fastjgame.util.annotation.Internal;
+import com.wjybxx.fastjgame.util.concurrent.EventLoop;
+import com.wjybxx.fastjgame.util.concurrent.EventLoopUtils;
+import com.wjybxx.fastjgame.util.timer.TimerHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

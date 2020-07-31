@@ -16,12 +16,12 @@
 
 package com.wjybxx.fastjgame.redis.db;
 
-import com.wjybxx.fastjgame.utils.concurrent.FluentFuture;
-import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
-import com.wjybxx.fastjgame.utils.concurrent.RejectedExecutionHandler;
-import com.wjybxx.fastjgame.utils.concurrent.disruptor.DisruptorEventLoop;
-import com.wjybxx.fastjgame.utils.concurrent.unbounded.TemplateEventLoop;
+import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
+import com.wjybxx.fastjgame.util.concurrent.Promise;
+import com.wjybxx.fastjgame.util.concurrent.RejectedExecutionHandler;
+import com.wjybxx.fastjgame.util.concurrent.disruptor.DisruptorEventLoop;
+import com.wjybxx.fastjgame.util.concurrent.unbounded.TemplateEventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -37,8 +37,8 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 
-import static com.wjybxx.fastjgame.utils.CloseableUtils.closeQuietly;
-import static com.wjybxx.fastjgame.utils.ThreadUtils.sleepQuietly;
+import static com.wjybxx.fastjgame.util.CloseableUtils.closeQuietly;
+import static com.wjybxx.fastjgame.util.ThreadUtils.sleepQuietly;
 
 /**
  * redis事件循环

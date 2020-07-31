@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.utils.ClassScanner;
-import com.wjybxx.fastjgame.utils.reflect.TypeParameterFinder;
+import com.wjybxx.fastjgame.util.ClassScanner;
+import com.wjybxx.fastjgame.util.reflect.TypeParameterFinder;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Modifier;

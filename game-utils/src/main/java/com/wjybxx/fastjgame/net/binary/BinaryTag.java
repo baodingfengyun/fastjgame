@@ -18,9 +18,9 @@ package com.wjybxx.fastjgame.net.binary;
 
 
 import com.wjybxx.fastjgame.net.type.TypeId;
-import com.wjybxx.fastjgame.utils.EnumUtils;
-import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
-import com.wjybxx.fastjgame.utils.dsl.IndexableEnumMapper;
+import com.wjybxx.fastjgame.util.EnumUtils;
+import com.wjybxx.fastjgame.util.dsl.IndexableEnum;
+import com.wjybxx.fastjgame.util.dsl.IndexableEnumMapper;
 
 import java.util.Collection;
 import java.util.Map;

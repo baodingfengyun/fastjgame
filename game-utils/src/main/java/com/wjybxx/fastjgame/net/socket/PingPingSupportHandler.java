@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.socket;
 import com.wjybxx.fastjgame.net.rpc.PingPongMessage;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.utils.timer.TimerHandle;
+import com.wjybxx.fastjgame.util.timer.TimerHandle;
 
 /**
  * 双向心跳支持。

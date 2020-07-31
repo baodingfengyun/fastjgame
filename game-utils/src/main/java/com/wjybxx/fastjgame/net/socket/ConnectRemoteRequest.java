@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.socket;
 import com.wjybxx.fastjgame.net.misc.HostAndPort;
 import com.wjybxx.fastjgame.net.misc.NetContext;
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.util.concurrent.Promise;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 

@@ -17,11 +17,11 @@
 package com.wjybxx.fastjgame.net.manager;
 
 import com.google.inject.Inject;
-import com.wjybxx.fastjgame.utils.concurrent.EventLoopUtils;
-import com.wjybxx.fastjgame.utils.eventbus.EventBus;
-import com.wjybxx.fastjgame.utils.eventbus.EventHandler;
-import com.wjybxx.fastjgame.utils.eventbus.GenericEvent;
-import com.wjybxx.fastjgame.utils.eventbus.IdentityEventBus;
+import com.wjybxx.fastjgame.util.concurrent.EventLoopUtils;
+import com.wjybxx.fastjgame.util.eventbus.EventBus;
+import com.wjybxx.fastjgame.util.eventbus.EventHandler;
+import com.wjybxx.fastjgame.util.eventbus.GenericEvent;
+import com.wjybxx.fastjgame.util.eventbus.IdentityEventBus;
 
 import javax.annotation.Nonnull;
 

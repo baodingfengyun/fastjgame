@@ -22,10 +22,10 @@ import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionDuplexHandlerAdapter;
 import com.wjybxx.fastjgame.net.session.SessionHandlerContext;
-import com.wjybxx.fastjgame.utils.concurrent.FutureListener;
-import com.wjybxx.fastjgame.utils.concurrent.FutureUtils;
-import com.wjybxx.fastjgame.utils.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.util.concurrent.FutureListener;
+import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
+import com.wjybxx.fastjgame.util.concurrent.ListenableFuture;
+import com.wjybxx.fastjgame.util.concurrent.Promise;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 

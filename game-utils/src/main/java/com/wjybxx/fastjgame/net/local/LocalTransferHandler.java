@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.net.local;
 
 import com.wjybxx.fastjgame.net.session.*;
-import com.wjybxx.fastjgame.utils.concurrent.ConcurrentUtils;
+import com.wjybxx.fastjgame.util.concurrent.ConcurrentUtils;
 
 /**
  * JVM 内部传输实现 - 它是出站的最后一个处理器，因此也是真正实现关闭的handler

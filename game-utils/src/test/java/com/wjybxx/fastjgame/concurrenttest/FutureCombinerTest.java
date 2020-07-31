@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.concurrenttest;
 
-import com.wjybxx.fastjgame.utils.concurrent.*;
+import com.wjybxx.fastjgame.util.concurrent.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.concurrent.TimeUnit;

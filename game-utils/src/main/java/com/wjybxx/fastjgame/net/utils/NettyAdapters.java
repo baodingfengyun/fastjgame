@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.utils;
 
-import com.wjybxx.fastjgame.utils.concurrent.DefaultPromise;
-import com.wjybxx.fastjgame.utils.concurrent.Promise;
+import com.wjybxx.fastjgame.util.concurrent.DefaultPromise;
+import com.wjybxx.fastjgame.util.concurrent.Promise;
 import io.netty.util.concurrent.Future;
 
 /**

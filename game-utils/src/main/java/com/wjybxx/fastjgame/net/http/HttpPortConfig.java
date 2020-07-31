@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.http;
 
-import com.wjybxx.fastjgame.utils.CheckUtils;
+import com.wjybxx.fastjgame.util.CheckUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
