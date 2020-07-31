@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.test;
+package com.wjybxx.fastjgame.net.test;
 
 /**
  * 非boolean变量：

@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.misc;
 
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
 import com.wjybxx.fastjgame.utils.dsl.IndexableEnum;
 
 import java.util.Objects;
@@ -253,4 +256,27 @@ public class Range {
         abstract boolean withinRange(long begin, long end, long value);
     }
 
+    @SuppressWarnings("unused")
+    private static class RangeCodec implements PojoCodecImpl<Range> {
+
+        @Override
+        public Class<Range> getEncoderClass() {
+            return Range.class;
+        }
+
+        @Override
+        public Range readObject(ObjectReader reader) throws Exception {
+            final long start = reader.readLong();
+            final long end = reader.readLong();
+            final Mode mode = Mode.forNumber(reader.readInt());
+            return new Range(start, end, mode);
+        }
+
+        @Override
+        public void writeObject(Range instance, ObjectWriter writer) throws Exception {
+            writer.writeLong(instance.begin);
+            writer.writeLong(instance.end);
+            writer.writeInt(instance.mode.number);
+        }
+    }
 }

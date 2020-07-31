@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.misc;
 
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
 import com.wjybxx.fastjgame.utils.MathUtils;
 
 /**
@@ -54,5 +57,24 @@ public class ShortPair {
                 "first=" + first +
                 ", second=" + second +
                 '}';
+    }
+
+    @SuppressWarnings("unused")
+    private static class Codec implements PojoCodecImpl<ShortPair> {
+        @Override
+        public Class<ShortPair> getEncoderClass() {
+            return ShortPair.class;
+        }
+
+        @Override
+        public ShortPair readObject(ObjectReader reader) throws Exception {
+            return new ShortPair(reader.readShort(), reader.readShort());
+        }
+
+        @Override
+        public void writeObject(ShortPair instance, ObjectWriter writer) throws Exception {
+            writer.writeShort(instance.first);
+            writer.writeShort(instance.second);
+        }
     }
 }

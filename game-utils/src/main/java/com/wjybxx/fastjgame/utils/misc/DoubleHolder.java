@@ -16,6 +16,10 @@
 
 package com.wjybxx.fastjgame.utils.misc;
 
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -59,5 +63,24 @@ public class DoubleHolder {
         return "DoubleHolder{" +
                 "value=" + value +
                 '}';
+    }
+
+    @SuppressWarnings("unused")
+    private static class Codec implements PojoCodecImpl<DoubleHolder> {
+
+        @Override
+        public Class<DoubleHolder> getEncoderClass() {
+            return DoubleHolder.class;
+        }
+
+        @Override
+        public DoubleHolder readObject(ObjectReader reader) throws Exception {
+            return new DoubleHolder(reader.readDouble());
+        }
+
+        @Override
+        public void writeObject(DoubleHolder instance, ObjectWriter writer) throws Exception {
+            writer.writeDouble(instance.value);
+        }
     }
 }

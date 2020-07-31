@@ -16,6 +16,9 @@
 
 package com.wjybxx.fastjgame.utils.misc;
 
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
 import com.wjybxx.fastjgame.utils.MathUtils;
 
 /**
@@ -54,5 +57,25 @@ public class IntPair {
                 "first=" + first +
                 ", second=" + second +
                 '}';
+    }
+
+    @SuppressWarnings("unused")
+    private static class Codec implements PojoCodecImpl<IntPair> {
+
+        @Override
+        public Class<IntPair> getEncoderClass() {
+            return IntPair.class;
+        }
+
+        @Override
+        public IntPair readObject(ObjectReader reader) throws Exception {
+            return new IntPair(reader.readInt(), reader.readInt());
+        }
+
+        @Override
+        public void writeObject(IntPair instance, ObjectWriter writer) throws Exception {
+            writer.writeInt(instance.first);
+            writer.writeInt(instance.second);
+        }
     }
 }

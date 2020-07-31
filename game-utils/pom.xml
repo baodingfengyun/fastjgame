@@ -47,6 +47,24 @@
 
     <dependencies>
 
+        <!-- 注解处理器 - 代码生成工具 -->
+        <!-- 可以从 game-libs 文件夹下安装，也可以将game-apt单独编译安装到本地仓库 -->
+        <dependency>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-apt</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <!-- 热更新支持 -->
+        <!-- 可以从 game-libs 文件夹下安装，也可以将game-apt单独编译安装到本地仓库 -->
+        <dependency>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-classreloadagent</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <!-- ******************************************************************************************* -->
+
         <!-- 日志框架 -->
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
         <dependency>
@@ -62,20 +80,38 @@
             <version>1.2.3</version>
         </dependency>
 
-        <!-- json支持，还是jackson好一点 -->
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+        <!-- 测试套件 -->
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.10.0</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.6.2</version>
+            <scope>test</scope>
         </dependency>
+
+        <!-- findBugs -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+
+        <!-- ******************************************************************************************* -->
 
         <!-- 集合支持 -->
         <!-- https://mvnrepository.com/artifact/it.unimi.dsi/fastutil -->
         <dependency>
             <groupId>it.unimi.dsi</groupId>
             <artifactId>fastutil</artifactId>
-            <version>8.3.0</version>
+            <version>8.4.0</version>
+        </dependency>
+
+        <!-- json支持，还是jackson好一点 -->
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.10.0</version>
         </dependency>
 
         <!-- 无锁并发框架disruptor -->
@@ -115,13 +151,6 @@
             <version>1.6</version>
         </dependency>
 
-        <!-- findBugs -->
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>3.0.2</version>
-        </dependency>
-
         <!-- apache开源工具 -->
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>
@@ -137,29 +166,35 @@
             <version>1.13</version>
         </dependency>
 
-        <!-- 注解处理器 - 代码生成工具 -->
-        <!-- 可以从 game-libs 文件夹下安装，也可以将game-apt单独编译安装到本地仓库 -->
+        <!--netty -->
+        <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
         <dependency>
-            <groupId>com.wjybxx.fastjgame</groupId>
-            <artifactId>game-apt</artifactId>
-            <version>1.0</version>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.51.Final</version>
         </dependency>
 
-        <!-- 热更新支持 -->
-        <!-- 可以从 game-libs 文件夹下安装，也可以将game-apt单独编译安装到本地仓库 -->
+        <!--protoBuf支持-->
+        <!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
         <dependency>
-            <groupId>com.wjybxx.fastjgame</groupId>
-            <artifactId>game-classreloadagent</artifactId>
-            <version>1.0</version>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.12.4</version>
         </dependency>
 
-        <!-- 测试套件 -->
-        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
+        <!-- 依赖注入框架 -->
+        <!-- https://mvnrepository.com/artifact/com.google.inject/guice -->
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.6.2</version>
-            <scope>test</scope>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>4.2.3</version>
+            <!-- 如果引入高版本的guava最好去除低版本guava -->
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.test;
+package com.wjybxx.fastjgame.net.test;
 
 import com.wjybxx.fastjgame.net.http.DefaultTimeoutHttpClient;
 import com.wjybxx.fastjgame.utils.concurrent.DefaultEventLoop;

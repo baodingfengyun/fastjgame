@@ -16,6 +16,10 @@
 
 package com.wjybxx.fastjgame.utils.misc;
 
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
+
 import java.util.Objects;
 
 /**
@@ -70,5 +74,25 @@ public final class Tuple2<A, B> {
                 "first=" + first +
                 ", second=" + second +
                 '}';
+    }
+
+    @SuppressWarnings({"rawtypes", "unused"})
+    private static class Tuple2Codec implements PojoCodecImpl<Tuple2> {
+
+        @Override
+        public Class<Tuple2> getEncoderClass() {
+            return Tuple2.class;
+        }
+
+        @Override
+        public Tuple2 readObject(ObjectReader reader) throws Exception {
+            return new Tuple2<>(reader.readObject(), reader.readObject());
+        }
+
+        @Override
+        public void writeObject(Tuple2 instance, ObjectWriter writer) throws Exception {
+            writer.writeObject(instance.getFirst());
+            writer.writeObject(instance.getSecond());
+        }
     }
 }

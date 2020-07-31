@@ -16,6 +16,10 @@
 
 package com.wjybxx.fastjgame.utils.misc;
 
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -40,8 +44,12 @@ public class BooleanHolder {
         this.value = value;
     }
 
-    public boolean isValue() {
+    public boolean isTrue() {
         return value;
+    }
+
+    public boolean isFalse() {
+        return !value;
     }
 
     public void setValue(boolean value) {
@@ -59,6 +67,25 @@ public class BooleanHolder {
         return "BooleanHolder{" +
                 "value=" + value +
                 '}';
+    }
+
+    @SuppressWarnings("unused")
+    private static class Codec implements PojoCodecImpl<BooleanHolder> {
+
+        @Override
+        public Class<BooleanHolder> getEncoderClass() {
+            return BooleanHolder.class;
+        }
+
+        @Override
+        public BooleanHolder readObject(ObjectReader reader) throws Exception {
+            return new BooleanHolder(reader.readObject());
+        }
+
+        @Override
+        public void writeObject(BooleanHolder instance, ObjectWriter writer) throws Exception {
+            writer.writeBoolean(instance.value);
+        }
     }
 }
 

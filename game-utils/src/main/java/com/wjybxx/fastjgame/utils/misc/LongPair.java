@@ -16,6 +16,10 @@
 
 package com.wjybxx.fastjgame.utils.misc;
 
+import com.wjybxx.fastjgame.net.binary.ObjectReader;
+import com.wjybxx.fastjgame.net.binary.ObjectWriter;
+import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
+
 /**
  * long值对
  *
@@ -48,5 +52,25 @@ public class LongPair {
                 "first=" + first +
                 ", second=" + second +
                 '}';
+    }
+
+    @SuppressWarnings("unused")
+    private static class Codec implements PojoCodecImpl<LongPair> {
+
+        @Override
+        public Class<LongPair> getEncoderClass() {
+            return LongPair.class;
+        }
+
+        @Override
+        public LongPair readObject(ObjectReader reader) throws Exception {
+            return new LongPair(reader.readLong(), reader.readLong());
+        }
+
+        @Override
+        public void writeObject(LongPair instance, ObjectWriter writer) throws Exception {
+            writer.writeLong(instance.first);
+            writer.writeLong(instance.second);
+        }
     }
 }
