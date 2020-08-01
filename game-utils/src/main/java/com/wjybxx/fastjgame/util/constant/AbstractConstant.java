@@ -80,7 +80,7 @@ public abstract class AbstractConstant<T extends AbstractConstant<T>> implements
     }
 
     @Override
-    public int compareTo(final @Nonnull T other) {
+    public final int compareTo(final @Nonnull T other) {
         if (this == other) {
             return 0;
         }

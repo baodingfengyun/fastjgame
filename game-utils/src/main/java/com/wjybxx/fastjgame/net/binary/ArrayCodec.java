@@ -70,15 +70,15 @@ class ArrayCodec {
 
         final ValueArrayCodec codec = componentType2CodecMap.get(array.getClass().getComponentType());
         if (null != codec) {
-            writeLengthAndChildType(outputStream, codec.getTag(), length);
+            writeChildTypeAndLength(outputStream, codec.getTag(), length);
             codec.writeValueArray(outputStream, array);
         } else {
-            writeLengthAndChildType(outputStream, BinaryTag.UNKNOWN, length);
+            writeChildTypeAndLength(outputStream, BinaryTag.UNKNOWN, length);
             writeObjectArray(outputStream, array, writer, length);
         }
     }
 
-    static void writeLengthAndChildType(@Nonnull DataOutputStream outputStream, BinaryTag childType, int length) throws IOException {
+    static void writeChildTypeAndLength(@Nonnull DataOutputStream outputStream, BinaryTag childType, int length) throws IOException {
         outputStream.writeByte(childType.getNumber());
         // 固定长度写入主要为了兼容字节数组的扩展
         outputStream.writeFixedInt32(length);
@@ -129,7 +129,7 @@ class ArrayCodec {
     }
 
     static void writeByteArray(DataOutputStream outputStream, @Nonnull byte[] bytes, int offset, int length) throws Exception {
-        writeLengthAndChildType(outputStream, BinaryTag.BYTE, bytes.length);
+        writeChildTypeAndLength(outputStream, BinaryTag.BYTE, bytes.length);
         outputStream.writeBytes(bytes, offset, length);
     }
 

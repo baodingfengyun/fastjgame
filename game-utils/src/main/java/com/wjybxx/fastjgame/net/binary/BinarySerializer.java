@@ -72,7 +72,7 @@ public class BinarySerializer implements Serializer {
         final byte[] localBuffer = BufferPool.allocateBuffer();
         try {
             // 写入字节数组缓存
-            final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
+            final CodedDataOutputStream outputStream = CodedDataOutputStream.newInstance(localBuffer);
             encodeObject(outputStream, object);
 
             // 写入byteBuf
@@ -93,7 +93,7 @@ public class BinarySerializer implements Serializer {
             data.readBytes(localBuffer, 0, readableBytes);
 
             // 解析对象
-            final CodedDataInputStream inputStream = new CodedDataInputStream(localBuffer, 0, readableBytes);
+            final CodedDataInputStream inputStream = CodedDataInputStream.newInstance(localBuffer, 0, readableBytes);
             return decodeObject(inputStream);
         } finally {
             BufferPool.releaseBuffer(localBuffer);
@@ -106,7 +106,7 @@ public class BinarySerializer implements Serializer {
         // 这里测试也是拷贝字节数组快于先计算大小（两轮反射）
         final byte[] localBuffer = BufferPool.allocateBuffer();
         try {
-            final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
+            final CodedDataOutputStream outputStream = CodedDataOutputStream.newInstance(localBuffer);
             encodeObject(outputStream, object);
 
             // 拷贝序列化结果
@@ -120,7 +120,7 @@ public class BinarySerializer implements Serializer {
 
     @Override
     public Object fromBytes(@Nonnull byte[] data) throws Exception {
-        return decodeObject(new CodedDataInputStream(data));
+        return decodeObject(CodedDataInputStream.newInstance(data));
     }
 
     @Override
@@ -131,11 +131,11 @@ public class BinarySerializer implements Serializer {
         final byte[] localBuffer = BufferPool.allocateBuffer();
         try {
             // 写入缓冲区
-            final CodedDataOutputStream outputStream = new CodedDataOutputStream(localBuffer);
+            final CodedDataOutputStream outputStream = CodedDataOutputStream.newInstance(localBuffer);
             encodeObject(outputStream, object);
 
             // 读出
-            final CodedDataInputStream inputStream = new CodedDataInputStream(localBuffer, 0, outputStream.writeIndex());
+            final CodedDataInputStream inputStream = CodedDataInputStream.newInstance(localBuffer, 0, outputStream.writeIndex());
             return decodeObject(inputStream);
         } finally {
             BufferPool.releaseBuffer(localBuffer);

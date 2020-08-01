@@ -192,7 +192,7 @@ class ObjectWriterImp implements ObjectWriter {
         childObjectWriter.writeObject(value);
 
         outputStream.writeTag(BinaryTag.ARRAY);
-        ArrayCodec.writeLengthAndChildType(outputStream, BinaryTag.BYTE, childOutputStream.writeIndex());
+        ArrayCodec.writeChildTypeAndLength(outputStream, BinaryTag.BYTE, childOutputStream.writeIndex());
 
         // 更新写索引
         outputStream.writeIndex(outputStream.writeIndex() + childOutputStream.writeIndex());

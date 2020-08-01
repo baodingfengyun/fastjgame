@@ -38,7 +38,6 @@ public interface GenericEvent<T> {
 
     /**
      * 获取事件包含的子事件.
-     * 该api主要用于事件分发过程中，实现类应该定义针对业务的更具表达力的方法。
      */
     @Nonnull
     T child();

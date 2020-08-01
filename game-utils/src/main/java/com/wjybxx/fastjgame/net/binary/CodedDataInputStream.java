@@ -38,17 +38,25 @@ public class CodedDataInputStream implements DataInputStream {
     private CodedInputStream codedInputStream;
     private int codedInputStreamOffset;
 
-    public CodedDataInputStream(byte[] buffer) {
+    private CodedDataInputStream(byte[] buffer) {
         this(buffer, 0, buffer.length);
     }
 
-    public CodedDataInputStream(byte[] buffer, int offset, int length) {
+    private CodedDataInputStream(byte[] buffer, int offset, int length) {
         this.buffer = buffer;
         this.offset = offset;
         this.limit = offset + length;
 
         codedInputStreamOffset = offset;
         codedInputStream = CodedInputStream.newInstance(buffer, offset, length);
+    }
+
+    public static CodedDataInputStream newInstance(byte[] buffer, int offset, int length) {
+        return new CodedDataInputStream(buffer, offset, length);
+    }
+
+    public static CodedDataInputStream newInstance(byte[] buffer) {
+        return new CodedDataInputStream(buffer);
     }
 
     @Override
@@ -151,6 +159,6 @@ public class CodedDataInputStream implements DataInputStream {
     @Override
     public DataInputStream slice(int index, int length) {
         final int newOffset = offset + index;
-        return new CodedDataInputStream(buffer, newOffset, length);
+        return newInstance(buffer, newOffset, length);
     }
 }

@@ -21,8 +21,8 @@ import com.wjybxx.fastjgame.net.binary.ObjectWriter;
 import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * {@link Class}对象序列化工具类
@@ -36,9 +36,10 @@ import java.util.Map;
 public class ClassCodec implements PojoCodecImpl<Class> {
 
     /**
-     * 加载类的缓存 - 寻找类消耗较大，每个线程一份儿缓存
+     * 加载类的缓存 - 寻找类消耗较大，进行缓存.
+     * 序列化Class的情况较少，不必每个线程缓存一份。
      */
-    private static final ThreadLocal<Map<String, Class<?>>> LOAD_CACHE = ThreadLocal.withInitial(HashMap::new);
+    private static final ConcurrentMap<String, Class<?>> CACHE = new ConcurrentHashMap<>();
 
     @Override
     public Class readObject(ObjectReader reader) throws Exception {
@@ -58,14 +59,13 @@ public class ClassCodec implements PojoCodecImpl<Class> {
 
     @Nonnull
     public static Class findClass(String className) throws ClassNotFoundException {
-        final Map<String, Class<?>> cacheMap = LOAD_CACHE.get();
-        final Class<?> cacheClass = cacheMap.get(className);
+        final Class<?> cacheClass = CACHE.get(className);
         if (cacheClass != null) {
             return cacheClass;
         }
         // 必须使用forName，因为某些类是生成的，不能通过类加载器直接加载
         final Class<?> newClass = Class.forName(className);
-        cacheMap.put(className, newClass);
+        CACHE.put(className, newClass);
         return newClass;
     }
 }

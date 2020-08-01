@@ -37,11 +37,11 @@ public class CodedDataOutputStream implements DataOutputStream {
     private CodedOutputStream codedOutputStream;
     private int codedOutputStreamOffset;
 
-    public CodedDataOutputStream(byte[] buffer) {
+    private CodedDataOutputStream(byte[] buffer) {
         this(buffer, 0, buffer.length);
     }
 
-    public CodedDataOutputStream(byte[] buffer, int offset, int length) {
+    private CodedDataOutputStream(byte[] buffer, int offset, int length) {
         if (offset >= buffer.length) {
             throw new IllegalArgumentException();
         }
@@ -51,6 +51,14 @@ public class CodedDataOutputStream implements DataOutputStream {
 
         this.codedOutputStreamOffset = offset;
         this.codedOutputStream = CodedOutputStream.newInstance(buffer, offset, length);
+    }
+
+    public static CodedDataOutputStream newInstance(byte[] buffer) {
+        return new CodedDataOutputStream(buffer);
+    }
+
+    public static CodedDataOutputStream newInstance(byte[] buffer, int offset, int length) {
+        return new CodedDataOutputStream(buffer, offset, length);
     }
 
     @Override
@@ -163,7 +171,7 @@ public class CodedDataOutputStream implements DataOutputStream {
     public DataOutputStream slice(int index) {
         final int newOffset = offset + index;
         final int newLength = limit - newOffset;
-        return new CodedDataOutputStream(buffer, newOffset, newLength);
+        return newInstance(buffer, newOffset, newLength);
     }
 
     @Override
