@@ -36,7 +36,7 @@ import java.util.Arrays;
 public class MessageCodecTest {
 
     public static void main(String[] args) throws Exception {
-        BinarySerializer codec = ExampleConstants.BINARY_SERIALIZER;
+        BinarySerializer serializer = ExampleConstants.BINARY_SERIALIZER;
         ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
 
         final p_test.p_helloworld hello = p_test.p_helloworld.newBuilder()
@@ -50,10 +50,15 @@ public class MessageCodecTest {
                 .setK(p_test.ERole.AGE)
                 .build();
 
-        ByteBuf encodeResult = codec.writeObject(byteBufAllocator, hello);
+        final ByteBuf encodeResult = byteBufAllocator.directBuffer(serializer.estimatedSerializedSize(hello));
+        System.out.println("estimatedSerializedSize: " + encodeResult.capacity() + "");
+        serializer.writeObject(encodeResult, hello);
+        System.out.println("encodeLength: " + encodeResult.writerIndex() + "\n");
 
-        Object decodeResult = codec.readObject(encodeResult);
-        System.out.println(decodeResult);
+        final Object decodeResult = serializer.readObject(encodeResult);
+
+        System.out.println("origin:\n" + hello);
+        System.out.println("decodeResult:\n" + decodeResult);
 
         System.out.println("equals = " + hello.equals(decodeResult));
 

@@ -22,7 +22,10 @@ import com.wjybxx.fastjgame.net.type.TypeId;
 import com.wjybxx.fastjgame.net.type.TypeModel;
 import com.wjybxx.fastjgame.net.type.TypeModelMapper;
 import com.wjybxx.fastjgame.util.JsonUtils;
-import io.netty.buffer.*;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.Unpooled;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
@@ -30,7 +33,6 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.function.IntFunction;
 
 /**
  * 基于Json的编解码器，必须使用简单对象来封装参数。-- POJO
@@ -45,9 +47,15 @@ import java.util.function.IntFunction;
 public class JsonSerializer implements Serializer {
 
     private final TypeModelMapper typeModelMapper;
+    private final int defaultByteBufSize;
 
     private JsonSerializer(TypeModelMapper typeModelMapper) {
+        this(typeModelMapper, 256);
+    }
+
+    private JsonSerializer(TypeModelMapper typeModelMapper, int defaultByteBufSize) {
         this.typeModelMapper = typeModelMapper;
+        this.defaultByteBufSize = defaultByteBufSize;
     }
 
     @Nonnull
@@ -118,21 +126,19 @@ public class JsonSerializer implements Serializer {
         }
     }
 
-    @Nonnull
     @Override
-    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception {
-        return writeObjectImpl(object, bufAllocator::buffer);
+    public int estimatedSerializedSize(@Nullable Object object) {
+        // 无法估算
+        if (object == null) {
+            return 0;
+        }
+        return defaultByteBufSize;
     }
 
-    @Nonnull
     @Override
-    public ByteBuf writeObject(final ByteBuf byteBuf, @Nullable Object object) throws Exception {
-        return writeObjectImpl(object, size -> byteBuf);
-    }
-
-    private ByteBuf writeObjectImpl(@Nullable Object object, IntFunction<ByteBuf> allocator) throws IOException {
-        if (null == object) {
-            return allocator.apply(0);
+    public void writeObject(final ByteBuf byteBuf, @Nullable Object object) throws Exception {
+        if (object == null) {
+            return;
         }
 
         final byte[] localBuffer = BufferPool.allocateBuffer();
@@ -146,9 +152,7 @@ public class JsonSerializer implements Serializer {
             // 写入序列化的内容
             JsonUtils.writeToOutputStream(byteBufOutputStream, object);
             // 写入byteBuf
-            ByteBuf byteBuf = allocator.apply(cacheBuffer.readableBytes());
             byteBuf.writeBytes(cacheBuffer);
-            return byteBuf;
         } finally {
             cacheBuffer.release();
             BufferPool.releaseBuffer(localBuffer);

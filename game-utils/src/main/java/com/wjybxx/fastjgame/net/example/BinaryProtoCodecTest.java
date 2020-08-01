@@ -38,13 +38,14 @@ import java.util.*;
 public class BinaryProtoCodecTest {
 
     public static void main(String[] args) throws Exception {
-        BinarySerializer codec = ExampleConstants.BINARY_SERIALIZER;
+        BinarySerializer serializer = ExampleConstants.BINARY_SERIALIZER;
         ByteBufAllocator byteBufAllocator = UnpooledByteBufAllocator.DEFAULT;
         // NetUtils初始化，避免输出扰乱视听
         System.out.println(NetUtils.getOuterIp());
 
         ExampleMessages.FullMessage fullMessage = newFullMessage();
-        ByteBuf encodeResult = codec.writeObject(byteBufAllocator, fullMessage);
+        final ByteBuf encodeResult = byteBufAllocator.directBuffer(serializer.estimatedSerializedSize(fullMessage));
+        serializer.writeObject(encodeResult, fullMessage);
 
         System.out.println("--------------------encode length-------------------");
         System.out.println(encodeResult.readableBytes());
@@ -52,7 +53,7 @@ public class BinaryProtoCodecTest {
         System.out.println("-----------------------origin---------------------");
         System.out.println(fullMessage);
 
-        Object decodeResult = codec.readObject(encodeResult);
+        Object decodeResult = serializer.readObject(encodeResult);
         System.out.println("-----------------------decode--------------------");
         System.out.println(decodeResult);
 
@@ -60,12 +61,13 @@ public class BinaryProtoCodecTest {
         encodeResult.release();
 
         System.out.println("-----------------------clone--------------------");
-        final Object cloneResult = codec.cloneObject(fullMessage);
+        final Object cloneResult = serializer.cloneObject(fullMessage);
         System.out.println("clone equals = " + fullMessage.equals(cloneResult));
 
         System.out.println("-----------------------protoBuf--------------------");
-        ByteBuf protoMsgByteBuf = codec.writeObject(byteBufAllocator, ProtoBufSerializePerformanceTest.msg);
-        Object protoMsgDecode = codec.readObject(protoMsgByteBuf);
+        final ByteBuf protoMsgByteBuf = byteBufAllocator.directBuffer(serializer.estimatedSerializedSize(ProtoBufSerializePerformanceTest.msg));
+        serializer.writeObject(protoMsgByteBuf, ProtoBufSerializePerformanceTest.msg);
+        Object protoMsgDecode = serializer.readObject(protoMsgByteBuf);
         System.out.println("protoBuf equals = " + ProtoBufSerializePerformanceTest.msg.equals(protoMsgDecode));
     }
 

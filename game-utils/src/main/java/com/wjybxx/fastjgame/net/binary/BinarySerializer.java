@@ -27,7 +27,6 @@ import com.wjybxx.fastjgame.net.serialization.Serializer;
 import com.wjybxx.fastjgame.net.type.TypeModelMapper;
 import com.wjybxx.fastjgame.net.utils.ProtoUtils;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -59,42 +58,35 @@ import java.util.stream.Stream;
 public class BinarySerializer implements Serializer {
 
     private final CodecRegistry codecRegistry;
-    private final int byteBufInitCapacity;
-    private final int byteBufMaxCapacity;
+    private final int defaultByteBufCapacity;
 
     private BinarySerializer(CodecRegistry codecRegistry) {
-        this(codecRegistry, 256, 64 * 1024);
+        this(codecRegistry, 256);
     }
 
-    public BinarySerializer(CodecRegistry codecRegistry, int byteBufInitCapacity, int byteBufMaxCapacity) {
+    public BinarySerializer(CodecRegistry codecRegistry, int defaultByteBufCapacity) {
         this.codecRegistry = codecRegistry;
-        this.byteBufInitCapacity = byteBufInitCapacity;
-        this.byteBufMaxCapacity = byteBufMaxCapacity;
+        this.defaultByteBufCapacity = defaultByteBufCapacity;
     }
 
-    @Nonnull
     @Override
-    public ByteBuf writeObject(ByteBuf byteBuf, @Nullable Object object) throws Exception {
-        final CodedDataOutputStream outputStream = CodedDataOutputStream.newInstance(byteBuf);
-        encodeObject(outputStream, object);
-        return byteBuf;
-    }
-
-    @Nonnull
-    @Override
-    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception {
-        final ByteBuf byteBuf;
+    public int estimatedSerializedSize(@Nullable Object object) {
+        if (object == null) {
+            return 1;
+        }
         if (object instanceof Message) {
             // 对protoBuf协议的优化
             // tag + nameSpace + classId + length + content
             // 1 + 1 + 4 + 4 + msg.getSerializedSize()
-            byteBuf = bufAllocator.directBuffer(1 + 1 + 4 + 4 + ((Message) object).getSerializedSize());
-        } else {
-            byteBuf = bufAllocator.buffer(byteBufInitCapacity, byteBufMaxCapacity);
+            return 1 + 1 + 4 + 4 + ((Message) object).getSerializedSize();
         }
+        return defaultByteBufCapacity;
+    }
+
+    @Override
+    public void writeObject(ByteBuf byteBuf, @Nullable Object object) throws Exception {
         final CodedDataOutputStream outputStream = CodedDataOutputStream.newInstance(byteBuf);
         encodeObject(outputStream, object);
-        return byteBuf;
     }
 
     @Override

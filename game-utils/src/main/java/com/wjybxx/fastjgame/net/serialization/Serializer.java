@@ -18,7 +18,6 @@ package com.wjybxx.fastjgame.net.serialization;
 
 import com.google.protobuf.Message;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -69,15 +68,13 @@ public interface Serializer {
     Object cloneObject(@Nullable Object object) throws Exception;
 
     /**
-     * 写入一个对象
+     * 估算序列化后的大小，应该是尽量快的计算，有助于用户分配{@link ByteBuf}。
+     * 能估算的对象应返回精确值，无发估算的对象可返回默认值。
      *
-     * @param bufAllocator buf分配器，为了减少中间数据创建
-     * @param object       待编码的对象
-     * @return 编码后的字节数组
-     * @throws Exception error
+     * @param object 带估算的对象
+     * @return 一个估算值
      */
-    @Nonnull
-    ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception;
+    int estimatedSerializedSize(@Nullable Object object);
 
     /**
      * 写入一个对象到给的的byteBuf。
@@ -87,11 +84,9 @@ public interface Serializer {
      *
      * @param byteBuf 指定写入的byteBuf
      * @param object  待编码的对象
-     * @return 编码后的字节数组
      * @throws Exception error
      */
-    @Nonnull
-    ByteBuf writeObject(ByteBuf byteBuf, @Nullable Object object) throws Exception;
+    void writeObject(ByteBuf byteBuf, @Nullable Object object) throws Exception;
 
     /**
      * 读取一个对象

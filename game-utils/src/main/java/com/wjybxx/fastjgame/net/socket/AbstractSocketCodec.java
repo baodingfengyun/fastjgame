@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.net.rpc.*;
 import com.wjybxx.fastjgame.net.serialization.Serializer;
 import com.wjybxx.fastjgame.util.CodecUtils;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.socket.DefaultSocketChannelConfig;
@@ -173,19 +172,19 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
         final byte[] sessionIdBytes = CodecUtils.getBytesUTF8(sessionId);
 
         final int contentLength = 4 + 4 + 8 + 8 + 1 + sessionIdBytes.length;
-        ByteBuf head = newHeadByteBuf(ctx, contentLength, NetMessageType.CONNECT_REQUEST);
+        ByteBuf byteBuf = newByteBuf(ctx, contentLength, NetMessageType.CONNECT_REQUEST);
 
-        head.writeInt(socketConnectRequest.getVerifyingTimes());
-        head.writeInt(socketConnectRequest.getVerifiedTimes());
+        byteBuf.writeInt(socketConnectRequest.getVerifyingTimes());
+        byteBuf.writeInt(socketConnectRequest.getVerifiedTimes());
 
-        head.writeLong(socketConnectRequestTO.getInitSequence());
-        head.writeLong(socketConnectRequestTO.getAck());
-        head.writeByte(socketConnectRequestTO.isClose() ? 1 : 0);
+        byteBuf.writeLong(socketConnectRequestTO.getInitSequence());
+        byteBuf.writeLong(socketConnectRequestTO.getAck());
+        byteBuf.writeByte(socketConnectRequestTO.isClose() ? 1 : 0);
 
         // sessionId放最后可以省去长度标记
-        head.writeBytes(sessionIdBytes);
+        byteBuf.writeBytes(sessionIdBytes);
 
-        setLengthAndWrite(ctx, head, promise);
+        setLengthAndWrite(ctx, byteBuf, promise);
     }
 
     /**
@@ -213,8 +212,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      * 编码协议2 - 建立连接应答
      */
     final void writeConnectResponse(ChannelHandlerContext ctx, SocketConnectResponseTO socketConnectResponseTO, ChannelPromise promise) {
-        ByteBuf byteBuf = newHeadByteBuf(ctx, 1 + 4 + 4 + 8 + 8 + 1, NetMessageType.CONNECT_RESPONSE);
-
+        ByteBuf byteBuf = newByteBuf(ctx, 1 + 4 + 4 + 8 + 8 + 1, NetMessageType.CONNECT_RESPONSE);
         SocketConnectResponse socketConnectResponse = socketConnectResponseTO.getConnectResponse();
 
         // 建立连接结果
@@ -252,7 +250,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      * 心跳协议编码
      */
     final void writeAckPingPongMessage(ChannelHandlerContext ctx, SocketPingPongMessageTO pingPongMessageTO, ChannelPromise promise) {
-        ByteBuf byteBuf = newHeadByteBuf(ctx, 8 + 1, NetMessageType.PING_PONG);
+        ByteBuf byteBuf = newByteBuf(ctx, 8 + 1, NetMessageType.PING_PONG);
 
         byteBuf.writeLong(pingPongMessageTO.getAck());
         byteBuf.writeByte(pingPongMessageTO.getPingOrPong() == PingPongMessage.PING ? 1 : 0);
@@ -278,20 +276,21 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      * 编码rpc请求包
      */
     private void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
-        RpcRequestMessage requestMessage = (RpcRequestMessage) socketMessage.getWrappedMessage();
-        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1 + 8 + 1, NetMessageType.RPC_REQUEST);
+        final RpcRequestMessage requestMessage = (RpcRequestMessage) socketMessage.getWrappedMessage();
+        final int bodySize = serializer.estimatedSerializedSize(requestMessage.getBody());
+        final ByteBuf byteBuf = newByteBuf(ctx, 8 + 8 + 1 + 8 + 1 + bodySize, NetMessageType.RPC_REQUEST);
 
         // 捎带确认消息
-        head.writeLong(socketMessage.getSequence());
-        head.writeLong(ack);
-        head.writeByte(endOfBatch ? 1 : 0);
+        byteBuf.writeLong(socketMessage.getSequence());
+        byteBuf.writeLong(ack);
+        byteBuf.writeByte(endOfBatch ? 1 : 0);
 
         // rpc请求头
-        head.writeLong(requestMessage.getRequestGuid());
-        head.writeByte(requestMessage.isSync() ? 1 : 0);
+        byteBuf.writeLong(requestMessage.getRequestGuid());
+        byteBuf.writeByte(requestMessage.isSync() ? 1 : 0);
 
         // rpc请求内容 - 合并之后发送
-        writeLogicMessageBodyAndWrite(ctx, head, requestMessage.getBody(), promise);
+        writeLogicMessageBodyAndWrite(ctx, byteBuf, requestMessage.getBody(), promise);
     }
 
     /**
@@ -317,31 +316,31 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      * 编码rpc响应包
      */
     private void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
-        RpcResponseMessage responseMessage = (RpcResponseMessage) socketMessage.getWrappedMessage();
-        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1 + 8 + 1 + 4, NetMessageType.RPC_RESPONSE);
+        final RpcResponseMessage responseMessage = (RpcResponseMessage) socketMessage.getWrappedMessage();
+        final int bodySize = serializer.estimatedSerializedSize(responseMessage.getBody());
+        final ByteBuf byteBuf = newByteBuf(ctx, 8 + 8 + 1 + 8 + 1 + 4 + bodySize, NetMessageType.RPC_RESPONSE);
 
         // 捎带确认信息
-        head.writeLong(socketMessage.getSequence());
-        head.writeLong(ack);
-        head.writeByte(endOfBatch ? 1 : 0);
+        byteBuf.writeLong(socketMessage.getSequence());
+        byteBuf.writeLong(ack);
+        byteBuf.writeByte(endOfBatch ? 1 : 0);
 
         // rpc响应头
-        head.writeLong(responseMessage.getRequestGuid());
-        head.writeByte(responseMessage.isSync() ? 1 : 0);
-        head.writeInt(responseMessage.getErrorCode().getNumber());
+        byteBuf.writeLong(responseMessage.getRequestGuid());
+        byteBuf.writeByte(responseMessage.isSync() ? 1 : 0);
+        byteBuf.writeInt(responseMessage.getErrorCode().getNumber());
 
         if (responseMessage.getErrorCode().isSuccess()) {
             // rpc响应内容 - 合并之后发送
-            writeLogicMessageBodyAndWrite(ctx, head, responseMessage.getBody(), promise);
+            writeLogicMessageBodyAndWrite(ctx, byteBuf, responseMessage.getBody(), promise);
         } else {
             // 错误信息直接编码
             final String errorMsg = (String) responseMessage.getBody();
             final byte[] errorMsgBytes = CodecUtils.getBytesUTF8(errorMsg);
             final ByteBuf bodyByteBuf = ctx.alloc().buffer(errorMsgBytes.length);
             bodyByteBuf.writeBytes(errorMsgBytes);
-            setLengthAndWrite(ctx, Unpooled.wrappedBuffer(head, bodyByteBuf), promise);
+            setLengthAndWrite(ctx, Unpooled.wrappedBuffer(byteBuf, bodyByteBuf), promise);
         }
-
     }
 
     /**
@@ -376,16 +375,17 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      * 编码单向协议包
      */
     private void writeOneWayMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
-        OneWayMessage oneWayMessage = (OneWayMessage) socketMessage.getWrappedMessage();
-        ByteBuf head = newHeadByteBuf(ctx, 8 + 8 + 1, NetMessageType.ONE_WAY_MESSAGE);
+        final OneWayMessage oneWayMessage = (OneWayMessage) socketMessage.getWrappedMessage();
+        final int bodySize = serializer.estimatedSerializedSize(oneWayMessage.getBody());
+        final ByteBuf byteBuf = newByteBuf(ctx, 8 + 8 + 1 + bodySize, NetMessageType.ONE_WAY_MESSAGE);
 
         // 捎带确认
-        head.writeLong(socketMessage.getSequence());
-        head.writeLong(ack);
-        head.writeByte(endOfBatch ? 1 : 0);
+        byteBuf.writeLong(socketMessage.getSequence());
+        byteBuf.writeLong(ack);
+        byteBuf.writeByte(endOfBatch ? 1 : 0);
 
         // 合并之后发送
-        writeLogicMessageBodyAndWrite(ctx, head, oneWayMessage.getBody(), promise);
+        writeLogicMessageBodyAndWrite(ctx, byteBuf, oneWayMessage.getBody(), promise);
     }
 
     /**
@@ -409,29 +409,27 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
     /**
      * 写入逻辑消息的内容并发送
      *
-     * @param head 协议头
-     * @param body 待编码的body
+     * @param byteBuf 协议头
+     * @param body    待编码的body
      */
-    private void writeLogicMessageBodyAndWrite(ChannelHandlerContext ctx, ByteBuf head, Object body, ChannelPromise promise) {
-        final ByteBuf bodyByteBuf = tryEncodeBody(ctx.alloc(), body);
-        setLengthAndWrite(ctx, Unpooled.wrappedBuffer(head, bodyByteBuf), promise);
+    private void writeLogicMessageBodyAndWrite(ChannelHandlerContext ctx, ByteBuf byteBuf, Object body, ChannelPromise promise) {
+        tryEncodeBody(byteBuf, body);
+        setLengthAndWrite(ctx, byteBuf, promise);
     }
 
     /**
      * 尝试编码body
      *
-     * @param allocator byteBuf分配器
-     * @param bodyData  待编码的body
-     * @return 编码后的数据
+     * @param byteBuf  要写入的对象
+     * @param bodyData 待编码的body
      */
-    private ByteBuf tryEncodeBody(final ByteBufAllocator allocator, final Object bodyData) {
+    private void tryEncodeBody(ByteBuf byteBuf, final Object bodyData) {
         try {
-            return serializer.writeObject(allocator, bodyData);
+            serializer.writeObject(byteBuf, bodyData);
         } catch (Exception e) {
             // 为了不影响该连接上的其它消息，需要捕获异常
             logger.warn("serialize body {} caught exception.", bodyData.getClass().getName(), e);
         }
-        return Unpooled.EMPTY_BUFFER;
     }
 
     /**
@@ -469,7 +467,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      * @param contentLength 有效内容的长度
      * @return 足够空间的byteBuf可以直接写入内容部分
      */
-    private static ByteBuf newHeadByteBuf(ChannelHandlerContext ctx, int contentLength, NetMessageType netNetMessageType) {
+    private static ByteBuf newByteBuf(ChannelHandlerContext ctx, int contentLength, NetMessageType netNetMessageType) {
         // 消息长度字段 + 包类型
         ByteBuf byteBuf = ctx.alloc().buffer(4 + 1 + contentLength);
         byteBuf.writeInt(0);
