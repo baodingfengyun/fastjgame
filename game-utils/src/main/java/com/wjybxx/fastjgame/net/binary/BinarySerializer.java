@@ -76,8 +76,8 @@ public class BinarySerializer implements Serializer {
             encodeObject(outputStream, object);
 
             // 写入byteBuf
-            final ByteBuf buffer = bufAllocator.buffer(outputStream.writeIndex());
-            buffer.writeBytes(localBuffer, 0, outputStream.writeIndex());
+            final ByteBuf buffer = bufAllocator.buffer(outputStream.writerIndex());
+            buffer.writeBytes(localBuffer, 0, outputStream.writerIndex());
             return buffer;
         } finally {
             BufferPool.releaseBuffer(localBuffer);
@@ -110,7 +110,7 @@ public class BinarySerializer implements Serializer {
             encodeObject(outputStream, object);
 
             // 拷贝序列化结果
-            final byte[] resultBytes = new byte[outputStream.writeIndex()];
+            final byte[] resultBytes = new byte[outputStream.writerIndex()];
             System.arraycopy(localBuffer, 0, resultBytes, 0, resultBytes.length);
             return resultBytes;
         } finally {
@@ -135,7 +135,7 @@ public class BinarySerializer implements Serializer {
             encodeObject(outputStream, object);
 
             // 读出
-            final CodedDataInputStream inputStream = CodedDataInputStream.newInstance(localBuffer, 0, outputStream.writeIndex());
+            final CodedDataInputStream inputStream = CodedDataInputStream.newInstance(localBuffer, 0, outputStream.writerIndex());
             return decodeObject(inputStream);
         } finally {
             BufferPool.releaseBuffer(localBuffer);

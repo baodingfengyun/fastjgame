@@ -27,7 +27,7 @@ import java.io.IOException;
  * <h3>实现约定</h3>
  * <li>1. byte必须固定一个字节。</li>
  * <li>2. 命名包含{@code Fixed}的方法必定固定字节数，如：int4字节，long8字节，且必须大端模式读取。</li>
- * <li>3. 命名包含{@code get}的方法不修改写{@link #readIndex()} </li>*
+ * <li>3. 命名包含{@code get}的方法不修改写{@link #readerIndex()} </li>*
  *
  * @author wjybxx
  * @version 1.0
@@ -68,27 +68,27 @@ public interface DataInputStream {
 
     /**
      * 读取4个字节，并以大端模式读取为int
-     * {@link #readIndex()}应该加4
+     * {@link #readerIndex()}应该加4
      */
     int readFixedInt32() throws IOException;
 
     /**
-     * {@link #readIndex()}应该保持不变
+     * {@link #readerIndex()}应该保持不变
      */
     int getFixedInt32(int index) throws IOException;
 
     /**
      * 获取当前的读索引
      */
-    int readIndex();
+    int readerIndex();
 
     /**
      * 修改读索引
      */
-    void readIndex(int newReadIndex);
+    void readerIndex(int newReadIndex);
 
     /**
-     * {@link #slice(int, int)} 和 {@link #readIndex()}的快捷调用。
+     * {@link #slice(int, int)} 和 {@link #readerIndex()}的快捷调用。
      */
     DataInputStream slice(int length);
 

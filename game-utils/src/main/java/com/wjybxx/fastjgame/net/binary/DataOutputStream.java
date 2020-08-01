@@ -28,7 +28,7 @@ import java.io.IOException;
  * <h3>实现约定</h3>
  * <li>1. byte必须固定一个字节。</li>
  * <li>2. 命名包含{@code Fixed}的方法必定固定字节数，如：int4字节，long8字节，且按照<b>大端模式</b>写入</li>
- * <li>3. 命名包含{@code set}的方法不修改写{@link #writeIndex()}</li>
+ * <li>3. 命名包含{@code set}的方法不修改写{@link #writerIndex()}</li>
  *
  * @author wjybxx
  * @version 1.0
@@ -73,27 +73,27 @@ public interface DataOutputStream {
 
     /**
      * 以固定4个字节大端模式写入一个int
-     * {@link #writeIndex()}应该加4
+     * {@link #writerIndex()}应该加4
      */
     void writeFixedInt32(int value) throws IOException;
 
     /**
-     * {@link #writeIndex()}保持不变
+     * {@link #writerIndex()}保持不变
      */
     void setFixedInt32(int index, int value) throws IOException;
 
     /**
      * 获取当前的写索引
      */
-    int writeIndex();
+    int writerIndex();
 
     /**
      * 修改写索引
      */
-    void writeIndex(int newWriteIndex);
+    void writerIndex(int newWriteIndex);
 
     /**
-     * {@link #slice(int)}和{@link #writeIndex()}的快捷调用。
+     * {@link #slice(int)}和{@link #writerIndex()}的快捷调用。
      */
     DataOutputStream slice();
 

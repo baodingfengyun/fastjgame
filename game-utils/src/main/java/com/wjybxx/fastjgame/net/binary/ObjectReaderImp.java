@@ -202,7 +202,7 @@ class ObjectReaderImp implements ObjectReader {
         final T value = childReader.readObject();
 
         // 更新当前输入流的读索引
-        inputStream.readIndex(inputStream.readIndex() + childInputStream.readIndex());
+        inputStream.readerIndex(inputStream.readerIndex() + childInputStream.readerIndex());
 
         return value;
     }

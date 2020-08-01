@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.Message;
+import io.netty.buffer.ByteBuf;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -28,38 +29,9 @@ import java.io.IOException;
  * date - 2020/3/13
  * github - https://github.com/hl845740757
  */
-public class CodedDataOutputStream implements DataOutputStream {
+public abstract class CodedDataOutputStream implements DataOutputStream {
 
-    private final byte[] buffer;
-    private final int offset;
-    private final int limit;
-
-    private CodedOutputStream codedOutputStream;
-    private int codedOutputStreamOffset;
-
-    private CodedDataOutputStream(byte[] buffer) {
-        this(buffer, 0, buffer.length);
-    }
-
-    private CodedDataOutputStream(byte[] buffer, int offset, int length) {
-        if (offset >= buffer.length) {
-            throw new IllegalArgumentException();
-        }
-        this.buffer = buffer;
-        this.offset = offset;
-        this.limit = offset + length;
-
-        this.codedOutputStreamOffset = offset;
-        this.codedOutputStream = CodedOutputStream.newInstance(buffer, offset, length);
-    }
-
-    public static CodedDataOutputStream newInstance(byte[] buffer) {
-        return new CodedDataOutputStream(buffer);
-    }
-
-    public static CodedDataOutputStream newInstance(byte[] buffer, int offset, int length) {
-        return new CodedDataOutputStream(buffer, offset, length);
-    }
+    CodedOutputStream codedOutputStream;
 
     @Override
     public void writeByte(byte value) throws IOException {
@@ -140,42 +112,170 @@ public class CodedDataOutputStream implements DataOutputStream {
     }
 
     @Override
-    public void setFixedInt32(final int index, int value) throws IOException {
-        int position = offset + index;
-        buffer[position++] = (byte) (value >>> 24);
-        buffer[position++] = (byte) (value >>> 16);
-        buffer[position++] = (byte) (value >>> 8);
-        buffer[position] = (byte) value;
-    }
-
-    @Override
-    public int writeIndex() {
-        return codedOutputStreamOffset - offset + codedOutputStream.getTotalBytesWritten();
-    }
-
-    @Override
-    public void writeIndex(int newWriteIndex) {
-        if (newWriteIndex == writeIndex()) {
-            return;
-        }
-        codedOutputStreamOffset = offset + newWriteIndex;
-        codedOutputStream = CodedOutputStream.newInstance(buffer, codedOutputStreamOffset, limit - codedOutputStreamOffset);
-    }
-
-    @Override
     public DataOutputStream slice() {
-        return slice(writeIndex());
-    }
-
-    @Override
-    public DataOutputStream slice(int index) {
-        final int newOffset = offset + index;
-        final int newLength = limit - newOffset;
-        return newInstance(buffer, newOffset, newLength);
+        return slice(writerIndex());
     }
 
     @Override
     public void flush() throws IOException {
         codedOutputStream.flush();
+    }
+
+    public static CodedDataOutputStream newInstance(byte[] buffer) {
+        return new ArrayCodedDataOutputStream(buffer);
+    }
+
+    public static CodedDataOutputStream newInstance(byte[] buffer, int offset, int length) {
+        return new ArrayCodedDataOutputStream(buffer, offset, length);
+    }
+
+    public static CodedDataOutputStream newInstance(ByteBuf byteBuf) {
+        return new NioDataOutputStream(byteBuf);
+    }
+
+    public static CodedDataOutputStream newInstance(ByteBuf byteBuf, int index, int length) {
+        return new NioDataOutputStream(byteBuf, index, length);
+    }
+
+    private static class ArrayCodedDataOutputStream extends CodedDataOutputStream {
+
+        private final byte[] buffer;
+        private final int offset;
+        private final int limit;
+        private int codedOutputStreamOffset;
+
+        ArrayCodedDataOutputStream(byte[] buffer) {
+            this(buffer, 0, buffer.length);
+        }
+
+        ArrayCodedDataOutputStream(byte[] buffer, int offset, int length) {
+            if (offset >= buffer.length) {
+                throw new IllegalArgumentException();
+            }
+            this.buffer = buffer;
+            this.offset = offset;
+            this.limit = offset + length;
+
+            this.codedOutputStreamOffset = offset;
+            this.codedOutputStream = CodedOutputStream.newInstance(buffer, offset, length);
+        }
+
+        @Override
+        public void setFixedInt32(final int index, int value) throws IOException {
+            int position = offset + index;
+            buffer[position++] = (byte) (value >>> 24);
+            buffer[position++] = (byte) (value >>> 16);
+            buffer[position++] = (byte) (value >>> 8);
+            buffer[position] = (byte) value;
+        }
+
+        @Override
+        public int writerIndex() {
+            return codedOutputStreamOffset - offset + codedOutputStream.getTotalBytesWritten();
+        }
+
+        @Override
+        public void writerIndex(int newWriteIndex) {
+            if (newWriteIndex == writerIndex()) {
+                return;
+            }
+            codedOutputStreamOffset = offset + newWriteIndex;
+            codedOutputStream = CodedOutputStream.newInstance(buffer, codedOutputStreamOffset, limit - codedOutputStreamOffset);
+        }
+
+        @Override
+        public DataOutputStream slice(int index) {
+            final int newOffset = offset + index;
+            final int newLength = limit - newOffset;
+            return new ArrayCodedDataOutputStream(buffer, newOffset, newLength);
+        }
+
+    }
+
+    public static class NioDataOutputStream extends CodedDataOutputStream {
+
+        private final ByteBuf byteBuf;
+        private final int startWriterIndex;
+        private final int limit;
+        private int codedOutputStreamOffset;
+
+        public NioDataOutputStream(ByteBuf byteBuf) {
+            this(byteBuf, byteBuf.writerIndex(), byteBuf.capacity() - byteBuf.writerIndex());
+        }
+
+        public NioDataOutputStream(ByteBuf byteBuf, int startWriterIndex, int length) {
+            validateByteBuf(byteBuf, startWriterIndex, length);
+
+            this.byteBuf = byteBuf;
+            this.startWriterIndex = startWriterIndex;
+            this.limit = startWriterIndex + length;
+
+            this.codedOutputStream = CodedOutputStream.newInstance(byteBuf.internalNioBuffer(startWriterIndex, length));
+            this.codedOutputStreamOffset = startWriterIndex;
+        }
+
+        @Override
+        public void setFixedInt32(int index, int value) throws IOException {
+            final int byteBufWriterIndex = byteBufWriterIndex(index);
+            byteBuf.setInt(byteBufWriterIndex, value);
+        }
+
+        @Override
+        public int writerIndex() {
+            return codedOutputStreamOffset - startWriterIndex + codedOutputStream.getTotalBytesWritten();
+        }
+
+        @Override
+        public void writerIndex(int newWriteIndex) {
+            validateWriterIndex(newWriteIndex);
+
+            if (newWriteIndex == writerIndex()) {
+                return;
+            }
+            codedOutputStreamOffset = startWriterIndex + newWriteIndex;
+            codedOutputStream = CodedOutputStream.newInstance(byteBuf.internalNioBuffer(codedOutputStreamOffset, limit - codedOutputStreamOffset));
+        }
+
+        void validateWriterIndex(int writeIndex) {
+            if (byteBufWriterIndex(writeIndex) > limit) {
+                throw new IllegalArgumentException("writeIndex: " + writeIndex + ", limit: " + limit);
+            }
+        }
+
+        @Override
+        public DataOutputStream slice(int index) {
+            validateWriterIndex(index);
+
+            final int byteBufWriterIndex = byteBufWriterIndex(index);
+            final int length = limit - byteBufWriterIndex;
+            final ByteBuf slice = byteBuf.slice(byteBufWriterIndex, length);
+            // 默认slice是用于读的，所以其写索引默认是其capacity
+            slice.writerIndex(0);
+            return new NioDataOutputStream(slice);
+        }
+
+        @Override
+        public void flush() throws IOException {
+            super.flush();
+            // 更新写索引
+            byteBuf.writerIndex(byteBufWriterIndex(codedOutputStream.getTotalBytesWritten()));
+        }
+
+        protected int byteBufWriterIndex(int index) {
+            return codedOutputStreamOffset + index;
+        }
+    }
+
+    static void validateByteBuf(ByteBuf byteBuf, int index, int length) {
+        // 未来可能优化不可扩容限制
+        if (byteBuf.nioBufferCount() != 1 || byteBuf.capacity() != byteBuf.maxCapacity()) {
+            throw new UnsupportedOperationException("Only ByteBuf without capacity expansion is supported");
+        }
+
+        if (index < 0 || length <= 0 || index + length > byteBuf.capacity()) {
+            throw new IllegalArgumentException(String.format(
+                    "Buffer range is invalid. Buffer.length=%d, offset=%d, length=%d",
+                    byteBuf.capacity(), index, length));
+        }
     }
 }

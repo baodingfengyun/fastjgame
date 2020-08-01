@@ -57,8 +57,11 @@ public class BinaryProtoCodecTest {
         System.out.println(decodeResult);
 
         System.out.println("equals = " + fullMessage.equals(decodeResult));
-
         encodeResult.release();
+
+        System.out.println("-----------------------clone--------------------");
+        final Object cloneResult = codec.cloneObject(fullMessage);
+        System.out.println("clone equals = " + fullMessage.equals(cloneResult));
     }
 
     /**

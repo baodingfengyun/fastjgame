@@ -26,6 +26,7 @@ import com.wjybxx.fastjgame.net.type.TypeModel;
 import com.wjybxx.fastjgame.net.type.TypeModelMapper;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,7 +45,7 @@ import java.util.stream.Stream;
  */
 public class ProtoBufSerializePerformanceTest {
 
-    private static final byte[] buffer = new byte[8192];
+    private static final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8192);
 
     private static final TypeModelMapper TYPE_MODEL_MAPPER = DefaultTypeModelMapper.newInstance(Stream.of(p_test.p_testMsg.class)
             .map(ExampleConstants.typeMappingStrategy::mapping)
@@ -81,15 +82,20 @@ public class ProtoBufSerializePerformanceTest {
     private static void equalsTest(p_test.p_testMsg msg) throws IOException {
         final Parser<p_test.p_testMsg> parser = msg.getParserForType();
 
-        final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(buffer);
+        final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(byteBuffer);
         writeTypeId(msg, codedOutputStream);
         msg.writeTo(codedOutputStream);
+        codedOutputStream.flush();
         System.out.println("encode result bytes = " + codedOutputStream.getTotalBytesWritten());
 
-        final CodedInputStream inputStream = CodedInputStream.newInstance(buffer, 0, codedOutputStream.getTotalBytesWritten());
+        byteBuffer.flip();
+
+        final CodedInputStream inputStream = CodedInputStream.newInstance(byteBuffer);
         final Class<?> type = readType(inputStream);
         final Object decodeMsg = parser.parseFrom(inputStream);
         System.out.println("codec equals result = " + msg.equals(decodeMsg));
+
+        byteBuffer.clear();
     }
 
     private static void writeTypeId(Object msg, CodedOutputStream codedOutputStream) throws IOException {
@@ -111,14 +117,19 @@ public class ProtoBufSerializePerformanceTest {
         final long start = System.currentTimeMillis();
         for (int index = 0; index < loopTimes; index++) {
             // 这里需要简单模拟下解码过程
-            final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(buffer);
+            final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(byteBuffer);
             writeTypeId(msg, codedOutputStream);
             msg.writeTo(codedOutputStream);
+            codedOutputStream.flush();
 
-            final CodedInputStream inputStream = CodedInputStream.newInstance(buffer, 0, codedOutputStream.getTotalBytesWritten());
+            byteBuffer.flip();
+
+            final CodedInputStream inputStream = CodedInputStream.newInstance(byteBuffer);
             final Class<?> messageClass = readType(inputStream);
             final Parser<?> parser = parserMap.get(messageClass);
             final Object decodeMsg = parser.parseFrom(inputStream);
+
+            byteBuffer.clear();
         }
         System.out.println("codec " + loopTimes + " times cost timeMs " + (System.currentTimeMillis() - start));
     }

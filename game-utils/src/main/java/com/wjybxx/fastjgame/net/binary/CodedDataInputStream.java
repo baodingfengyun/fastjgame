@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.net.binary;
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.ExtensionRegistryLite;
 import com.google.protobuf.Parser;
+import io.netty.buffer.ByteBuf;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -29,35 +30,9 @@ import java.io.IOException;
  * date - 2020/3/14
  * github - https://github.com/hl845740757
  */
-public class CodedDataInputStream implements DataInputStream {
+public abstract class CodedDataInputStream implements DataInputStream {
 
-    private final byte[] buffer;
-    private final int offset;
-    private final int limit;
-
-    private CodedInputStream codedInputStream;
-    private int codedInputStreamOffset;
-
-    private CodedDataInputStream(byte[] buffer) {
-        this(buffer, 0, buffer.length);
-    }
-
-    private CodedDataInputStream(byte[] buffer, int offset, int length) {
-        this.buffer = buffer;
-        this.offset = offset;
-        this.limit = offset + length;
-
-        codedInputStreamOffset = offset;
-        codedInputStream = CodedInputStream.newInstance(buffer, offset, length);
-    }
-
-    public static CodedDataInputStream newInstance(byte[] buffer, int offset, int length) {
-        return new CodedDataInputStream(buffer, offset, length);
-    }
-
-    public static CodedDataInputStream newInstance(byte[] buffer) {
-        return new CodedDataInputStream(buffer);
-    }
+    CodedInputStream codedInputStream;
 
     @Override
     public byte readByte() throws IOException {
@@ -120,6 +95,11 @@ public class CodedDataInputStream implements DataInputStream {
     }
 
     @Override
+    public DataInputStream slice(int length) {
+        return slice(readerIndex(), length);
+    }
+
+    @Override
     public int readFixedInt32() throws IOException {
         return (codedInputStream.readRawByte() & 0xff) << 24 |
                 (codedInputStream.readRawByte() & 0xff) << 16 |
@@ -127,38 +107,135 @@ public class CodedDataInputStream implements DataInputStream {
                 codedInputStream.readRawByte() & 0xff;
     }
 
-    @Override
-    public int getFixedInt32(final int index) throws IOException {
-        int position = offset + index;
-        return (buffer[position++] & 0xff) << 24 |
-                (buffer[position++] & 0xff) << 16 |
-                (buffer[position++] & 0xff) << 8 |
-                buffer[position] & 0xff;
+    public static CodedDataInputStream newInstance(byte[] buffer) {
+        return new ArrayCodedDataInputStream(buffer);
     }
 
-    @Override
-    public int readIndex() {
-        return codedInputStreamOffset - offset + codedInputStream.getTotalBytesRead();
+    public static CodedDataInputStream newInstance(byte[] buffer, int offset, int length) {
+        return new ArrayCodedDataInputStream(buffer, offset, length);
     }
 
-    @Override
-    public void readIndex(int newReadIndex) {
-        if (newReadIndex == readIndex()) {
-            return;
+    public static CodedDataInputStream newInstance(ByteBuf byteBuf) {
+        return new NioCodedDataInputStream(byteBuf);
+    }
+
+    public static CodedDataInputStream newInstance(ByteBuf byteBuf, int readerIndex, int length) {
+        return new NioCodedDataInputStream(byteBuf, readerIndex, length);
+    }
+
+    private static class ArrayCodedDataInputStream extends CodedDataInputStream {
+
+        private final byte[] buffer;
+        private final int offset;
+        private final int limit;
+        private int codedInputStreamOffset;
+
+        private ArrayCodedDataInputStream(byte[] buffer) {
+            this(buffer, 0, buffer.length);
         }
-        codedInputStreamOffset = offset + newReadIndex;
-        codedInputStream = CodedInputStream.newInstance(buffer, codedInputStreamOffset, limit - codedInputStreamOffset);
 
+        private ArrayCodedDataInputStream(byte[] buffer, int offset, int length) {
+            this.buffer = buffer;
+            this.offset = offset;
+            this.limit = offset + length;
+
+            codedInputStreamOffset = offset;
+            codedInputStream = CodedInputStream.newInstance(buffer, offset, length);
+        }
+
+        @Override
+        public int getFixedInt32(final int index) throws IOException {
+            int position = offset + index;
+            return (buffer[position++] & 0xff) << 24 |
+                    (buffer[position++] & 0xff) << 16 |
+                    (buffer[position++] & 0xff) << 8 |
+                    buffer[position] & 0xff;
+        }
+
+        @Override
+        public int readerIndex() {
+            return codedInputStreamOffset - offset + codedInputStream.getTotalBytesRead();
+        }
+
+        @Override
+        public void readerIndex(int newReadIndex) {
+            if (newReadIndex == readerIndex()) {
+                return;
+            }
+            codedInputStreamOffset = offset + newReadIndex;
+            codedInputStream = CodedInputStream.newInstance(buffer, codedInputStreamOffset, limit - codedInputStreamOffset);
+        }
+
+        @Override
+        public DataInputStream slice(int index, int length) {
+            final int newOffset = offset + index;
+            return newInstance(buffer, newOffset, length);
+        }
     }
 
-    @Override
-    public DataInputStream slice(int length) {
-        return slice(readIndex(), length);
-    }
+    private static class NioCodedDataInputStream extends CodedDataInputStream {
 
-    @Override
-    public DataInputStream slice(int index, int length) {
-        final int newOffset = offset + index;
-        return newInstance(buffer, newOffset, length);
+        private final ByteBuf byteBuf;
+        private final int startReaderIndex;
+        private final int limit;
+        private int codedInputStreamOffset;
+
+        public NioCodedDataInputStream(ByteBuf byteBuf) {
+            this(byteBuf, byteBuf.readerIndex(), byteBuf.readableBytes());
+        }
+
+        private NioCodedDataInputStream(ByteBuf byteBuf, int startReaderIndex, int length) {
+            CodedDataOutputStream.validateByteBuf(byteBuf, startReaderIndex, length);
+
+            this.byteBuf = byteBuf;
+            this.startReaderIndex = startReaderIndex;
+            this.limit = startReaderIndex + length;
+
+            this.codedInputStreamOffset = startReaderIndex;
+            this.codedInputStream = CodedInputStream.newInstance(byteBuf.internalNioBuffer(startReaderIndex, length));
+        }
+
+        @Override
+        public int getFixedInt32(int index) throws IOException {
+            final int byteBufReaderIndex = byteBufReaderIndex(index);
+            return byteBuf.getInt(byteBufReaderIndex);
+        }
+
+        @Override
+        public int readerIndex() {
+            return codedInputStreamOffset - startReaderIndex + codedInputStream.getTotalBytesRead();
+        }
+
+        @Override
+        public void readerIndex(int newReadIndex) {
+            validateReaderIndex(newReadIndex);
+
+            if (newReadIndex == readerIndex()) {
+                return;
+            }
+
+            codedInputStreamOffset = startReaderIndex + newReadIndex;
+            codedInputStream = CodedInputStream.newInstance(byteBuf.internalNioBuffer(codedInputStreamOffset, limit - codedInputStreamOffset));
+        }
+
+        private void validateReaderIndex(int readerIndex) {
+            if (byteBufReaderIndex(readerIndex) > limit) {
+                throw new IllegalArgumentException("readerIndex: " + readerIndex + ", limit: " + limit);
+            }
+        }
+
+        @Override
+        public DataInputStream slice(int index, int length) {
+            validateReaderIndex(index);
+
+            final int byteBufReaderIndex = byteBufReaderIndex(index);
+            final ByteBuf slice = byteBuf.slice(byteBufReaderIndex, length);
+            // 默认slice是用于读的，所以其写索引默认是其capacity
+            return new NioCodedDataInputStream(slice);
+        }
+
+        int byteBufReaderIndex(int index) {
+            return index + codedInputStream.getTotalBytesRead();
+        }
     }
 }

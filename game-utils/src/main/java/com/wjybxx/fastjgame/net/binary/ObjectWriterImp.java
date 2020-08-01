@@ -187,15 +187,15 @@ class ObjectWriterImp implements ObjectWriter {
         }
 
         // 占位，用于后面填充tag和长度字段
-        final DataOutputStream childOutputStream = outputStream.slice(outputStream.writeIndex() + 1 + 1 + 4);
+        final DataOutputStream childOutputStream = outputStream.slice(outputStream.writerIndex() + 1 + 1 + 4);
         final ObjectWriter childObjectWriter = new ObjectWriterImp(codecRegistry, childOutputStream);
         childObjectWriter.writeObject(value);
 
         outputStream.writeTag(BinaryTag.ARRAY);
-        ArrayCodec.writeChildTypeAndLength(outputStream, BinaryTag.BYTE, childOutputStream.writeIndex());
+        ArrayCodec.writeChildTypeAndLength(outputStream, BinaryTag.BYTE, childOutputStream.writerIndex());
 
         // 更新写索引
-        outputStream.writeIndex(outputStream.writeIndex() + childOutputStream.writeIndex());
+        outputStream.writerIndex(outputStream.writerIndex() + childOutputStream.writerIndex());
     }
 
     @Override
