@@ -106,11 +106,6 @@ class ObjectWriterImp implements ObjectWriter {
         writePojo(message, message.getClass());
     }
 
-    private void writePojo(@Nonnull Object pojo, @Nonnull Class<?> type) throws Exception {
-        outputStream.writeTag(BinaryTag.POJO);
-        PojoCodec.writePojoImp(outputStream, pojo, type, this, codecRegistry);
-    }
-
     @Override
     public void writeBytes(@Nullable byte[] value) throws Exception {
         if (value == null) {
@@ -173,6 +168,12 @@ class ObjectWriterImp implements ObjectWriter {
         writePojo(value, superClass);
     }
 
+    private void writePojo(@Nonnull Object pojo, @Nonnull Class<?> type) throws Exception {
+        outputStream.writeTag(BinaryTag.POJO);
+        PojoCodecUtils.writePojoImp(pojo, type, outputStream, codecRegistry, this);
+    }
+
+
     @Override
     public void writeLazySerializeObject(@Nullable Object value) throws Exception {
         if (null == value) {
@@ -212,7 +213,7 @@ class ObjectWriterImp implements ObjectWriter {
 
         final Class<?> type = value.getClass();
         // POJO优先，可能性最高，且如果命中，可以节省诸多消耗
-        final PojoCodecImpl<?> pojoCodec = codecRegistry.get(type);
+        final PojoCodec<?> pojoCodec = codecRegistry.get(type);
         if (pojoCodec != null) {
             writePojo(value, type);
             return;

@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.serialization;
 
+import com.google.protobuf.Message;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
@@ -79,7 +80,10 @@ public interface Serializer {
     ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception;
 
     /**
-     * 写入一个对象到给的的byteBuf
+     * 写入一个对象到给的的byteBuf。
+     * 用途：
+     * 1. 当大致知道序列化后的长度的时候，分配容量合适的ByteBuf有助于性能，比如写protoBuf消息，{@link Message#getSerializedSize()}
+     * 2. 当知道要序列化的内容长度较大时，分配一个容量较大的ByteBuf有助于性能，拿游戏来讲，角色进入场景/登录协议往往比较大，采用扩容机制的话，可能触发多次扩容。
      *
      * @param byteBuf 指定写入的byteBuf
      * @param object  待编码的对象

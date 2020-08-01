@@ -62,6 +62,7 @@ public interface DataOutputStream {
 
     /**
      * 针对protoBuffer消息的特定支持
+     * 注意：该方法只写入内容部分，不包含长度信息
      */
     void writeMessage(@Nonnull Message message) throws Exception;
 
@@ -82,14 +83,14 @@ public interface DataOutputStream {
     void setFixedInt32(int index, int value) throws Exception;
 
     /**
-     * 获取当前的写索引
+     * 获取当前的写索引(也即写入了多少字节)
      */
     int writerIndex();
 
     /**
      * 修改写索引
      */
-    void writerIndex(int newWriteIndex);
+    void writerIndex(int newWriterIndex);
 
     /**
      * {@link #duplicate(int)}和{@link #writerIndex()}的快捷调用。

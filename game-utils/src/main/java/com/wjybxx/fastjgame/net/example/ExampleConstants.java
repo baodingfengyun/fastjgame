@@ -17,6 +17,7 @@ package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.binary.CodecScanner;
+import com.wjybxx.fastjgame.net.binary.ProtoBufferScanner;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroupBuilder;
 import com.wjybxx.fastjgame.net.serialization.HashTypeMappingStrategy;
@@ -26,6 +27,7 @@ import com.wjybxx.fastjgame.net.type.TypeMappingStrategy;
 import com.wjybxx.fastjgame.net.type.TypeModelMapper;
 
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 测试用例的常量
@@ -40,7 +42,7 @@ public final class ExampleConstants {
     public static TypeMappingStrategy typeMappingStrategy = new HashTypeMappingStrategy();
 
     public static TypeModelMapper typeModelMapper = DefaultTypeModelMapper.newInstance(
-            CodecScanner.getAllCustomCodecClass().stream()
+            Stream.concat(CodecScanner.getAllCustomCodecClass().stream(), ProtoBufferScanner.getAllProtoBufferClasses().stream())
                     .map(typeMappingStrategy::mapping)
                     .collect(Collectors.toList())
     );

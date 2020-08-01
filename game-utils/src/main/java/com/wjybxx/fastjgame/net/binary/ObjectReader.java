@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.Parser;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -60,7 +58,7 @@ public interface ObjectReader {
     /**
      * 从输入流中读取一个protoBuffer消息
      */
-    <T> T readMessage(Parser<T> parser) throws Exception;
+    <T> T readMessage() throws Exception;
 
     /**
      * 从输入流中读取一个字段，如果没有对应的简便方法，可以使用该方法。

@@ -16,21 +16,21 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import java.io.IOException;
+
 /**
+ * 用户自定义Codec实现，通过桥连接
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/5/11
  */
-public class CustomPojoCodec<T> implements PojoCodecImpl<T> {
+public class CustomPojoCodec<T> implements PojoCodec<T> {
 
     private PojoCodecImpl<T> codec;
 
-    public CustomPojoCodec(PojoCodecImpl<T> codec) {
+    CustomPojoCodec(PojoCodecImpl<T> codec) {
         this.codec = codec;
-    }
-
-    public PojoCodecImpl<T> getDelegate() {
-        return codec;
     }
 
     @Override
@@ -39,12 +39,23 @@ public class CustomPojoCodec<T> implements PojoCodecImpl<T> {
     }
 
     @Override
-    public T readObject(ObjectReader reader) throws Exception {
+    public T readObject(DataInputStream dataInputStream, CodecRegistry codecRegistry, ObjectReader reader) throws Exception {
         return codec.readObject(reader);
     }
 
     @Override
-    public void writeObject(T instance, ObjectWriter writer) throws Exception {
+    public void writeObject(T instance, DataOutputStream dataOutputStream, CodecRegistry codecRegistry, ObjectWriter writer) throws Exception {
         codec.writeObject(instance, writer);
+    }
+
+    T readPolymorphicPojoImpl(DataInputStream inputStream, EntityFactory<? extends T> factory, CodecRegistry codecRegistry, ObjectReader reader) throws Exception {
+        if (!(codec instanceof AbstractPojoCodecImpl)) {
+            throw new IOException();
+        }
+        final AbstractPojoCodecImpl<T> abstractPojoCodec = (AbstractPojoCodecImpl<T>) codec;
+        // 这里使用给定工厂创建对象，而不是codec自己创建的对象，从而实现多态
+        final T instance = factory.newInstance();
+        abstractPojoCodec.readFields(instance, reader);
+        return instance;
     }
 }

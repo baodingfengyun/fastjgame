@@ -77,14 +77,14 @@ public interface DataInputStream {
     int getFixedInt32(int index) throws Exception;
 
     /**
-     * 获取当前的读索引
+     * 获取当前的读索引(也即读取了多少字节)
      */
     int readerIndex();
 
     /**
      * 修改读索引
      */
-    void readerIndex(int newReadIndex);
+    void readerIndex(int newReaderIndex);
 
     /**
      * {@link #slice(int, int)} 和 {@link #readerIndex()}的快捷调用。

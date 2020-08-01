@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.Parser;
 import com.wjybxx.fastjgame.util.CollectionUtils;
 
 import javax.annotation.Nonnull;
@@ -109,14 +108,14 @@ class ObjectReaderImp implements ObjectReader {
     }
 
     @Override
-    public <T> T readMessage(Parser<T> parser) throws Exception {
+    public <T> T readMessage() throws Exception {
         final BinaryTag tag = inputStream.readTag();
         if (tag == BinaryTag.NULL) {
             return null;
         }
         checkTag(tag, BinaryTag.POJO);
 
-        @SuppressWarnings("unchecked") final T message = (T) PojoCodec.readPojoImp(inputStream, codecRegistry);
+        @SuppressWarnings("unchecked") final T message = (T) PojoCodecUtils.readPojoImp(inputStream, codecRegistry, this);
         return message;
     }
 
@@ -180,7 +179,7 @@ class ObjectReaderImp implements ObjectReader {
 
         checkTag(tag, BinaryTag.POJO);
 
-        return PojoCodec.readPolymorphicPojoImpl(inputStream, factory, superClass, this, codecRegistry);
+        return PojoCodecUtils.readPolymorphicPojoImpl(inputStream, factory, superClass, codecRegistry, this);
 
     }
 
@@ -202,7 +201,7 @@ class ObjectReaderImp implements ObjectReader {
         final T value = childReader.readObject();
 
         // 更新当前输入流的读索引
-        inputStream.readerIndex(inputStream.readerIndex() + childInputStream.readerIndex());
+        inputStream.readerIndex(inputStream.readerIndex() + length);
 
         return value;
     }
@@ -247,7 +246,7 @@ class ObjectReaderImp implements ObjectReader {
                 return inputStream.readString();
 
             case POJO:
-                return PojoCodec.readPojoImp(inputStream, codecRegistry);
+                return PojoCodecUtils.readPojoImp(inputStream, codecRegistry, this);
             case ARRAY:
                 return ArrayCodec.readArrayImpl(inputStream, null, this);
             case MAP:

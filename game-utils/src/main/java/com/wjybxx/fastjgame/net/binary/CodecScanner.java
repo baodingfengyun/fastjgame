@@ -56,17 +56,19 @@ public class CodecScanner {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    private static boolean isPojoCodecImpl(Class<?> c) {
-        if (Modifier.isAbstract(c.getModifiers())) {
+    private static boolean isPojoCodecImpl(Class<?> clazz) {
+        if (Modifier.isAbstract(clazz.getModifiers())) {
             return false;
         }
-        if (!PojoCodecImpl.class.isAssignableFrom(c)) {
+        if (!PojoCodecImpl.class.isAssignableFrom(clazz)) {
             return false;
         }
-        if (c == ProtoMessageCodec.class || c == ProtoEnumCodec.class || c == CustomPojoCodec.class) {
-            return false;
-        }
-        return true;
+        return hasNoArgsConstructor(clazz);
+    }
+
+    private static boolean hasNoArgsConstructor(Class<?> clazz) {
+        return Arrays.stream(clazz.getDeclaredConstructors())
+                .anyMatch(constructor -> constructor.getParameterCount() == 0);
     }
 
     @SuppressWarnings("unchecked")

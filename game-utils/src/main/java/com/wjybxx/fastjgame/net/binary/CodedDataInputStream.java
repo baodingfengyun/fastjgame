@@ -158,11 +158,11 @@ public abstract class CodedDataInputStream implements DataInputStream {
         }
 
         @Override
-        public void readerIndex(int newReadIndex) {
-            if (newReadIndex == readerIndex()) {
+        public void readerIndex(int newReaderIndex) {
+            if (newReaderIndex == readerIndex()) {
                 return;
             }
-            codedInputStreamOffset = offset + newReadIndex;
+            codedInputStreamOffset = offset + newReaderIndex;
             codedInputStream = CodedInputStream.newInstance(buffer, codedInputStreamOffset, limit - codedInputStreamOffset);
         }
 
@@ -170,6 +170,18 @@ public abstract class CodedDataInputStream implements DataInputStream {
         public DataInputStream slice(int index, int length) {
             final int newOffset = offset + index;
             return newInstance(buffer, newOffset, length);
+        }
+
+        @Override
+        public String toString() {
+            return "ArrayCodedDataInputStream{" +
+                    "arrayLength=" + buffer.length +
+                    ", offset=" + offset +
+                    ", limit=" + limit +
+                    ", codedInputStreamOffset=" + codedInputStreamOffset +
+                    ", codedInputStreamTotalBytesRead=" + codedInputStream.getTotalBytesRead() +
+                    ", readerIndex=" + readerIndex() +
+                    '}';
         }
     }
 
@@ -180,7 +192,7 @@ public abstract class CodedDataInputStream implements DataInputStream {
         private final int limit;
         private int codedInputStreamOffset;
 
-        public NioCodedDataInputStream(ByteBuf byteBuf) {
+        NioCodedDataInputStream(ByteBuf byteBuf) {
             this(byteBuf, byteBuf.readerIndex(), byteBuf.readableBytes());
         }
 
@@ -214,19 +226,14 @@ public abstract class CodedDataInputStream implements DataInputStream {
         }
 
         @Override
-        public int readerIndex() {
-            return codedInputStreamOffset - startReaderIndex + codedInputStream.getTotalBytesRead();
-        }
+        public void readerIndex(int newReaderIndex) {
+            validateReaderIndex(newReaderIndex);
 
-        @Override
-        public void readerIndex(int newReadIndex) {
-            validateReaderIndex(newReadIndex);
-
-            if (newReadIndex == readerIndex()) {
+            if (newReaderIndex == readerIndex()) {
                 return;
             }
 
-            codedInputStreamOffset = startReaderIndex + newReadIndex;
+            codedInputStreamOffset = startReaderIndex + newReaderIndex;
             codedInputStream = CodedInputStream.newInstance(byteBuf.internalNioBuffer(codedInputStreamOffset, limit - codedInputStreamOffset));
         }
 
@@ -246,8 +253,25 @@ public abstract class CodedDataInputStream implements DataInputStream {
             return new NioCodedDataInputStream(slice);
         }
 
-        int byteBufReaderIndex(int index) {
-            return index + codedInputStream.getTotalBytesRead();
+        @Override
+        public int readerIndex() {
+            return codedInputStreamOffset - startReaderIndex + codedInputStream.getTotalBytesRead();
+        }
+
+        private int byteBufReaderIndex(int readerIndex) {
+            return startReaderIndex + readerIndex;
+        }
+
+        @Override
+        public String toString() {
+            return "NioCodedDataInputStream{" +
+                    "byteBuf=" + byteBuf +
+                    ", startReaderIndex=" + startReaderIndex +
+                    ", limit=" + limit +
+                    ", codedInputStreamOffset=" + codedInputStreamOffset +
+                    ", codedInputStreamTotalBytesRead=" + codedInputStream.getTotalBytesRead() +
+                    ", readerIndex=" + readerIndex() +
+                    '}';
         }
     }
 }

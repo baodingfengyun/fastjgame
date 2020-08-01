@@ -24,7 +24,7 @@ import com.google.protobuf.ProtocolMessageEnum;
  * @version 1.0
  * date - 2020/2/17
  */
-public class ProtoEnumCodec<T extends ProtocolMessageEnum> implements PojoCodecImpl<T> {
+public class ProtoEnumCodec<T extends ProtocolMessageEnum> implements PojoCodec<T> {
 
     private final Class<T> enumClass;
     private final Internal.EnumLiteMap<T> mapper;
@@ -40,12 +40,13 @@ public class ProtoEnumCodec<T extends ProtocolMessageEnum> implements PojoCodecI
     }
 
     @Override
-    public T readObject(ObjectReader reader) throws Exception {
-        return mapper.findValueByNumber(reader.readInt());
+    public T readObject(DataInputStream dataInputStream, CodecRegistry codecRegistry, ObjectReader reader) throws Exception {
+        return mapper.findValueByNumber(dataInputStream.readInt());
     }
 
     @Override
-    public void writeObject(T instance, ObjectWriter writer) throws Exception {
-        writer.writeInt(instance.getNumber());
+    public void writeObject(T instance, DataOutputStream dataOutputStream, CodecRegistry codecRegistry, ObjectWriter writer) throws Exception {
+        dataOutputStream.writeInt(instance.getNumber());
     }
+
 }

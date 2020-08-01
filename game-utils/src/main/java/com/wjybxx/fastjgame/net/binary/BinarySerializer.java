@@ -74,8 +74,7 @@ public class BinarySerializer implements Serializer {
 
     @Nonnull
     @Override
-    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception {
-        final ByteBuf byteBuf = bufAllocator.buffer(byteBufInitCapacity, byteBufMaxCapacity);
+    public ByteBuf writeObject(ByteBuf byteBuf, @Nullable Object object) throws Exception {
         final CodedDataOutputStream outputStream = CodedDataOutputStream.newInstance(byteBuf);
         encodeObject(outputStream, object);
         return byteBuf;
@@ -83,7 +82,16 @@ public class BinarySerializer implements Serializer {
 
     @Nonnull
     @Override
-    public ByteBuf writeObject(ByteBuf byteBuf, @Nullable Object object) throws Exception {
+    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception {
+        final ByteBuf byteBuf;
+        if (object instanceof Message) {
+            // 对protoBuf协议的优化
+            // tag + nameSpace + classId + length + content
+            // 1 + 1 + 4 + 4 + msg.getSerializedSize()
+            byteBuf = bufAllocator.directBuffer(1 + 1 + 4 + 4 + ((Message) object).getSerializedSize());
+        } else {
+            byteBuf = bufAllocator.buffer(byteBufInitCapacity, byteBufMaxCapacity);
+        }
         final CodedDataOutputStream outputStream = CodedDataOutputStream.newInstance(byteBuf);
         encodeObject(outputStream, object);
         return byteBuf;
@@ -175,7 +183,7 @@ public class BinarySerializer implements Serializer {
     @SuppressWarnings("unchecked")
     public static BinarySerializer newInstance(TypeModelMapper typeModelMapper, Predicate<Class<?>> filter) {
         final Set<Class<?>> supportedClassSet = getFilteredSupportedClasses(filter);
-        final List<PojoCodecImpl<?>> codecList = new ArrayList<>(supportedClassSet.size());
+        final List<PojoCodec<?>> codecList = new ArrayList<>(supportedClassSet.size());
         try {
             for (Class<?> messageClazz : supportedClassSet) {
                 // protoBuf消息

@@ -22,7 +22,7 @@ import com.wjybxx.fastjgame.net.type.TypeModelMapper;
 import javax.annotation.Nullable;
 
 /**
- * {@link PojoCodecImpl}全局注册表，可以获取所有注册的{@link PojoCodecImpl}。
+ * {@link PojoCodec}全局注册表，可以获取所有注册的{@link PojoCodec}。
  *
  * @author wjybxx
  * @version 1.0
@@ -39,13 +39,13 @@ public interface CodecRegistry {
      * 获取指定类class对应的编解码器
      */
     @Nullable
-    <T> PojoCodecImpl<T> get(Class<T> clazz);
+    <T> PojoCodec<T> get(Class<T> clazz);
 
     /**
      * 通过类型的id获取对应的编解码器。
      * {@link TypeModelMapper#ofId(TypeId)}和{@link #get(Class)}的快捷调用
      */
     @Nullable
-    <T> PojoCodecImpl<T> get(TypeId typeId);
+    <T> PojoCodec<T> get(TypeId typeId);
 
 }

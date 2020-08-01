@@ -1,104 +1,45 @@
 /*
- *  Copyright 2019 wjybxx
+ * Copyright 2019 wjybxx
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to iBn writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.net.type.TypeId;
-import com.wjybxx.fastjgame.net.type.TypeModel;
-
-import java.io.IOException;
-
 /**
- * 简单对象编解码器
+ * POJO编解码内部实现
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/2/25
+ * date - 2020/8/1
+ * github - https://github.com/hl845740757
  */
-final class PojoCodec {
+interface PojoCodec<T> {
 
-    static <T> void writePojoImp(DataOutputStream outputStream, T value, Class<?> type,
-                                 ObjectWriter writer, CodecRegistry codecRegistry) throws Exception {
-        final TypeModel typeModel = codecRegistry.typeModelMapper().ofType(type);
+    /**
+     * 获取负责编解码的类对象
+     */
+    Class<T> getEncoderClass();
 
-        if (typeModel == null) {
-            throw new IOException("Unsupported type " + type.getName());
-        }
+    /**
+     * 从输入流中解析指定对象。
+     * 它应该创建对象，并反序列化该类及其所有超类定义的所有要序列化的字段。
+     */
+    T readObject(DataInputStream dataInputStream, CodecRegistry codecRegistry, ObjectReader reader) throws Exception;
 
-        // 写入类型信息
-        outputStream.writeByte(typeModel.typeId().getNamespace());
-        outputStream.writeFixedInt32(typeModel.typeId().getClassId());
-
-        @SuppressWarnings("unchecked") final PojoCodecImpl<T> pojoCodec = (PojoCodecImpl<T>) codecRegistry.get(type);
-        if (null == pojoCodec) {
-            throw new IOException("Unsupported type " + type.getName());
-        }
-
-        pojoCodec.writeObject(value, writer);
-    }
-
-    static Object readPojoImp(DataInputStream inputStream, CodecRegistry codecRegistry) throws Exception {
-        final TypeId typeId = new TypeId(inputStream.readByte(), inputStream.readFixedInt32());
-        final PojoCodecImpl pojoCodec = codecRegistry.get(typeId);
-        if (null == pojoCodec) {
-            throw new IOException("Unsupported type " + typeId);
-        }
-        final ObjectReader reader = new ObjectReaderImp(codecRegistry, inputStream);
-        return pojoCodec.readObject(reader);
-    }
-
-    static <E> E readPolymorphicPojoImpl(DataInputStream inputStream, EntityFactory<E> factory, Class<? super E> superClass,
-                                         ObjectReader reader, CodecRegistry codecRegistry) throws Exception {
-        final TypeId typeId = new TypeId(inputStream.readByte(), inputStream.readFixedInt32());
-        final PojoCodecImpl<E> pojoCodec = codecRegistry.get(typeId);
-
-        if (null == pojoCodec) {
-            throw new IOException("Unsupported type " + typeId);
-        }
-
-        checkSuperClass(superClass, pojoCodec);
-        checkSupportReadFields(pojoCodec);
-
-        final E instance = factory.newInstance();
-        readFields(reader, pojoCodec, instance);
-        return instance;
-    }
-
-    private static void checkSuperClass(Class<?> entitySuperClass, PojoCodecImpl<?> pojoCodec) throws IOException {
-        if (entitySuperClass != pojoCodec.getEncoderClass()) {
-            throw new IOException(String.format("Incompatible class, expected: %s, but read %s ",
-                    entitySuperClass.getName(),
-                    pojoCodec.getEncoderClass().getName()));
-        }
-    }
-
-    private static void checkSupportReadFields(PojoCodecImpl<?> pojoCodec) throws IOException {
-        if (pojoCodec instanceof CustomPojoCodec && getDelegate(pojoCodec) instanceof AbstractPojoCodecImpl) {
-            return;
-        }
-        throw new IOException("Unsupported codec, superClass codec must implements " +
-                AbstractPojoCodecImpl.class.getName());
-    }
-
-    private static <E> PojoCodecImpl<E> getDelegate(PojoCodecImpl<E> pojoCodec) {
-        return ((CustomPojoCodec<E>) pojoCodec).getDelegate();
-    }
-
-    private static <E> void readFields(ObjectReader reader, PojoCodecImpl<E> pojoCodec, E instance) throws Exception {
-        final AbstractPojoCodecImpl<E> abstractPojoCodec = (AbstractPojoCodecImpl<E>) getDelegate(pojoCodec);
-        abstractPojoCodec.readFields(instance, reader);
-    }
+    /**
+     * 将对象写入输出流。
+     * 将对象及其所有超类定义的所有要序列化的字段写入输出流。
+     */
+    void writeObject(T instance, DataOutputStream dataOutputStream, CodecRegistry codecRegistry, ObjectWriter writer) throws Exception;
 }

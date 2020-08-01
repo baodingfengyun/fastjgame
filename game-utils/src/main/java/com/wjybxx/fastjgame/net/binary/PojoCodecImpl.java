@@ -20,8 +20,10 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.IntFunction;
 
 /**
+ * 自定义POJO对象编解码实现接口，该接口与{@link CustomPojoCodec}协同工作，为典型的桥接模式。
+ * <p>
  * 实体类序列化工具类，每一个{@link PojoCodecImpl}只负责一个固定类型的解析。
- * (生成的代码会实现该接口)
+ * 生成的代码会实现该接口，用户手动实现编解码时也实现该接口。
  * <br>---------------------------------如何扩展------------------------<br>
  * 1. 序列化实现会通过泛型参数获取负责序列化的类型，因此只要进行了实现，就可以被自动加入。
  * 2. 一般而言，建议使用注解{@link SerializableClass}，并遵循相关规范，由注解处理器生成的类负责解析，而不是手写实现{@link PojoCodecImpl}。

@@ -52,17 +52,19 @@ public class ProtoBufSerializePerformanceTest {
             .collect(Collectors.toList())
     );
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-        // 默认值不会被序列化(0, false)，因此我们要避免默认值
-        final p_test.p_testMsg msg = p_test.p_testMsg.newBuilder()
-                .setSceneId(32116503156L)
-                .setFactionId(5461166513213L)
-                .setOwnerId(546541211616512L)
-                .setOwnerSupportAR(true)
-                .setPlayerNum(1)
-                .setRacing(true)
-                .build();
+    /**
+     * 默认值不会被序列化(0, false)，因此我们要避免默认值
+     */
+    static final p_test.p_testMsg msg = p_test.p_testMsg.newBuilder()
+            .setSceneId(32116503156L)
+            .setFactionId(5461166513213L)
+            .setOwnerId(546541211616512L)
+            .setOwnerSupportAR(true)
+            .setPlayerNum(1)
+            .setRacing(true)
+            .build();
 
+    public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println(msg.toString());
         equalsTest(msg);
 

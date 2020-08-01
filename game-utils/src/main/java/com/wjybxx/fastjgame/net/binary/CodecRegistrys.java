@@ -34,11 +34,11 @@ import java.util.List;
  */
 public class CodecRegistrys {
 
-    public static CodecRegistry fromAppPojoCodecs(TypeModelMapper typeModelMapper, List<PojoCodecImpl<?>> pojoCodecs) {
-        final Long2ObjectMap<PojoCodecImpl<?>> typeId2CodecMap = new Long2ObjectOpenHashMap<>(pojoCodecs.size());
-        final IdentityHashMap<Class<?>, PojoCodecImpl<?>> type2CodecMap = new IdentityHashMap<>(pojoCodecs.size());
+    public static CodecRegistry fromAppPojoCodecs(TypeModelMapper typeModelMapper, List<PojoCodec<?>> pojoCodecs) {
+        final Long2ObjectMap<PojoCodec<?>> typeId2CodecMap = new Long2ObjectOpenHashMap<>(pojoCodecs.size());
+        final IdentityHashMap<Class<?>, PojoCodec<?>> type2CodecMap = new IdentityHashMap<>(pojoCodecs.size());
 
-        for (PojoCodecImpl<?> pojoCodec : pojoCodecs) {
+        for (PojoCodec<?> pojoCodec : pojoCodecs) {
             final Class<?> type = pojoCodec.getEncoderClass();
             final TypeModel typeModel = typeModelMapper.ofType(type);
 
@@ -59,12 +59,12 @@ public class CodecRegistrys {
     private static class DefaultCodecRegistry implements CodecRegistry {
 
         private final TypeModelMapper typeModelMapper;
-        private final Long2ObjectMap<PojoCodecImpl<?>> typeId2CodecMap;
-        private final IdentityHashMap<Class<?>, PojoCodecImpl<?>> type2CodecMap;
+        private final Long2ObjectMap<PojoCodec<?>> typeId2CodecMap;
+        private final IdentityHashMap<Class<?>, PojoCodec<?>> type2CodecMap;
 
         private DefaultCodecRegistry(TypeModelMapper typeModelMapper,
-                                     Long2ObjectMap<PojoCodecImpl<?>> typeId2CodecMap,
-                                     IdentityHashMap<Class<?>, PojoCodecImpl<?>> type2CodecMap) {
+                                     Long2ObjectMap<PojoCodec<?>> typeId2CodecMap,
+                                     IdentityHashMap<Class<?>, PojoCodec<?>> type2CodecMap) {
             this.typeModelMapper = typeModelMapper;
             this.typeId2CodecMap = typeId2CodecMap;
             this.type2CodecMap = type2CodecMap;
@@ -76,14 +76,14 @@ public class CodecRegistrys {
         }
 
         @Override
-        public <T> PojoCodecImpl<T> get(Class<T> clazz) {
-            @SuppressWarnings("unchecked") PojoCodecImpl<T> codec = (PojoCodecImpl<T>) type2CodecMap.get(clazz);
+        public <T> PojoCodec<T> get(Class<T> clazz) {
+            @SuppressWarnings("unchecked") PojoCodec<T> codec = (PojoCodec<T>) type2CodecMap.get(clazz);
             return codec;
         }
 
         @Override
-        public <T> PojoCodecImpl<T> get(TypeId typeId) {
-            @SuppressWarnings("unchecked") PojoCodecImpl<T> codec = (PojoCodecImpl<T>) typeId2CodecMap.get(typeId.toGuid());
+        public <T> PojoCodec<T> get(TypeId typeId) {
+            @SuppressWarnings("unchecked") PojoCodec<T> codec = (PojoCodec<T>) typeId2CodecMap.get(typeId.toGuid());
             return codec;
         }
     }

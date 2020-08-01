@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.util.dsl.IndexableObject;
 
 /**
  * {@link IndexableObject}之外的serializer会继承该类。
+ * 实现该接口的类可以实现多态读写对象。
  *
  * @author wjybxx
  * @version 1.0

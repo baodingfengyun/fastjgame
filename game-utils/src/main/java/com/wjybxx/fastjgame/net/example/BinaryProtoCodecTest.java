@@ -62,6 +62,11 @@ public class BinaryProtoCodecTest {
         System.out.println("-----------------------clone--------------------");
         final Object cloneResult = codec.cloneObject(fullMessage);
         System.out.println("clone equals = " + fullMessage.equals(cloneResult));
+
+        System.out.println("-----------------------protoBuf--------------------");
+        ByteBuf protoMsgByteBuf = codec.writeObject(byteBufAllocator, ProtoBufSerializePerformanceTest.msg);
+        Object protoMsgDecode = codec.readObject(protoMsgByteBuf);
+        System.out.println("protoBuf equals = " + ProtoBufSerializePerformanceTest.msg.equals(protoMsgDecode));
     }
 
     /**

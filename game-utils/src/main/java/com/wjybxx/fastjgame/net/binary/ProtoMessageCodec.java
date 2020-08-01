@@ -28,12 +28,12 @@ import com.google.protobuf.Parser;
  * @version 1.0
  * date - 2020/2/17
  */
-public class ProtoMessageCodec<T extends AbstractMessage> implements PojoCodecImpl<T> {
+public class ProtoMessageCodec<T extends AbstractMessage> implements PojoCodec<T> {
 
     private final Class<T> messageClass;
     private final Parser<T> parser;
 
-    public ProtoMessageCodec(Class<T> messageClass, Parser<T> parser) {
+    ProtoMessageCodec(Class<T> messageClass, Parser<T> parser) {
         this.messageClass = messageClass;
         this.parser = parser;
     }
@@ -44,12 +44,21 @@ public class ProtoMessageCodec<T extends AbstractMessage> implements PojoCodecIm
     }
 
     @Override
-    public T readObject(ObjectReader reader) throws Exception {
-        return reader.readMessage(parser);
+    public T readObject(DataInputStream dataInputStream, CodecRegistry codecRegistry, ObjectReader reader) throws Exception {
+        // 长度固定4字节
+        final int length = dataInputStream.readFixedInt32();
+        final DataInputStream childInputStream = dataInputStream.slice(length);
+        final T result = childInputStream.readMessage(parser);
+
+        // 更新当前输入流的读索引
+        dataInputStream.readerIndex(dataInputStream.readerIndex() + length);
+
+        return result;
     }
 
     @Override
-    public void writeObject(T instance, ObjectWriter writer) throws Exception {
-        writer.writeMessage(instance);
+    public void writeObject(T instance, DataOutputStream dataOutputStream, CodecRegistry codecRegistry, ObjectWriter writer) throws Exception {
+        dataOutputStream.writeFixedInt32(instance.getSerializedSize());
+        dataOutputStream.writeMessage(instance);
     }
 }

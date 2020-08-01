@@ -172,11 +172,11 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
         }
 
         @Override
-        public void writerIndex(int newWriteIndex) {
-            if (newWriteIndex == writerIndex()) {
+        public void writerIndex(int newWriterIndex) {
+            if (newWriterIndex == writerIndex()) {
                 return;
             }
-            codedOutputStreamOffset = offset + newWriteIndex;
+            codedOutputStreamOffset = offset + newWriterIndex;
             codedOutputStream = CodedOutputStream.newInstance(buffer, codedOutputStreamOffset, limit - codedOutputStreamOffset);
         }
 
@@ -190,6 +190,18 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
         @Override
         public void flush() throws Exception {
             codedOutputStream.flush();
+        }
+
+        @Override
+        public String toString() {
+            return "ArrayCodedDataOutputStream{" +
+                    "arrayLength=" + buffer.length +
+                    ", offset=" + offset +
+                    ", limit=" + limit +
+                    ", codedOutputStreamOffset=" + codedOutputStreamOffset +
+                    ", codedOutputStreamTotalBytesWritten=" + codedOutputStream.getTotalBytesWritten() +
+                    ", writerIndex=" + writerIndex() +
+                    '}';
         }
     }
 
@@ -207,21 +219,19 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
         private final ByteBuf byteBuf;
         private final int startWriterIndex;
 
-        private int lastCapacity;
         private int codedOutputStreamOffset;
         private CodedOutputStream codedOutputStream;
 
-        public NioDataOutputStream(ByteBuf byteBuf) {
+        NioDataOutputStream(ByteBuf byteBuf) {
             this(byteBuf, byteBuf.writerIndex());
         }
 
-        public NioDataOutputStream(ByteBuf byteBuf, int startWriterIndex) {
+        NioDataOutputStream(ByteBuf byteBuf, int startWriterIndex) {
             validateByteBuf(byteBuf, startWriterIndex);
 
             this.byteBuf = byteBuf;
             this.startWriterIndex = startWriterIndex;
 
-            this.lastCapacity = byteBuf.capacity();
             this.codedOutputStream = CodedOutputStream.newInstance(byteBuf.internalNioBuffer(startWriterIndex, byteBuf.capacity() - startWriterIndex));
             this.codedOutputStreamOffset = startWriterIndex;
         }
@@ -231,8 +241,8 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
                 throw new IllegalArgumentException("nioBufferCount: " + byteBuf.nioBufferCount() + " (expected: == 1)");
             }
 
-            // 必须指定最大容量
-            if (byteBuf.maxCapacity() <= 512) {
+            // 必须显示指定最大容量
+            if (byteBuf.maxCapacity() < 512) {
                 throw new IllegalArgumentException("maxCapacity: " + byteBuf.maxCapacity() + " (expected: >= 512 )");
             }
 
@@ -462,23 +472,18 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
             byteBuf.setInt(byteBufWriterIndex, value);
         }
 
-        @Override
-        public int writerIndex() {
-            return codedOutputStreamOffset - startWriterIndex + codedOutputStream.getTotalBytesWritten();
-        }
-
-        private void ensureCapacity(int preWriterIndex, Exception exception) throws Exception {
-            if (byteBuf.capacity() == byteBuf.maxCapacity()) {
+        private void ensureCapacity(int preWriterIndex, Exception exception) {
+            if (byteBuf.capacity() >= byteBuf.maxCapacity()) {
                 // 无法继续扩容
                 throw new RuntimeException("reach maxCapacity " + byteBuf.maxCapacity(), exception);
             }
 
             // 2倍扩容
-            final int lastCapacity = this.lastCapacity;
+            final int lastCapacity = byteBuf.capacity();
             final int targetCapacity = Math.min(lastCapacity * 2, byteBuf.maxCapacity());
 
             if (targetCapacity <= lastCapacity) {
-                // 溢出或超过限制
+                // 溢出
                 throw new RuntimeException(
                         String.format("targetCapacity %d <= lastCapacity %d ", targetCapacity, lastCapacity),
                         exception);
@@ -495,7 +500,6 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
                         exception);
             }
 
-            this.lastCapacity = newCapacity;
             this.codedOutputStreamOffset = startWriterIndex + preWriterIndex;
             this.codedOutputStream = CodedOutputStream.newInstance(byteBuf.internalNioBuffer(codedOutputStreamOffset, newCapacity - codedOutputStreamOffset));
 
@@ -504,15 +508,14 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
             }
         }
 
-
         @Override
-        public void writerIndex(int newWriteIndex) {
-            validateWriterIndex(newWriteIndex);
+        public void writerIndex(int newWriterIndex) {
+            validateWriterIndex(newWriterIndex);
 
-            if (newWriteIndex == writerIndex()) {
+            if (newWriterIndex == writerIndex()) {
                 return;
             }
-            codedOutputStreamOffset = startWriterIndex + newWriteIndex;
+            codedOutputStreamOffset = startWriterIndex + newWriterIndex;
             codedOutputStream = CodedOutputStream.newInstance(byteBuf.internalNioBuffer(codedOutputStreamOffset, byteBuf.capacity() - codedOutputStreamOffset));
         }
 
@@ -536,11 +539,27 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
         public void flush() throws Exception {
             codedOutputStream.flush();
             // 更新写索引
-            byteBuf.writerIndex(byteBufWriterIndex(codedOutputStream.getTotalBytesWritten()));
+            byteBuf.writerIndex(byteBufWriterIndex(writerIndex()));
         }
 
-        protected int byteBufWriterIndex(int index) {
-            return codedOutputStreamOffset + index;
+        @Override
+        public int writerIndex() {
+            return codedOutputStreamOffset - startWriterIndex + codedOutputStream.getTotalBytesWritten();
+        }
+
+        private int byteBufWriterIndex(int writerIndex) {
+            return startWriterIndex + writerIndex;
+        }
+
+        @Override
+        public String toString() {
+            return "NioDataOutputStream{" +
+                    "byteBuf=" + byteBuf +
+                    ", startWriterIndex=" + startWriterIndex +
+                    ", codedOutputStreamOffset=" + codedOutputStreamOffset +
+                    ", codedOutputStreamTotalBytesWritten=" + codedOutputStream.getTotalBytesWritten() +
+                    ", writerIndex=" + writerIndex() +
+                    '}';
         }
     }
 }
