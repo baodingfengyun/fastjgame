@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.net.binary;
 import com.google.protobuf.Parser;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * 和JDK的{@code DataInput}不同，我们允许对写入的数据进行压缩等处理，因此不要求short必须是2个字节，也不要求int必须是4个字节等，但仍要满足一些约定:
@@ -36,46 +35,46 @@ import java.io.IOException;
  */
 public interface DataInputStream {
 
-    byte readByte() throws IOException;
+    byte readByte() throws Exception;
 
-    short readShort() throws IOException;
+    short readShort() throws Exception;
 
-    char readChar() throws IOException;
+    char readChar() throws Exception;
 
-    int readInt() throws IOException;
+    int readInt() throws Exception;
 
-    long readLong() throws IOException;
+    long readLong() throws Exception;
 
-    float readFloat() throws IOException;
+    float readFloat() throws Exception;
 
-    double readDouble() throws IOException;
+    double readDouble() throws Exception;
 
-    boolean readBoolean() throws IOException;
+    boolean readBoolean() throws Exception;
 
-    byte[] readBytes(int size) throws IOException;
+    byte[] readBytes(int size) throws Exception;
 
-    String readString() throws IOException;
+    String readString() throws Exception;
 
     /**
      * 针对protoBuffer消息的特定支持
      */
-    <T> T readMessage(@Nonnull Parser<T> parser) throws IOException;
+    <T> T readMessage(@Nonnull Parser<T> parser) throws Exception;
 
     /**
      * {@link BinaryTag#forNumber(int)}和{@link #readByte()}的快捷调用。
      */
-    BinaryTag readTag() throws IOException;
+    BinaryTag readTag() throws Exception;
 
     /**
      * 读取4个字节，并以大端模式读取为int
      * {@link #readerIndex()}应该加4
      */
-    int readFixedInt32() throws IOException;
+    int readFixedInt32() throws Exception;
 
     /**
      * {@link #readerIndex()}应该保持不变
      */
-    int getFixedInt32(int index) throws IOException;
+    int getFixedInt32(int index) throws Exception;
 
     /**
      * 获取当前的读索引

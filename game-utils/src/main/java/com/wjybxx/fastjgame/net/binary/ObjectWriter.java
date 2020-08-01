@@ -20,7 +20,6 @@ import com.google.protobuf.Message;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -113,5 +112,5 @@ public interface ObjectWriter {
     /**
      * 如果存在缓冲区，则刷新缓冲区
      */
-    void flush() throws IOException;
+    void flush() throws Exception;
 }

@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.IntFunction;
 
 /**
  * 基于Json的编解码器，必须使用简单对象来封装参数。-- POJO
@@ -119,10 +120,21 @@ public class JsonSerializer implements Serializer {
 
     @Nonnull
     @Override
-    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object obj) throws Exception {
-        if (null == obj) {
-            return bufAllocator.buffer(0);
+    public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception {
+        return writeObjectImpl(object, bufAllocator::buffer);
+    }
+
+    @Nonnull
+    @Override
+    public ByteBuf writeObject(final ByteBuf byteBuf, @Nullable Object object) throws Exception {
+        return writeObjectImpl(object, size -> byteBuf);
+    }
+
+    private ByteBuf writeObjectImpl(@Nullable Object object, IntFunction<ByteBuf> allocator) throws IOException {
+        if (null == object) {
+            return allocator.apply(0);
         }
+
         final byte[] localBuffer = BufferPool.allocateBuffer();
         final ByteBuf cacheBuffer = Unpooled.wrappedBuffer(localBuffer);
         // wrap会认为bytes中的数据都是可读的，我们需要清空这些标记。
@@ -130,11 +142,11 @@ public class JsonSerializer implements Serializer {
 
         try (ByteBufOutputStream byteBufOutputStream = new ByteBufOutputStream(cacheBuffer)) {
             // 类型信息
-            writeTypeId(byteBufOutputStream, obj.getClass());
+            writeTypeId(byteBufOutputStream, object.getClass());
             // 写入序列化的内容
-            JsonUtils.writeToOutputStream(byteBufOutputStream, obj);
+            JsonUtils.writeToOutputStream(byteBufOutputStream, object);
             // 写入byteBuf
-            ByteBuf byteBuf = bufAllocator.buffer(cacheBuffer.readableBytes());
+            ByteBuf byteBuf = allocator.apply(cacheBuffer.readableBytes());
             byteBuf.writeBytes(cacheBuffer);
             return byteBuf;
         } finally {

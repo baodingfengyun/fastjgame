@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.net.binaryextend.ClassCodec;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.EnumMap;
 import java.util.IdentityHashMap;
@@ -78,7 +77,7 @@ class ArrayCodec {
         }
     }
 
-    static void writeChildTypeAndLength(@Nonnull DataOutputStream outputStream, BinaryTag childType, int length) throws IOException {
+    static void writeChildTypeAndLength(@Nonnull DataOutputStream outputStream, BinaryTag childType, int length) throws Exception {
         outputStream.writeByte(childType.getNumber());
         // 固定长度写入主要为了兼容字节数组的扩展
         outputStream.writeFixedInt32(length);
@@ -99,7 +98,7 @@ class ArrayCodec {
         final BinaryTag childType = BinaryTag.forNumber(tagValue);
 
         if (childType == null) {
-            throw new IOException("Unknown child type " + tagValue);
+            throw new Exception("Unknown child type " + tagValue);
         }
 
         final int length = inputStream.readFixedInt32();
@@ -133,10 +132,10 @@ class ArrayCodec {
         outputStream.writeBytes(bytes, offset, length);
     }
 
-    static byte[] readByteArray(DataInputStream inputStream) throws IOException {
+    static byte[] readByteArray(DataInputStream inputStream) throws Exception {
         final BinaryTag childType = inputStream.readTag();
         if (childType != BinaryTag.BYTE) {
-            throw new IOException("Expected byteArray, but read " + childType);
+            throw new Exception("Expected byteArray, but read " + childType);
         }
         final int length = inputStream.readFixedInt32();
         return inputStream.readBytes(length);

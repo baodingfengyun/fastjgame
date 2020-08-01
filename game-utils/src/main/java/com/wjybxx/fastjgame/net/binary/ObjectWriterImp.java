@@ -20,7 +20,6 @@ import com.google.protobuf.Message;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
@@ -157,7 +156,7 @@ class ObjectWriterImp implements ObjectWriter {
             return;
         }
         if (!array.getClass().isArray()) {
-            throw new IOException("Array expeceted");
+            throw new Exception("Array expeceted");
         }
 
         outputStream.writeTag(BinaryTag.ARRAY);
@@ -187,7 +186,7 @@ class ObjectWriterImp implements ObjectWriter {
         }
 
         // 占位，用于后面填充tag和长度字段
-        final DataOutputStream childOutputStream = outputStream.slice(outputStream.writerIndex() + 1 + 1 + 4);
+        final DataOutputStream childOutputStream = outputStream.duplicate(outputStream.writerIndex() + 1 + 1 + 4);
         final ObjectWriter childObjectWriter = new ObjectWriterImp(codecRegistry, childOutputStream);
         childObjectWriter.writeObject(value);
 
@@ -199,7 +198,7 @@ class ObjectWriterImp implements ObjectWriter {
     }
 
     @Override
-    public void flush() throws IOException {
+    public void flush() throws Exception {
         outputStream.flush();
     }
 
@@ -273,6 +272,6 @@ class ObjectWriterImp implements ObjectWriter {
             return;
         }
 
-        throw new IOException("Unsupported type " + type.getName());
+        throw new Exception("Unsupported type " + type.getName());
     }
 }

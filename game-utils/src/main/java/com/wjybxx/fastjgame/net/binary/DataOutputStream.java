@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.net.binary;
 import com.google.protobuf.Message;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * 数据输出流。
@@ -37,50 +36,50 @@ import java.io.IOException;
  */
 public interface DataOutputStream {
 
-    void writeByte(byte value) throws IOException;
+    void writeByte(byte value) throws Exception;
 
-    void writeByte(int value) throws IOException;
+    void writeByte(int value) throws Exception;
 
-    void writeShort(short value) throws IOException;
+    void writeShort(short value) throws Exception;
 
-    void writeChar(char value) throws IOException;
+    void writeChar(char value) throws Exception;
 
-    void writeInt(int value) throws IOException;
+    void writeInt(int value) throws Exception;
 
-    void writeLong(long value) throws IOException;
+    void writeLong(long value) throws Exception;
 
-    void writeFloat(float value) throws IOException;
+    void writeFloat(float value) throws Exception;
 
-    void writeDouble(double value) throws IOException;
+    void writeDouble(double value) throws Exception;
 
-    void writeBoolean(boolean value) throws IOException;
+    void writeBoolean(boolean value) throws Exception;
 
-    void writeBytes(byte[] bytes) throws IOException;
+    void writeBytes(byte[] bytes) throws Exception;
 
-    void writeBytes(byte[] bytes, int off, int len) throws IOException;
+    void writeBytes(byte[] bytes, int off, int len) throws Exception;
 
-    void writeString(@Nonnull String value) throws IOException;
+    void writeString(@Nonnull String value) throws Exception;
 
     /**
      * 针对protoBuffer消息的特定支持
      */
-    void writeMessage(@Nonnull Message message) throws IOException;
+    void writeMessage(@Nonnull Message message) throws Exception;
 
     /**
      * {@link #writeByte(int)}和{@link BinaryTag#getNumber()}的快捷调用
      */
-    void writeTag(BinaryTag tag) throws IOException;
+    void writeTag(BinaryTag tag) throws Exception;
 
     /**
      * 以固定4个字节大端模式写入一个int
      * {@link #writerIndex()}应该加4
      */
-    void writeFixedInt32(int value) throws IOException;
+    void writeFixedInt32(int value) throws Exception;
 
     /**
      * {@link #writerIndex()}保持不变
      */
-    void setFixedInt32(int index, int value) throws IOException;
+    void setFixedInt32(int index, int value) throws Exception;
 
     /**
      * 获取当前的写索引
@@ -93,18 +92,19 @@ public interface DataOutputStream {
     void writerIndex(int newWriteIndex);
 
     /**
-     * {@link #slice(int)}和{@link #writerIndex()}的快捷调用。
+     * {@link #duplicate(int)}和{@link #writerIndex()}的快捷调用。
      */
-    DataOutputStream slice();
+    DataOutputStream duplicate();
 
     /**
-     * 从指定位置返回一个数据切片(视图)，该切片拥有独立的索引，但是它们仍然共享底层的数据结构，
-     * 任何在切片上的操作都将反应在底层数据结构上。
+     * 返回共享输出流底层整个区域的引用副本，如果底层数据结构可以扩容，则扩容也对彼此可见。
+     * 向返回的输出流种写入的数据对彼此可见，但它们维护单独的索引，并且此方法不修改{@code writerIndex}。
      */
-    DataOutputStream slice(int index);
+    DataOutputStream duplicate(int index);
 
     /**
      * 刷新缓冲区
      */
-    void flush() throws IOException;
+    void flush() throws Exception;
+
 }

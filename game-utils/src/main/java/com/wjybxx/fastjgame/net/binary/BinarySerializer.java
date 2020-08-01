@@ -59,51 +59,60 @@ import java.util.stream.Stream;
 public class BinarySerializer implements Serializer {
 
     private final CodecRegistry codecRegistry;
+    private final int byteBufInitCapacity;
+    private final int byteBufMaxCapacity;
 
     private BinarySerializer(CodecRegistry codecRegistry) {
+        this(codecRegistry, 256, 64 * 1024);
+    }
+
+    public BinarySerializer(CodecRegistry codecRegistry, int byteBufInitCapacity, int byteBufMaxCapacity) {
         this.codecRegistry = codecRegistry;
+        this.byteBufInitCapacity = byteBufInitCapacity;
+        this.byteBufMaxCapacity = byteBufMaxCapacity;
     }
 
     @Nonnull
     @Override
     public ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception {
-        // 这里的测试结果是：拷贝字节数组，比先计算一次大小，再写入ByteBuf快，而且快很多。
-        // 此外，即使使用输入输出流构造，其内部还是做了缓存(创建了字节数组)，因此一定要有自己的缓冲字节数组
-        final byte[] localBuffer = BufferPool.allocateBuffer();
-        try {
-            // 写入字节数组缓存
-            final CodedDataOutputStream outputStream = CodedDataOutputStream.newInstance(localBuffer);
-            encodeObject(outputStream, object);
+        final ByteBuf byteBuf = bufAllocator.buffer(byteBufInitCapacity, byteBufMaxCapacity);
+        final CodedDataOutputStream outputStream = CodedDataOutputStream.newInstance(byteBuf);
+        encodeObject(outputStream, object);
+        return byteBuf;
+    }
 
-            // 写入byteBuf
-            final ByteBuf buffer = bufAllocator.buffer(outputStream.writerIndex());
-            buffer.writeBytes(localBuffer, 0, outputStream.writerIndex());
-            return buffer;
-        } finally {
-            BufferPool.releaseBuffer(localBuffer);
-        }
+    @Nonnull
+    @Override
+    public ByteBuf writeObject(ByteBuf byteBuf, @Nullable Object object) throws Exception {
+        final CodedDataOutputStream outputStream = CodedDataOutputStream.newInstance(byteBuf);
+        encodeObject(outputStream, object);
+        return byteBuf;
     }
 
     @Override
     public Object readObject(ByteBuf data) throws Exception {
-        final byte[] localBuffer = BufferPool.allocateBuffer();
-        try {
-            // 读入缓存数组
-            final int readableBytes = data.readableBytes();
-            data.readBytes(localBuffer, 0, readableBytes);
+        if (data.nioBufferCount() == 1) {
+            final CodedDataInputStream codedDataInputStream = CodedDataInputStream.newInstance(data);
+            return decodeObject(codedDataInputStream);
+        } else {
+            final byte[] localBuffer = BufferPool.allocateBuffer();
+            try {
+                // 读入缓存数组
+                final int readableBytes = data.readableBytes();
+                data.readBytes(localBuffer, 0, readableBytes);
 
-            // 解析对象
-            final CodedDataInputStream inputStream = CodedDataInputStream.newInstance(localBuffer, 0, readableBytes);
-            return decodeObject(inputStream);
-        } finally {
-            BufferPool.releaseBuffer(localBuffer);
+                // 解析对象
+                final CodedDataInputStream inputStream = CodedDataInputStream.newInstance(localBuffer, 0, readableBytes);
+                return decodeObject(inputStream);
+            } finally {
+                BufferPool.releaseBuffer(localBuffer);
+            }
         }
     }
 
     @Nonnull
     @Override
     public byte[] toBytes(@Nullable Object object) throws Exception {
-        // 这里测试也是拷贝字节数组快于先计算大小（两轮反射）
         final byte[] localBuffer = BufferPool.allocateBuffer();
         try {
             final CodedDataOutputStream outputStream = CodedDataOutputStream.newInstance(localBuffer);

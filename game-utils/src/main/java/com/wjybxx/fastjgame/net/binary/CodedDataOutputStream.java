@@ -18,10 +18,12 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.Message;
+import com.wjybxx.fastjgame.util.annotation.UnstableApi;
 import io.netty.buffer.ByteBuf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * @author wjybxx
@@ -31,94 +33,9 @@ import java.io.IOException;
  */
 public abstract class CodedDataOutputStream implements DataOutputStream {
 
-    CodedOutputStream codedOutputStream;
-
     @Override
-    public void writeByte(byte value) throws IOException {
-        codedOutputStream.writeRawByte(value);
-    }
-
-    @Override
-    public void writeByte(int value) throws IOException {
-        codedOutputStream.writeRawByte(value);
-    }
-
-    @Override
-    public void writeShort(short value) throws IOException {
-        codedOutputStream.writeInt32NoTag(value);
-    }
-
-    @Override
-    public void writeChar(char value) throws IOException {
-        codedOutputStream.writeInt32NoTag(value);
-    }
-
-    @Override
-    public void writeInt(int value) throws IOException {
-        codedOutputStream.writeInt32NoTag(value);
-    }
-
-    @Override
-    public void writeLong(long value) throws IOException {
-        codedOutputStream.writeInt64NoTag(value);
-    }
-
-    @Override
-    public void writeFloat(float value) throws IOException {
-        codedOutputStream.writeFloatNoTag(value);
-    }
-
-    @Override
-    public void writeDouble(double value) throws IOException {
-        codedOutputStream.writeDoubleNoTag(value);
-    }
-
-    @Override
-    public void writeBoolean(boolean value) throws IOException {
-        codedOutputStream.writeBoolNoTag(value);
-    }
-
-    @Override
-    public void writeBytes(byte[] bytes) throws IOException {
-        codedOutputStream.writeRawBytes(bytes);
-    }
-
-    @Override
-    public void writeBytes(byte[] bytes, int off, int len) throws IOException {
-        codedOutputStream.writeRawBytes(bytes, off, len);
-    }
-
-    @Override
-    public void writeString(@Nonnull String value) throws IOException {
-        codedOutputStream.writeStringNoTag(value);
-    }
-
-    @Override
-    public void writeMessage(@Nonnull Message message) throws IOException {
-        message.writeTo(codedOutputStream);
-    }
-
-    @Override
-    public void writeTag(BinaryTag tag) throws IOException {
-        codedOutputStream.writeRawByte(tag.getNumber());
-    }
-
-    @Override
-    public void writeFixedInt32(int value) throws IOException {
-        codedOutputStream.write((byte) (value >>> 24));
-        codedOutputStream.write((byte) (value >>> 16));
-        codedOutputStream.write((byte) (value >>> 8));
-        codedOutputStream.write((byte) value);
-    }
-
-    @Override
-    public DataOutputStream slice() {
-        return slice(writerIndex());
-    }
-
-    @Override
-    public void flush() throws IOException {
-        codedOutputStream.flush();
+    public DataOutputStream duplicate() {
+        return duplicate(writerIndex());
     }
 
     public static CodedDataOutputStream newInstance(byte[] buffer) {
@@ -133,8 +50,8 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
         return new NioDataOutputStream(byteBuf);
     }
 
-    public static CodedDataOutputStream newInstance(ByteBuf byteBuf, int index, int length) {
-        return new NioDataOutputStream(byteBuf, index, length);
+    public static CodedDataOutputStream newInstance(ByteBuf byteBuf, int index) {
+        return new NioDataOutputStream(byteBuf, index);
     }
 
     private static class ArrayCodedDataOutputStream extends CodedDataOutputStream {
@@ -142,7 +59,9 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
         private final byte[] buffer;
         private final int offset;
         private final int limit;
+
         private int codedOutputStreamOffset;
+        private CodedOutputStream codedOutputStream;
 
         ArrayCodedDataOutputStream(byte[] buffer) {
             this(buffer, 0, buffer.length);
@@ -161,7 +80,85 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
         }
 
         @Override
-        public void setFixedInt32(final int index, int value) throws IOException {
+        public void writeByte(byte value) throws Exception {
+            codedOutputStream.writeRawByte(value);
+        }
+
+        @Override
+        public void writeByte(int value) throws Exception {
+            codedOutputStream.writeRawByte(value);
+        }
+
+        @Override
+        public void writeShort(short value) throws Exception {
+            codedOutputStream.writeInt32NoTag(value);
+        }
+
+        @Override
+        public void writeChar(char value) throws Exception {
+            codedOutputStream.writeInt32NoTag(value);
+        }
+
+        @Override
+        public void writeInt(int value) throws Exception {
+            codedOutputStream.writeInt32NoTag(value);
+        }
+
+        @Override
+        public void writeLong(long value) throws Exception {
+            codedOutputStream.writeInt64NoTag(value);
+        }
+
+        @Override
+        public void writeFloat(float value) throws Exception {
+            codedOutputStream.writeFloatNoTag(value);
+        }
+
+        @Override
+        public void writeDouble(double value) throws Exception {
+            codedOutputStream.writeDoubleNoTag(value);
+        }
+
+        @Override
+        public void writeBoolean(boolean value) throws Exception {
+            codedOutputStream.writeBoolNoTag(value);
+        }
+
+        @Override
+        public void writeBytes(byte[] bytes) throws Exception {
+            codedOutputStream.writeRawBytes(bytes);
+        }
+
+        @Override
+        public void writeBytes(byte[] bytes, int off, int len) throws Exception {
+            codedOutputStream.writeRawBytes(bytes, off, len);
+        }
+
+        @Override
+        public void writeString(@Nonnull String value) throws Exception {
+            codedOutputStream.writeStringNoTag(value);
+        }
+
+        @Override
+        public void writeMessage(@Nonnull Message message) throws Exception {
+            message.writeTo(codedOutputStream);
+        }
+
+        @Override
+        public void writeTag(BinaryTag tag) throws Exception {
+            codedOutputStream.writeRawByte(tag.getNumber());
+        }
+
+        @Override
+        public void writeFixedInt32(int value) throws Exception {
+            codedOutputStream.write((byte) (value >>> 24));
+            codedOutputStream.write((byte) (value >>> 16));
+            codedOutputStream.write((byte) (value >>> 8));
+            codedOutputStream.write((byte) value);
+        }
+
+        @Override
+        public void setFixedInt32(final int index, int value) throws Exception {
             int position = offset + index;
             buffer[position++] = (byte) (value >>> 24);
             buffer[position++] = (byte) (value >>> 16);
@@ -184,38 +181,283 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
         }
 
         @Override
-        public DataOutputStream slice(int index) {
+        public DataOutputStream duplicate(int index) {
             final int newOffset = offset + index;
             final int newLength = limit - newOffset;
             return new ArrayCodedDataOutputStream(buffer, newOffset, newLength);
         }
 
+        @Override
+        public void flush() throws Exception {
+            codedOutputStream.flush();
+        }
     }
 
-    public static class NioDataOutputStream extends CodedDataOutputStream {
+    /**
+     * 扩容有两种方式：
+     * 1. 外部写失败后，扩容，然后重写。
+     * 2. 内部写失败后，扩容，继续写。
+     * 这个选择还是不容易，继续写的话开销可能小一点，但未测试。
+     */
+    @UnstableApi
+    private static class NioDataOutputStream extends CodedDataOutputStream {
+
+        private static final Logger logger = LoggerFactory.getLogger(NioDataOutputStream.class);
 
         private final ByteBuf byteBuf;
         private final int startWriterIndex;
-        private final int limit;
+
+        private int lastCapacity;
         private int codedOutputStreamOffset;
+        private CodedOutputStream codedOutputStream;
 
         public NioDataOutputStream(ByteBuf byteBuf) {
-            this(byteBuf, byteBuf.writerIndex(), byteBuf.capacity() - byteBuf.writerIndex());
+            this(byteBuf, byteBuf.writerIndex());
         }
 
-        public NioDataOutputStream(ByteBuf byteBuf, int startWriterIndex, int length) {
-            validateByteBuf(byteBuf, startWriterIndex, length);
+        public NioDataOutputStream(ByteBuf byteBuf, int startWriterIndex) {
+            validateByteBuf(byteBuf, startWriterIndex);
 
             this.byteBuf = byteBuf;
             this.startWriterIndex = startWriterIndex;
-            this.limit = startWriterIndex + length;
 
-            this.codedOutputStream = CodedOutputStream.newInstance(byteBuf.internalNioBuffer(startWriterIndex, length));
+            this.lastCapacity = byteBuf.capacity();
+            this.codedOutputStream = CodedOutputStream.newInstance(byteBuf.internalNioBuffer(startWriterIndex, byteBuf.capacity() - startWriterIndex));
             this.codedOutputStreamOffset = startWriterIndex;
         }
 
+        private static void validateByteBuf(ByteBuf byteBuf, int index) {
+            if (byteBuf.nioBufferCount() != 1) {
+                throw new IllegalArgumentException("nioBufferCount: " + byteBuf.nioBufferCount() + " (expected: == 1)");
+            }
+
+            // 必须指定最大容量
+            if (byteBuf.maxCapacity() <= 512) {
+                throw new IllegalArgumentException("maxCapacity: " + byteBuf.maxCapacity() + " (expected: >= 512 )");
+            }
+
+            if (index < 0 || index > byteBuf.capacity()) {
+                throw new IllegalArgumentException(String.format(
+                        "Buffer range is invalid. Buffer.length=%d, offset=%d",
+                        byteBuf.capacity(), index));
+            }
+        }
+
         @Override
-        public void setFixedInt32(int index, int value) throws IOException {
+        public void writeByte(byte value) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeRawByte(value);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeByte(int value) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeRawByte(value);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeShort(short value) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeInt32NoTag(value);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeChar(char value) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeInt32NoTag(value);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeInt(int value) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeInt32NoTag(value);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeLong(long value) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeInt64NoTag(value);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeFloat(float value) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeFloatNoTag(value);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeDouble(double value) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeDoubleNoTag(value);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeBoolean(boolean value) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeBoolNoTag(value);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeBytes(byte[] bytes) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeRawBytes(bytes);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeBytes(byte[] bytes, int off, int len) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeRawBytes(bytes, off, len);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeString(@Nonnull String value) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeStringNoTag(value);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeMessage(@Nonnull Message message) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    message.writeTo(codedOutputStream);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeTag(BinaryTag tag) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.writeRawByte(tag.getNumber());
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void writeFixedInt32(int value) throws Exception {
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    codedOutputStream.write((byte) (value >>> 24));
+                    codedOutputStream.write((byte) (value >>> 16));
+                    codedOutputStream.write((byte) (value >>> 8));
+                    codedOutputStream.write((byte) value);
+                    return;
+                } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
+        }
+
+        @Override
+        public void setFixedInt32(int index, int value) throws Exception {
             final int byteBufWriterIndex = byteBufWriterIndex(index);
             byteBuf.setInt(byteBufWriterIndex, value);
         }
@@ -225,6 +467,44 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
             return codedOutputStreamOffset - startWriterIndex + codedOutputStream.getTotalBytesWritten();
         }
 
+        private void ensureCapacity(int preWriterIndex, Exception exception) throws Exception {
+            if (byteBuf.capacity() == byteBuf.maxCapacity()) {
+                // 无法继续扩容
+                throw new RuntimeException("reach maxCapacity " + byteBuf.maxCapacity(), exception);
+            }
+
+            // 2倍扩容
+            final int lastCapacity = this.lastCapacity;
+            final int targetCapacity = Math.min(lastCapacity * 2, byteBuf.maxCapacity());
+
+            if (targetCapacity <= lastCapacity) {
+                // 溢出或超过限制
+                throw new RuntimeException(
+                        String.format("targetCapacity %d <= lastCapacity %d ", targetCapacity, lastCapacity),
+                        exception);
+            }
+
+            byteBuf.capacity(targetCapacity);
+
+            final int newCapacity = byteBuf.capacity();
+
+            if (newCapacity <= lastCapacity) {
+                // 扩容失败
+                throw new RuntimeException(
+                        String.format("newCapacity %d <= lastCapacity %d ", newCapacity, lastCapacity),
+                        exception);
+            }
+
+            this.lastCapacity = newCapacity;
+            this.codedOutputStreamOffset = startWriterIndex + preWriterIndex;
+            this.codedOutputStream = CodedOutputStream.newInstance(byteBuf.internalNioBuffer(codedOutputStreamOffset, newCapacity - codedOutputStreamOffset));
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("adjust capacity, lastCapacity {}, newCapacity {}", lastCapacity, newCapacity);
+            }
+        }
+
+
         @Override
         public void writerIndex(int newWriteIndex) {
             validateWriterIndex(newWriteIndex);
@@ -233,49 +513,34 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
                 return;
             }
             codedOutputStreamOffset = startWriterIndex + newWriteIndex;
-            codedOutputStream = CodedOutputStream.newInstance(byteBuf.internalNioBuffer(codedOutputStreamOffset, limit - codedOutputStreamOffset));
+            codedOutputStream = CodedOutputStream.newInstance(byteBuf.internalNioBuffer(codedOutputStreamOffset, byteBuf.capacity() - codedOutputStreamOffset));
         }
 
         void validateWriterIndex(int writeIndex) {
-            if (byteBufWriterIndex(writeIndex) > limit) {
-                throw new IllegalArgumentException("writeIndex: " + writeIndex + ", limit: " + limit);
+            if (byteBufWriterIndex(writeIndex) > byteBuf.capacity()) {
+                throw new IllegalArgumentException("writeIndex: " + writeIndex + ", capacity: " + byteBuf.capacity());
             }
         }
 
         @Override
-        public DataOutputStream slice(int index) {
+        public DataOutputStream duplicate(int index) {
             validateWriterIndex(index);
 
+            // 这里需要使用duplicate，需要共享底层所有数据
             final int byteBufWriterIndex = byteBufWriterIndex(index);
-            final int length = limit - byteBufWriterIndex;
-            final ByteBuf slice = byteBuf.slice(byteBufWriterIndex, length);
-            // 默认slice是用于读的，所以其写索引默认是其capacity
-            slice.writerIndex(0);
-            return new NioDataOutputStream(slice);
+            final ByteBuf duplicateByteBuf = byteBuf.duplicate().writerIndex(byteBufWriterIndex);
+            return new NioDataOutputStream(duplicateByteBuf);
         }
 
         @Override
-        public void flush() throws IOException {
-            super.flush();
+        public void flush() throws Exception {
+            codedOutputStream.flush();
             // 更新写索引
             byteBuf.writerIndex(byteBufWriterIndex(codedOutputStream.getTotalBytesWritten()));
         }
 
         protected int byteBufWriterIndex(int index) {
             return codedOutputStreamOffset + index;
-        }
-    }
-
-    static void validateByteBuf(ByteBuf byteBuf, int index, int length) {
-        // 未来可能优化不可扩容限制
-        if (byteBuf.nioBufferCount() != 1 || byteBuf.capacity() != byteBuf.maxCapacity()) {
-            throw new UnsupportedOperationException("Only ByteBuf without capacity expansion is supported");
-        }
-
-        if (index < 0 || length <= 0 || index + length > byteBuf.capacity()) {
-            throw new IllegalArgumentException(String.format(
-                    "Buffer range is invalid. Buffer.length=%d, offset=%d, length=%d",
-                    byteBuf.capacity(), index, length));
         }
     }
 }

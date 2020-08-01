@@ -185,7 +185,7 @@ public abstract class CodedDataInputStream implements DataInputStream {
         }
 
         private NioCodedDataInputStream(ByteBuf byteBuf, int startReaderIndex, int length) {
-            CodedDataOutputStream.validateByteBuf(byteBuf, startReaderIndex, length);
+            validateByteBuf(byteBuf, startReaderIndex, length);
 
             this.byteBuf = byteBuf;
             this.startReaderIndex = startReaderIndex;
@@ -193,6 +193,18 @@ public abstract class CodedDataInputStream implements DataInputStream {
 
             this.codedInputStreamOffset = startReaderIndex;
             this.codedInputStream = CodedInputStream.newInstance(byteBuf.internalNioBuffer(startReaderIndex, length));
+        }
+
+        private static void validateByteBuf(ByteBuf byteBuf, int index, int length) {
+            if (byteBuf.nioBufferCount() != 1) {
+                throw new IllegalArgumentException("nioBufferCount: " + byteBuf.nioBufferCount() + " (expected: == 1)");
+            }
+
+            if (index < 0 || length <= 0 || index + length > byteBuf.capacity()) {
+                throw new IllegalArgumentException(String.format(
+                        "Buffer range is invalid. Buffer.length=%d, offset=%d, length=%d",
+                        byteBuf.capacity(), index, length));
+            }
         }
 
         @Override
@@ -229,8 +241,8 @@ public abstract class CodedDataInputStream implements DataInputStream {
             validateReaderIndex(index);
 
             final int byteBufReaderIndex = byteBufReaderIndex(index);
+            // slice返回一段数据的视图，默认用于读，不可以扩容
             final ByteBuf slice = byteBuf.slice(byteBufReaderIndex, length);
-            // 默认slice是用于读的，所以其写索引默认是其capacity
             return new NioCodedDataInputStream(slice);
         }
 

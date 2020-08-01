@@ -23,7 +23,7 @@ import java.util.function.IntFunction;
 /**
  * 集合编解码器。
  * 这里仅仅保证有序存储读取的数据，如果出现转型异常或有更具体的序列化需求，请将集合对象放入bean中，
- * 并使用{@link com.wjybxx.fastjgame.db.annotation.Impl}注解提供信息。
+ * 并使用{@link com.wjybxx.fastjgame.net.binary.Impl}注解提供信息。
  *
  * @author wjybxx
  * @version 1.0

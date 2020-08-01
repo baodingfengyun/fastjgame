@@ -22,7 +22,6 @@ import io.netty.buffer.ByteBufAllocator;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
 
 /**
  * 对象编解码器。<br>
@@ -64,7 +63,7 @@ public interface Serializer {
      *
      * @param object 待克隆的对象
      * @return Q: 为什么不是泛型的？A:对于多态对象，如果缺少相应信息，可能返回不兼容的对象（map和集合）。
-     * @throws IOException error
+     * @throws Exception error
      */
     Object cloneObject(@Nullable Object object) throws Exception;
 
@@ -74,17 +73,28 @@ public interface Serializer {
      * @param bufAllocator buf分配器，为了减少中间数据创建
      * @param object       待编码的对象
      * @return 编码后的字节数组
-     * @throws IOException error
+     * @throws Exception error
      */
     @Nonnull
     ByteBuf writeObject(ByteBufAllocator bufAllocator, @Nullable Object object) throws Exception;
+
+    /**
+     * 写入一个对象到给的的byteBuf
+     *
+     * @param byteBuf 指定写入的byteBuf
+     * @param object  待编码的对象
+     * @return 编码后的字节数组
+     * @throws Exception error
+     */
+    @Nonnull
+    ByteBuf writeObject(ByteBuf byteBuf, @Nullable Object object) throws Exception;
 
     /**
      * 读取一个对象
      *
      * @param data 字节数组
      * @return instance
-     * @throws IOException error
+     * @throws Exception error
      */
     Object readObject(ByteBuf data) throws Exception;
 
