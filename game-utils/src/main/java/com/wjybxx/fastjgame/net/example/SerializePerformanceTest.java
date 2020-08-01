@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.example;
 import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.serialization.Serializer;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 
 /**
  * 一个不太靠谱的序列化反序列化性能测试。
@@ -63,7 +63,7 @@ public class SerializePerformanceTest {
     }
 
     private static void codecTest(Serializer codec, Object msg, int loopTimes) throws Exception {
-        final ByteBuf byteBuf = PooledByteBufAllocator.DEFAULT.directBuffer(8192);
+        final ByteBuf byteBuf = Unpooled.directBuffer(8192);
 
         final String name = codec.getClass().getSimpleName();
         final long start = System.currentTimeMillis();

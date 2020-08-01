@@ -74,7 +74,7 @@ public interface Serializer {
      * @param object 带估算的对象
      * @return 一个估算值
      */
-    int estimatedSerializedSize(@Nullable Object object);
+    int estimateSerializedSize(@Nullable Object object);
 
     /**
      * 写入一个对象到给的的byteBuf。

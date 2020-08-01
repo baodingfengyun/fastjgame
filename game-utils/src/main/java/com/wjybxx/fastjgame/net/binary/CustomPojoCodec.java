@@ -50,7 +50,7 @@ public class CustomPojoCodec<T> implements PojoCodec<T> {
 
     T readPolymorphicPojoImpl(DataInputStream inputStream, EntityFactory<? extends T> factory, CodecRegistry codecRegistry, ObjectReader reader) throws Exception {
         if (!(codec instanceof AbstractPojoCodecImpl)) {
-            throw new IOException();
+            throw new IOException("Unsupported type " + getEncoderClass().getName());
         }
         final AbstractPojoCodecImpl<T> abstractPojoCodec = (AbstractPojoCodecImpl<T>) codec;
         // 这里使用给定工厂创建对象，而不是codec自己创建的对象，从而实现多态

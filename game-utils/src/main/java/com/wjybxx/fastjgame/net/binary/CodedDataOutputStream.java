@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 
 /**
  * @author wjybxx
@@ -32,6 +33,13 @@ import javax.annotation.Nonnull;
  * github - https://github.com/hl845740757
  */
 public abstract class CodedDataOutputStream implements DataOutputStream {
+
+    static void writeFixInt32(CodedOutputStream codedOutputStream, int value) throws IOException {
+        codedOutputStream.write((byte) (value >>> 24));
+        codedOutputStream.write((byte) (value >>> 16));
+        codedOutputStream.write((byte) (value >>> 8));
+        codedOutputStream.write((byte) value);
+    }
 
     @Override
     public DataOutputStream duplicate() {
@@ -151,10 +159,7 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
 
         @Override
         public void writeFixedInt32(int value) throws Exception {
-            codedOutputStream.write((byte) (value >>> 24));
-            codedOutputStream.write((byte) (value >>> 16));
-            codedOutputStream.write((byte) (value >>> 8));
-            codedOutputStream.write((byte) value);
+            writeFixInt32(codedOutputStream, value);
         }
 
         @Override
@@ -241,7 +246,7 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
                 throw new IllegalArgumentException("nioBufferCount: " + byteBuf.nioBufferCount() + " (expected: == 1)");
             }
 
-            // 必须显示指定最大容量
+            // 必须显示指定最大容量，且不能太小
             if (byteBuf.maxCapacity() < 512) {
                 throw new IllegalArgumentException("maxCapacity: " + byteBuf.maxCapacity() + " (expected: >= 512 )");
             }
@@ -454,10 +459,7 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
             int preWriterIndex = writerIndex();
             while (true) {
                 try {
-                    codedOutputStream.write((byte) (value >>> 24));
-                    codedOutputStream.write((byte) (value >>> 16));
-                    codedOutputStream.write((byte) (value >>> 8));
-                    codedOutputStream.write((byte) value);
+                    writeFixInt32(codedOutputStream, value);
                     return;
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
@@ -469,7 +471,17 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
         @Override
         public void setFixedInt32(int index, int value) throws Exception {
             final int byteBufWriterIndex = byteBufWriterIndex(index);
-            byteBuf.setInt(byteBufWriterIndex, value);
+
+            int preWriterIndex = writerIndex();
+            while (true) {
+                try {
+                    byteBuf.setInt(byteBufWriterIndex, value);
+                    return;
+                } catch (IndexOutOfBoundsException exception) {
+                    ensureCapacity(preWriterIndex, exception);
+                }
+                preWriterIndex = writerIndex();
+            }
         }
 
         private void ensureCapacity(int preWriterIndex, Exception exception) {
@@ -520,8 +532,8 @@ public abstract class CodedDataOutputStream implements DataOutputStream {
         }
 
         void validateWriterIndex(int writeIndex) {
-            if (byteBufWriterIndex(writeIndex) > byteBuf.capacity()) {
-                throw new IllegalArgumentException("writeIndex: " + writeIndex + ", capacity: " + byteBuf.capacity());
+            if (byteBufWriterIndex(writeIndex) > byteBuf.maxCapacity()) {
+                throw new IllegalArgumentException("writeIndex: " + writeIndex + ", maxCapacity: " + byteBuf.maxCapacity());
             }
         }
 

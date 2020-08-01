@@ -99,7 +99,7 @@ public interface DataOutputStream {
 
     /**
      * 返回共享输出流底层整个区域的引用副本，如果底层数据结构可以扩容，则扩容也对彼此可见。
-     * 向返回的输出流种写入的数据对彼此可见，但它们维护单独的索引，并且此方法不修改{@code writerIndex}。
+     * 向返回的输出流种写入的数据对彼此可见，但它们维护单独的索引，并且此方法不修改当输出流的{@code writerIndex}。
      */
     DataOutputStream duplicate(int index);
 

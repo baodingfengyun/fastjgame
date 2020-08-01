@@ -180,7 +180,6 @@ class ObjectReaderImp implements ObjectReader {
         checkTag(tag, BinaryTag.POJO);
 
         return PojoCodecUtils.readPolymorphicPojoImpl(inputStream, factory, superClass, codecRegistry, this);
-
     }
 
     @Override

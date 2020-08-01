@@ -277,7 +277,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      */
     private void writeRpcRequestMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
         final RpcRequestMessage requestMessage = (RpcRequestMessage) socketMessage.getWrappedMessage();
-        final int bodySize = serializer.estimatedSerializedSize(requestMessage.getBody());
+        final int bodySize = serializer.estimateSerializedSize(requestMessage.getBody());
         final ByteBuf byteBuf = newByteBuf(ctx, 8 + 8 + 1 + 8 + 1 + bodySize, NetMessageType.RPC_REQUEST);
 
         // 捎带确认消息
@@ -317,7 +317,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      */
     private void writeRpcResponseMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
         final RpcResponseMessage responseMessage = (RpcResponseMessage) socketMessage.getWrappedMessage();
-        final int bodySize = serializer.estimatedSerializedSize(responseMessage.getBody());
+        final int bodySize = serializer.estimateSerializedSize(responseMessage.getBody());
         final ByteBuf byteBuf = newByteBuf(ctx, 8 + 8 + 1 + 8 + 1 + 4 + bodySize, NetMessageType.RPC_RESPONSE);
 
         // 捎带确认信息
@@ -376,7 +376,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
      */
     private void writeOneWayMessage(ChannelHandlerContext ctx, long ack, boolean endOfBatch, SocketMessage socketMessage, ChannelPromise promise) {
         final OneWayMessage oneWayMessage = (OneWayMessage) socketMessage.getWrappedMessage();
-        final int bodySize = serializer.estimatedSerializedSize(oneWayMessage.getBody());
+        final int bodySize = serializer.estimateSerializedSize(oneWayMessage.getBody());
         final ByteBuf byteBuf = newByteBuf(ctx, 8 + 8 + 1 + bodySize, NetMessageType.ONE_WAY_MESSAGE);
 
         // 捎带确认

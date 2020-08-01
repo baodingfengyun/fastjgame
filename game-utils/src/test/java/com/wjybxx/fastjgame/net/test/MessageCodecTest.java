@@ -50,8 +50,8 @@ public class MessageCodecTest {
                 .setK(p_test.ERole.AGE)
                 .build();
 
-        final ByteBuf encodeResult = byteBufAllocator.directBuffer(serializer.estimatedSerializedSize(hello));
-        System.out.println("estimatedSerializedSize: " + encodeResult.capacity() + "");
+        final ByteBuf encodeResult = byteBufAllocator.directBuffer(serializer.estimateSerializedSize(hello));
+        System.out.println("estimateSerializedSize: " + encodeResult.capacity() + "");
         serializer.writeObject(encodeResult, hello);
         System.out.println("encodeLength: " + encodeResult.writerIndex() + "\n");
 

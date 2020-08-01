@@ -176,7 +176,6 @@ class ArrayCodec {
         }
     }
 
-
     private static class IntArrayCodec implements ValueArrayCodec<int[]> {
 
         @Override

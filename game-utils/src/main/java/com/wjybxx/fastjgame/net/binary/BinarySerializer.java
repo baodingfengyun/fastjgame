@@ -70,7 +70,7 @@ public class BinarySerializer implements Serializer {
     }
 
     @Override
-    public int estimatedSerializedSize(@Nullable Object object) {
+    public int estimateSerializedSize(@Nullable Object object) {
         if (object == null) {
             return 1;
         }
@@ -80,6 +80,12 @@ public class BinarySerializer implements Serializer {
             // 1 + 1 + 4 + 4 + msg.getSerializedSize()
             return 1 + 1 + 4 + 4 + ((Message) object).getSerializedSize();
         }
+
+        if (object instanceof byte[]) {
+            // tag + childTag + length + content
+            return 1 + 1 + 4 + ((byte[]) object).length;
+        }
+
         return defaultByteBufCapacity;
     }
 

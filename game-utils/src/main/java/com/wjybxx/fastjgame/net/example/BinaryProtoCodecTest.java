@@ -44,7 +44,7 @@ public class BinaryProtoCodecTest {
         System.out.println(NetUtils.getOuterIp());
 
         ExampleMessages.FullMessage fullMessage = newFullMessage();
-        final ByteBuf encodeResult = byteBufAllocator.directBuffer(serializer.estimatedSerializedSize(fullMessage));
+        final ByteBuf encodeResult = byteBufAllocator.directBuffer(serializer.estimateSerializedSize(fullMessage));
         serializer.writeObject(encodeResult, fullMessage);
 
         System.out.println("--------------------encode length-------------------");
@@ -65,7 +65,7 @@ public class BinaryProtoCodecTest {
         System.out.println("clone equals = " + fullMessage.equals(cloneResult));
 
         System.out.println("-----------------------protoBuf--------------------");
-        final ByteBuf protoMsgByteBuf = byteBufAllocator.directBuffer(serializer.estimatedSerializedSize(ProtoBufSerializePerformanceTest.msg));
+        final ByteBuf protoMsgByteBuf = byteBufAllocator.directBuffer(serializer.estimateSerializedSize(ProtoBufSerializePerformanceTest.msg));
         serializer.writeObject(protoMsgByteBuf, ProtoBufSerializePerformanceTest.msg);
         Object protoMsgDecode = serializer.readObject(protoMsgByteBuf);
         System.out.println("protoBuf equals = " + ProtoBufSerializePerformanceTest.msg.equals(protoMsgDecode));

@@ -127,7 +127,7 @@ public class JsonSerializer implements Serializer {
     }
 
     @Override
-    public int estimatedSerializedSize(@Nullable Object object) {
+    public int estimateSerializedSize(@Nullable Object object) {
         // 无法估算
         if (object == null) {
             return 0;
