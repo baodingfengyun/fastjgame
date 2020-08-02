@@ -31,10 +31,10 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 4. **使用注解处理器生成调用代码(lambda表达式)**，代替常见反射调用实现。
 
 设计目的是什么？
-1. 允许参数不一致，可以更好的支持服务器异步编程。如果方法的返回类型为Future，表示服务器**可能**无法立即返回结果，代理方法会自动监听Future的结果。而该参数并不会出现在proxy类中。
-2. 允许参数不一致，可以延迟某些参数的序列化或提前某些参数的反序列化，可以消除请求方和执行方的序列化反序列化工作。该实现依赖**LazySerializable**和**PreDeserializable**注解。
+1. 允许参数不一致，可以更好的支持服务器异步编程。如果方法的返回类型为Future，表示服务器**可能**无法立即返回结果，代理方法会自动监听Future的结果。  
+2. 允许参数不一致，可以延迟某些参数的序列化或提前某些参数的反序列化，可以消除请求方和执行方的序列化反序列化工作。该实现依赖**LazySerializable**和**PreDeserializable**注解。  
 3. proxy仅仅是辅助类，通过rpcClient发送请求。用户可以选择是**单项通知**、**异步调用**还是**同步调用**。这非常像ExecutorService中的**execute**和**submit**，
-用户可以自由选择是否监听执行结果。放弃**透明性**，其实是提醒用户rpc和普通方法调用存在明显的性能差异，鼓励用户少使用同步调用。
+用户可以自由选择是否监听执行结果。放弃**透明性**，其实是提醒用户rpc和普通方法调用存在明显的性能差异，鼓励用户少使用同步调用。  
 4. 通过short类型的serviceId和methodId定位被调用方法，可以大大减少数据传输量，而且定位方法更快。  
 
 总的来说: Rpc设计更像多线程编程，以异步为主。
@@ -59,7 +59,7 @@ Guid生成器中定义了命名空间的概念，只要求同一个命名空间�
 ***
 ### 编译要求 JDK11
 [jdk11百度云下载链接](https://pan.baidu.com/s/10IWbDpIeVDk5iPjci0gDUw)  提取码: d13j  
-请下载 Amazon 11.0.4 或 11.0.7版本
+请下载 **Amazon** 11.0.4 或 11.0.7版本
 
 ### 如何使用注解处理器(编译出现找不到符号问题怎么解决)？
 + 方式1 - 自己打包安装：  
@@ -72,10 +72,6 @@ Guid生成器中定义了命名空间的概念，只要求同一个命名空间�
 > 2. 在game-parent下clean，再compile，可消除缺少类文件的报错。
 
 ***
-### 并发组件优化 JCTools的Mpsc队列代替ConcurrentLinkedQueue
-Disruptor的**RingBuffer**和Jdk的**ConcurrentLinkedQueue**都是多消费者模型，而**EventLoop是多生产者单消费者模型**，使用Mpsc队列可以极大的提高性能。  
-Mpsc队列最早是在Netty中看见的，但是苦于是internal的，后来才发现其实是JCTools的，于是引入，作为无界EventLoop的模板，性能确实极好。  
-PS: 也很适用Actor模型。
 
 ### [历史重要更新](https://github.com/hl845740757/fastjgame/blob/master/%E5%8E%86%E5%8F%B2%E9%87%8D%E8%A6%81%E6%9B%B4%E6%96%B0.md)
 

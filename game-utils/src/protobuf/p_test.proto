@@ -5,7 +5,7 @@ package fastjgame;
 // optimize_for (file option): Can be set to SPEED, CODE_SIZE, or LITE_RUNTIME.
 option optimize_for = SPEED;
 
-option java_package = "com.wjybxx.fastjgame.example";
+option java_package = "com.wjybxx.fastjgame.net.example";
 option java_outer_classname = "p_test";
 
 // 测试各种情况，在编译时是什么情况
