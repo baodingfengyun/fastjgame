@@ -457,7 +457,7 @@ public abstract class AbstractSocketCodec extends ChannelDuplexHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         // 这里不关闭channel，没有必要关闭
-        logger.warn("", cause);
+        logger.warn("exceptionCaught", cause);
     }
 
     /**

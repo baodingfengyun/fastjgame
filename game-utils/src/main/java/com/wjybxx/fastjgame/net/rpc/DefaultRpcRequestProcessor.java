@@ -65,11 +65,6 @@ public class DefaultRpcRequestProcessor implements RpcMethodProxyRegistry, RpcRe
 
     @Override
     public final Object process(RpcProcessContext context, @Nullable RpcMethodSpec<?> request) throws Exception {
-        if (context.isOneWay()) {
-            // 用户不关心结果，因此直接返回null
-            return null;
-        }
-
         if (null == request) {
             throw new IllegalArgumentException(context.session().sessionId() + " send null request");
         }
