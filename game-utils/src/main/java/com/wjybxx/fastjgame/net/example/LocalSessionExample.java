@@ -44,7 +44,7 @@ public class LocalSessionExample {
                     RejectedExecutionHandlers.discard(),
                     localPort);
 
-            // 唤醒线程
+            // 唤醒，启动客户端
             echoClientLoop.execute(ConcurrentUtils.NO_OP_TASK);
         }
     }

@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
+import com.wjybxx.fastjgame.net.exception.RpcSessionNotFoundException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
 
@@ -25,7 +26,7 @@ import java.util.concurrent.CompletionException;
 
 /**
  * rpc客户端真正执行调用的地方。
- * {@link RpcClient}负责通过{@link RpcServerSpec}寻找合适的{@link Session}，然后这里真正执行调用。
+ * 用户应该使用门面为自己的应用层提供更好的API。
  *
  * <h3>实现要求</h3>
  * 1. 单向消息(send系列方法)：无论执行成功还是失败，实现必须忽略调用的方法的执行结果(最好不回传结果，而不是仅仅不上报给调用者)。
@@ -36,6 +37,9 @@ import java.util.concurrent.CompletionException;
  * 1. 所有的消息都满足先发的先到。
  * 2. 但是要注意一个问题：{@link #syncCall(Session, RpcMethodSpec)}会打乱处理的顺序！同步Rpc调用的结果会被你提前处理，其它消息可能先到，但是由于你处于阻塞状态，而导致被延迟处理。<br>
  * 3. 先发送的请求不一定先获得结果！对方什么时候返回给你结果是不确定的！<br>
+ *
+ * <h3>session为null的处理</h3>
+ * 如果session为null，则返回一个已失败的{@code Future}，且其异常为{@link RpcSessionNotFoundException}。
  *
  * @author wjybxx
  * @version 1.0
@@ -50,7 +54,7 @@ public interface RpcClientInvoker {
      * @param message 单向消息
      * @param flush   是否刷新缓冲区
      */
-    void send(@Nonnull Session session, @Nonnull RpcMethodSpec<?> message, boolean flush);
+    void send(@Nullable Session session, @Nonnull RpcMethodSpec<?> message, boolean flush);
 
     /**
      * 发送一个rpc请求给对方。
@@ -59,7 +63,7 @@ public interface RpcClientInvoker {
      * @param request rpc请求对象
      * @param flush   是否刷新缓冲区
      */
-    <V> FluentFuture<V> call(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request, boolean flush);
+    <V> FluentFuture<V> call(@Nullable Session session, @Nonnull RpcMethodSpec<V> request, boolean flush);
 
     /**
      * 发送一个rpc请求给对方，会立即刷新缓冲区，并阻塞到结果返回或超时。
@@ -69,5 +73,5 @@ public interface RpcClientInvoker {
      * @return 方法调用结果
      */
     @Nullable
-    <V> V syncCall(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request) throws CompletionException;
+    <V> V syncCall(@Nullable Session session, @Nonnull RpcMethodSpec<V> request) throws CompletionException;
 }

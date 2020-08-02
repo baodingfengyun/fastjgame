@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.session;
 
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoop;
-import com.wjybxx.fastjgame.net.rpc.RpcServerSpec;
 import com.wjybxx.fastjgame.util.annotation.Internal;
 import com.wjybxx.fastjgame.util.concurrent.EventLoop;
 
@@ -36,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface Session extends RpcServerSpec, Comparable<Session> {
+public interface Session extends Comparable<Session> {
 
     /**
      * 用户为session分配的sessionId。

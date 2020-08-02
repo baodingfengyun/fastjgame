@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.exception.RpcSessionClosedException;
+import com.wjybxx.fastjgame.net.exception.RpcSessionNotFoundException;
 import com.wjybxx.fastjgame.net.exception.RpcTimeoutException;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
@@ -34,26 +35,37 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * date - 2020/3/9
  */
-public class DefaultRpcClientInvoker implements RpcClientInvoker {
+public final class DefaultRpcClientInvoker implements RpcClientInvoker {
 
     public DefaultRpcClientInvoker() {
     }
 
     @Override
-    public void send(@Nonnull Session session, @Nonnull RpcMethodSpec<?> message, boolean flush) {
+    public void send(@Nullable Session session, @Nonnull RpcMethodSpec<?> message, boolean flush) {
+        if (session == null) {
+            return;
+        }
+
         if (session.isClosed()) {
             // 会话关闭的情况下丢弃消息
             return;
         }
+
         session.netEventLoop().execute(new OneWayWriteTask(session, message, flush));
     }
 
     @Override
-    public <V> FluentFuture<V> call(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request, boolean flush) {
+    public <V> FluentFuture<V> call(@Nullable Session session, @Nonnull RpcMethodSpec<V> request, boolean flush) {
+        if (session == null) {
+            // session不存在
+            return newSessionNotFoundFuture();
+        }
+
         if (session.isClosed()) {
             // session关闭状态下直接返回
             return FutureUtils.newFailedFuture(RpcSessionClosedException.INSTANCE);
         }
+
         // 会话活动的状态下才会发送
         final Promise<V> promise = FutureUtils.newPromise();
         session.netEventLoop()
@@ -65,11 +77,17 @@ public class DefaultRpcClientInvoker implements RpcClientInvoker {
 
     @Nullable
     @Override
-    public <V> V syncCall(@Nonnull Session session, @Nonnull RpcMethodSpec<V> request) throws CompletionException {
+    public <V> V syncCall(@Nullable Session session, @Nonnull RpcMethodSpec<V> request) throws CompletionException {
+        if (session == null) {
+            // session不存在
+            final FluentFuture<V> future = newSessionNotFoundFuture();
+            return future.getNow();
+        }
+
         if (session.isClosed()) {
             // session关闭状态下直接返回
-            return FutureUtils.<V>newFailedFuture(RpcSessionClosedException.INSTANCE)
-                    .getNow();
+            final FluentFuture<V> future = FutureUtils.<V>newFailedFuture(RpcSessionClosedException.INSTANCE);
+            return future.getNow();
         }
 
         final Promise<V> promise = FutureUtils.newPromise();
@@ -81,7 +99,11 @@ public class DefaultRpcClientInvoker implements RpcClientInvoker {
         if (!promise.awaitUninterruptibly(syncRpcTimeoutMs, TimeUnit.MILLISECONDS)) {
             promise.tryFailure(RpcTimeoutException.INSTANCE);
         }
+
         return promise.getNow();
     }
 
+    private static <V> FluentFuture<V> newSessionNotFoundFuture() {
+        return FutureUtils.newFailedFuture(new RpcSessionNotFoundException());
+    }
 }

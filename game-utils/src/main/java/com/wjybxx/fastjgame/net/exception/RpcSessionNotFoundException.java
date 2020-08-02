@@ -17,7 +17,6 @@
 package com.wjybxx.fastjgame.net.exception;
 
 import com.wjybxx.fastjgame.net.rpc.RpcErrorCode;
-import com.wjybxx.fastjgame.net.rpc.RpcServerSpec;
 
 /**
  * 找不到对于的session异常
@@ -29,10 +28,11 @@ import com.wjybxx.fastjgame.net.rpc.RpcServerSpec;
  */
 public class RpcSessionNotFoundException extends RpcLocalException {
 
-    private final RpcServerSpec serverSpec;
+    public RpcSessionNotFoundException() {
+    }
 
-    public RpcSessionNotFoundException(RpcServerSpec serverSpec) {
-        this.serverSpec = serverSpec;
+    public RpcSessionNotFoundException(String message) {
+        super(message);
     }
 
     @Override
@@ -40,10 +40,4 @@ public class RpcSessionNotFoundException extends RpcLocalException {
         return RpcErrorCode.LOCAL_SESSION_NOT_FOUND;
     }
 
-    @Override
-    public String toString() {
-        return "RpcSessionNotFoundException{" +
-                "serverSpec=" + serverSpec +
-                '}';
-    }
 }
