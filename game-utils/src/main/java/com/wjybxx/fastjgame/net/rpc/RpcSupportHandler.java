@@ -28,6 +28,8 @@ import com.wjybxx.fastjgame.util.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.util.concurrent.Promise;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -47,6 +49,8 @@ import java.io.IOException;
  */
 @NotThreadSafe
 public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
+
+    private static final Logger logger = LoggerFactory.getLogger(RpcSupportHandler.class);
 
     /**
      * RpcRequestId分配器
@@ -236,8 +240,10 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             final Object body;
             if (future.isCompletedExceptionally()) {
                 errorCode = RpcErrorCode.SERVER_EXCEPTION;
-                // 不返回完整信息，意义不大
-                body = ExceptionUtils.getRootCauseMessage(future.cause());
+                // 不返回完整信息（传输量太大），但要打印日志，避免异常信息丢失
+                final Throwable cause = future.cause();
+                body = ExceptionUtils.getRootCauseMessage(cause);
+                logger.warn("dispatch rpcRequest caught exception", cause);
             } else {
                 errorCode = RpcErrorCode.SUCCESS;
                 body = future.getNow();

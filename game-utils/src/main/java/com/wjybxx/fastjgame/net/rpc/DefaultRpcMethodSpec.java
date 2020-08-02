@@ -93,6 +93,17 @@ public class DefaultRpcMethodSpec<V> implements RpcMethodSpec<V> {
         return preIndexes;
     }
 
+    @Override
+    public String toString() {
+        return "DefaultRpcMethodSpec{" +
+                "serviceId=" + serviceId +
+                ", methodId=" + methodId +
+                ", methodParams=" + methodParams +
+                ", lazyIndexes=" + lazyIndexes +
+                ", preIndexes=" + preIndexes +
+                '}';
+    }
+
     /**
      * 负责{@link DefaultRpcMethodSpec}的序列化工作 - 会被自动扫描到。
      */

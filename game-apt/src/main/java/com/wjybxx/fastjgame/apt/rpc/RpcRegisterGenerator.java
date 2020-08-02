@@ -49,7 +49,6 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
     private static final String context = "context";
     private static final String methodParams = "methodParams";
-    private static final String promise = "promise";
 
     private final short serviceId;
     private final List<ExecutableElement> rpcMethods;
@@ -115,55 +114,25 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
     /**
      * 为某个具体方法生成注册方法，方法分为两类
-     * 1. 异步方法 -- 返回结果为future的方法。
-     * 2. 同步方法
-     * <p>
-     * 1. 异步方法，返回Future
-     * <pre>
-     * {@code
-     * 		private static void registerGetMethod1(RpcFunctionRegistry registry, T instance) {
-     * 		    registry.register(10001, (context, methodParams, promise) -> {
-     * 		        try {
-     * 		            Future<V> future = instance.method1(methodParams.get(0), methodParams.get(1));
-     *  		        FutureUtils.setFuture(future, promise);
-     *                } catch(Throwable cause) {
-     *                  promise.tryFailure(cause)
-     *                  AptReflectUtils.rethrow(cause);
-     *            });
-     *        }
-     * }
-     * </pre>
-     * 2. 同步方法，同步方法又分为：有结果和无结果类型，有结果的。
-     * 2.1 有结果的，返回直接结果
+     * 1. 有返回值的，直接返回方法执行结果（任意值）
      * <pre>
      * {@code
      * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
-     * 		    registry.register(10002, (context, methodParams, promise) -> {
-     * 		       try {
-     * 		     		V result = instance.method2(methodParams.get(0), methodParams.get(1));
-     * 		     	    promise.trySuccess(result);
-     *               } catch(Throwable cause){
-     *                  promise.tryFailure(cause)
-     *                  AptReflectUtils.rethrow(cause);
-     *               }
-     *            });
-     *        }
+     * 		    registry.register(10001, (context, methodParams) -> {
+     * 		        return instance.method2(methodParams.get(0), methodParams.get(1));
+     *         }
+     *     }
      * }
      * </pre>
-     * 2.2 无结果的，返回null，表示执行成功
+     * 2. 无返回值的，代理执行完之后直接返回null
      * <pre>
      * {@code
      * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
-     * 		    registry.register(10002, (context, methodParams, promise) -> {
-     * 		       try {
-     * 		       		instance.method1(methodParams.get(0), methodParams.get(1), promise);
-     * 		       	    promise.trySuccess(null);
-     *               } catch(Throwable cause) {
-     *                   promise.tryFailure(cause)
-     *                   AptReflectUtils.rethrow(cause);
-     *               }
-     *            });
-     *        }
+     * 		    registry.register(10002, (context, methodParams) -> {
+     * 		        instance.method1(methodParams.get(0), methodParams.get(1), promise);
+     * 		        return null;
+     *            }
+     *     }
      * }
      * </pre>
      */
@@ -178,29 +147,18 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
         // 双方都必须拷贝泛型变量
         AutoUtils.copyTypeVariables(builder, method);
 
-        builder.addCode("$L.register((short)$L, (short)$L, ($L, $L, $L) -> {\n",
+        builder.addCode("$L.register((short)$L, (short)$L, ($L, $L) -> {\n",
                 registry,
                 serviceId, methodId,
-                context, methodParams, promise);
+                context, methodParams);
 
         final InvokeStatement invokeStatement = genInvokeStatement(method);
-
-        builder.addCode("    try {\n");
-        builder.addStatement("    " + invokeStatement.format, invokeStatement.params.toArray());
-
-        if (method.getReturnType().getKind() == TypeKind.VOID) {
-            builder.addStatement("        $L.trySuccess(null)", promise);
-        } else if (processor.isFuture(method.getReturnType())) {
-            builder.addStatement("        $T.setFuture(result, $L)", processor.futureUtilsTypeName, promise);
+        if (method.getReturnType().getKind() != TypeKind.VOID) {
+            builder.addStatement("    return " + invokeStatement.format, invokeStatement.params.toArray());
         } else {
-            builder.addStatement("        $L.trySuccess(result)", promise);
+            builder.addStatement("    " + invokeStatement.format, invokeStatement.params.toArray());
+            builder.addStatement("    return null");
         }
-
-        builder.addCode("    } catch (Throwable cause) {\n");
-        builder.addStatement("        $L.tryFailure(cause)", promise);
-        builder.addStatement("        $T.rethrow(cause)", AptReflectUtilsTypeName);
-
-        builder.addCode("    }\n");
 
         builder.addStatement("})");
         return builder.build();
@@ -219,26 +177,18 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
     /**
      * 生成方法调用代码，没有分号和换行符。
-     * {@code Object result = instance.rpcMethod(a, b, c)}
      * {@code instance.rpcMethod(a, b, c)}
      */
     private RpcRegisterGenerator.InvokeStatement genInvokeStatement(ExecutableElement method) {
-        // 缩进
-        final StringBuilder format = new StringBuilder("    ");
+        final StringBuilder format = new StringBuilder();
         final List<Object> params = new ArrayList<>(method.getParameters().size());
-
-        if (method.getReturnType().getKind() != TypeKind.VOID) {
-            // 声明返回值
-            final TypeName returnTypeName = ParameterizedTypeName.get(method.getReturnType());
-            format.append("$T result = ");
-            params.add(returnTypeName);
-        }
 
         // 调用方法
         format.append("$L.$L(");
         params.add(instance);
         params.add(method.getSimpleName().toString());
 
+        // 填充参数
         boolean needDelimiter = false;
         int index = 0;
         for (VariableElement variableElement : method.getParameters()) {
@@ -272,7 +222,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
             index++;
         }
         format.append(")");
-        return new RpcRegisterGenerator.InvokeStatement(format.toString(), params);
+        return new InvokeStatement(format.toString(), params);
     }
 
     private static class InvokeStatement {

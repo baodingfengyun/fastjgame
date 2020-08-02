@@ -15,6 +15,8 @@
  */
 package com.wjybxx.fastjgame.net.rpc;
 
+import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
+import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.util.concurrent.Promise;
 
 /**
@@ -46,9 +48,29 @@ public class RpcRequestCommitTask implements CommitTask {
         this.request = request;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void run() {
-        context.session().config().dispatcher().post(context, (RpcMethodSpec) request, promise);
+        try {
+            final Object result = context.session().config().dispatcher().post(context, (RpcMethodSpec) request);
+            if (result == null) {
+                promise.trySuccess(null);
+                return;
+            }
+            if (result instanceof FluentFuture) {
+                final FluentFuture<?> future = (FluentFuture<?>) result;
+                setFuture(promise, future);
+                return;
+            }
+
+            @SuppressWarnings("unchecked") final Promise<Object> castPromise = (Promise<Object>) promise;
+            castPromise.trySuccess(result);
+        } catch (Throwable e) {
+            promise.tryFailure(e);
+        }
+    }
+
+    private static <V> void setFuture(Promise<?> promise, FluentFuture<V> future) {
+        @SuppressWarnings("unchecked") final Promise<V> castPromise = (Promise<V>) promise;
+        FutureUtils.setFuture(castPromise, future);
     }
 }

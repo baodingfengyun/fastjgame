@@ -32,7 +32,7 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 @FunctionalInterface
-public interface RpcMethodProxy<T> {
+public interface RpcMethodProxy {
 
     /**
      * 执行调用
@@ -40,8 +40,7 @@ public interface RpcMethodProxy<T> {
      * @param context      rpc执行时的一些上下文
      * @param methodParams 对应的方法参数，发过来的参数不包含{@link Session} 和 {@link Promise}。
      *                     如果原始方法需要的话，代理方法需要自动传入。
-     * @param promise      用于返回结果
      */
-    void invoke(RpcProcessContext context, List<Object> methodParams, Promise<T> promise) throws Exception;
+    Object invoke(RpcProcessContext context, List<Object> methodParams) throws Exception;
 
 }

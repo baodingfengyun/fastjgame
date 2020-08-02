@@ -16,11 +16,8 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.util.concurrent.Promise;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,8 +32,6 @@ import java.util.List;
  * github - https://github.com/hl845740757
  */
 public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcRequestDispatcher {
-
-    private static final Logger logger = LoggerFactory.getLogger(DefaultRpcRequestDispatcher.class);
 
     /**
      * 所有的Rpc请求处理函数, methodKey -> methodProxy
@@ -68,43 +63,50 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
         proxyMapping.clear();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public final <V> void post(RpcProcessContext context, @Nullable RpcMethodSpec<V> request, @Nonnull Promise<V> promise) {
-        if (null == request) {
-            logger.warn("{} send null request", context.session().sessionId());
-            return;
+    public final Object post(RpcProcessContext context, @Nullable RpcMethodSpec<?> request) throws Exception {
+        if (context.isOneWay()) {
+            // 用户不关心结果，因此直接返回null
+            return null;
         }
+
+        if (null == request) {
+            throw new IllegalArgumentException(context.session().sessionId() + " send null request");
+        }
+
         if (request instanceof DefaultRpcMethodSpec) {
-            postImp(context, (DefaultRpcMethodSpec) request, promise);
+            return postImp(context, (DefaultRpcMethodSpec) request);
         } else {
-            post0(context, request, promise);
+            return post0(context, request);
         }
     }
 
-    private <T> void postImp(@Nonnull RpcProcessContext context, @Nonnull DefaultRpcMethodSpec<T> rpcMethodSpec, @Nonnull Promise<T> promise) {
+    private Object postImp(@Nonnull RpcProcessContext context, @Nonnull DefaultRpcMethodSpec<?> rpcMethodSpec) throws Exception {
         final int methodKey = calMethodKey(rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId());
-        final List<Object> params = rpcMethodSpec.getMethodParams();
-        @SuppressWarnings("unchecked") final RpcMethodProxy<T> methodProxy = proxyMapping.get(methodKey);
+        final RpcMethodProxy methodProxy = proxyMapping.get(methodKey);
         if (null == methodProxy) {
-            promise.tryFailure(new IllegalArgumentException("Unknown methodKey " + methodKey));
-            logger.warn("rcv unknown request, session {}, methodKey={}, parameters={}",
-                    context.session().sessionId(), methodKey, params);
-            return;
+            final String msg = String.format("rcv unknown request, session %s, serviceId=%d methodId=%d",
+                    context.session().sessionId(), rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId());
+            throw new IllegalArgumentException(msg);
         }
+
+        final List<Object> params = rpcMethodSpec.getMethodParams();
         try {
-            methodProxy.invoke(context, params, promise);
+            return methodProxy.invoke(context, params);
         } catch (Exception e) {
-            logger.warn("invoke caught exception, session {}, methodKey={}, parameters={}",
-                    context.session().sessionId(), methodKey, params, e);
+            final String msg = String.format("invoke caught exception, session %s, serviceId=%d methodId=%d",
+                    context.session().sessionId(), rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId());
+            throw new RuntimeException(msg, e);
         }
     }
 
     /**
      * 如果rpc描述信息不是{@link DefaultRpcMethodSpec}对象，那么需要自己实现分发操作
      */
-    protected <V> void post0(RpcProcessContext context, RpcMethodSpec<V> request, Promise<V> promise) {
-
+    protected Object post0(RpcProcessContext context, RpcMethodSpec<?> request) {
+        final String msg = String.format("unknown requestType, session %s, requestType=%s",
+                context.session().sessionId(), request.getClass().getName());
+        throw new UnsupportedOperationException(msg);
     }
 
 }

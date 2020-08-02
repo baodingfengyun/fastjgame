@@ -63,7 +63,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
     private static final String CONTEXT_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcProcessContext";
     private static final String FUTURE_CANONICAL_NAME = "com.wjybxx.fastjgame.util.concurrent.ListenableFuture";
-    private static final String FUTURE_UTILS_CANONICAL_NAME = "com.wjybxx.fastjgame.util.concurrent.FutureUtils";
 
     private static final String SERVICE_ID_METHOD_NAME = "serviceId";
     private static final String METHOD_ID_METHOD_NAME = "methodId";
@@ -72,7 +71,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
     private DeclaredType contextDeclaredType;
     private DeclaredType futureDeclaredType;
-    TypeName futureUtilsTypeName;
 
     TypeElement methodSpecElement;
     TypeName defaultMethodSpecRawTypeName;
@@ -113,7 +111,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
         contextDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(CONTEXT_CANONICAL_NAME));
         futureDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(FUTURE_CANONICAL_NAME));
-        futureUtilsTypeName = TypeName.get(elementUtils.getTypeElement(FUTURE_UTILS_CANONICAL_NAME).asType());
 
         methodSpecElement = elementUtils.getTypeElement(METHOD_SPEC_CANONICAL_NAME);
         defaultMethodSpecRawTypeName = TypeName.get(typeUtils.getDeclaredType(elementUtils.getTypeElement(DEFAULT_METHOD_SPEC_CANONICAL_NAME)));

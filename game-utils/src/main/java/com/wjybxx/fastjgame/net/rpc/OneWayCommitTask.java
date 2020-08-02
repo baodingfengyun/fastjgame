@@ -16,7 +16,7 @@
 package com.wjybxx.fastjgame.net.rpc;
 
 import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 
@@ -44,12 +44,15 @@ public class OneWayCommitTask implements RpcProcessContext, CommitTask {
         this.message = message;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void run() {
-        // 使用voidPromise是实现单项通知(无返回值调用)的关键
-        session.config().dispatcher().post(this, (RpcMethodSpec) message,
-                FutureUtils.newPromise());
+        try {
+            // 忽略结果，也避免创建不必要的promise
+            session.config().dispatcher().post(this, (RpcMethodSpec) message);
+        } catch (Throwable e) {
+            // 直接抛出，交给执行者处理
+            ExceptionUtils.rethrow(e);
+        }
     }
 
     @Nonnull
