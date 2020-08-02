@@ -50,7 +50,6 @@ public class OneWaySupportHandler extends SessionDuplexHandlerAdapter {
         if (msg instanceof OneWayWriteTask) {
             // 单向消息
             OneWayWriteTask writeTask = (OneWayWriteTask) msg;
-
             ctx.fireWrite(new OneWayMessage(writeTask.getMessage()));
         } else {
             ctx.fireWrite(msg);

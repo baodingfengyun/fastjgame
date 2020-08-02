@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.rpc;
 import javax.annotation.Nonnull;
 
 /**
- * Rpc调用函数注册表。
+ * Rpc方法代理注册表。
  *
  * @author wjybxx
  * @version 1.0

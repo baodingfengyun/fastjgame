@@ -51,7 +51,7 @@ public class RpcRequestCommitTask implements CommitTask {
     @Override
     public void run() {
         try {
-            final Object result = context.session().config().dispatcher().post(context, (RpcMethodSpec) request);
+            final Object result = context.session().config().processor().process(context, (RpcMethodSpec) request);
             if (result == null) {
                 promise.trySuccess(null);
                 return;

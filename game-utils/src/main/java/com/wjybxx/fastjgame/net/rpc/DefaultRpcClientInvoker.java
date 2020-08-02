@@ -30,6 +30,8 @@ import javax.annotation.Nullable;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
+import static com.wjybxx.fastjgame.util.concurrent.FutureUtils.newFailedFuture;
+
 /**
  * @author wjybxx
  * @version 1.0
@@ -42,15 +44,10 @@ public final class DefaultRpcClientInvoker implements RpcClientInvoker {
 
     @Override
     public void send(@Nullable Session session, @Nonnull RpcMethodSpec<?> message, boolean flush) {
-        if (session == null) {
+        if (session == null || session.isClosed()) {
+            // session不存在或关闭的情况下丢弃消息
             return;
         }
-
-        if (session.isClosed()) {
-            // 会话关闭的情况下丢弃消息
-            return;
-        }
-
         session.netEventLoop().execute(new OneWayWriteTask(session, message, flush));
     }
 
@@ -63,7 +60,7 @@ public final class DefaultRpcClientInvoker implements RpcClientInvoker {
 
         if (session.isClosed()) {
             // session关闭状态下直接返回
-            return FutureUtils.newFailedFuture(RpcSessionClosedException.INSTANCE);
+            return newFailedFuture(RpcSessionClosedException.INSTANCE);
         }
 
         // 会话活动的状态下才会发送
@@ -86,7 +83,7 @@ public final class DefaultRpcClientInvoker implements RpcClientInvoker {
 
         if (session.isClosed()) {
             // session关闭状态下直接返回
-            final FluentFuture<V> future = FutureUtils.<V>newFailedFuture(RpcSessionClosedException.INSTANCE);
+            final FluentFuture<V> future = newFailedFuture(RpcSessionClosedException.INSTANCE);
             return future.getNow();
         }
 
@@ -104,6 +101,6 @@ public final class DefaultRpcClientInvoker implements RpcClientInvoker {
     }
 
     private static <V> FluentFuture<V> newSessionNotFoundFuture() {
-        return FutureUtils.newFailedFuture(new RpcSessionNotFoundException());
+        return newFailedFuture(new RpcSessionNotFoundException());
     }
 }

@@ -48,7 +48,7 @@ public class OneWayCommitTask implements RpcProcessContext, CommitTask {
     public void run() {
         try {
             // 忽略结果，也避免创建不必要的promise
-            session.config().dispatcher().post(this, (RpcMethodSpec) message);
+            session.config().processor().process(this, (RpcMethodSpec) message);
         } catch (Throwable e) {
             // 直接抛出，交给执行者处理
             ExceptionUtils.rethrow(e);

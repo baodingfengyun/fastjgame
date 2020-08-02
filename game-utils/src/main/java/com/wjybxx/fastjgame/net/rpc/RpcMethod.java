@@ -16,8 +16,7 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.util.concurrent.ListenableFuture;
-import com.wjybxx.fastjgame.util.concurrent.Promise;
+import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -27,13 +26,16 @@ import java.lang.annotation.Target;
 /**
  * 该注解表示该方法是一个Rpc调用。
  *
- * <h3>返回值</h3>
- * 1. 如果方法的返回值为{@link ListenableFuture}，则会捕获{@code Future}的泛型参数作为返回值类型。
- * 2. 当返回值为void时，表明方法没有返回值，代理方法的返回值类型为通配符。
- * 3. 当方法返回值类型不为void时，表示方法可以立即返回结果，其返回值类型就是代理方法的返回值类型。
+ * <h3>代理方法的返回值</h3>
+ * 1. 当返回值为void时，代理方法的返回值类型为通配符。
+ * 2. 如果方法的返回值为{@link FluentFuture}，则会捕获{@code Future}的泛型参数作为返回值类型。
+ * 3. 其它普通方法，其返回值类型就是代理方法的返回值类型。
+ *
+ * <h3>获取rpc上下文</h3>
+ * 如果需要获取rpc调用过程中信息，比如调用方的session，则可以通过在方法参数中添加{@link RpcProcessContext}实现，此参数不会出现在客户端代理方法的参数中。
  *
  * <h3>限制</h3>
- * 1. {{@link RpcProcessContext}和{@link Promise}不会出现在客户端的代理方法的中，因此必须避免出现相同签名的代理方法。
+ * 1. {{@link RpcProcessContext}不会出现在客户端的代理方法的中，因此必须避免出现相同签名的代理方法。
  * 2. 方法不能是private - 至少是包级访问权限。
  * 3. methodId必须在[0,9999]区间段。
  *

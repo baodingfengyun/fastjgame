@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.session.Session;
-import com.wjybxx.fastjgame.util.concurrent.Promise;
-
 import java.util.List;
 
 /**
@@ -38,8 +35,8 @@ public interface RpcMethodProxy {
      * 执行调用
      *
      * @param context      rpc执行时的一些上下文
-     * @param methodParams 对应的方法参数，发过来的参数不包含{@link Session} 和 {@link Promise}。
-     *                     如果原始方法需要的话，代理方法需要自动传入。
+     * @param methodParams 方法的参数，不包含{@link RpcProcessContext}。
+     *                     如果原始方法需要{@link RpcProcessContext}的话，代理方法需要自动传入。
      */
     Object invoke(RpcProcessContext context, List<Object> methodParams) throws Exception;
 

@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface RpcRequestDispatcher {
+public interface RpcRequestProcessor {
 
     /**
      * 推送一个rpc请求
@@ -41,6 +41,6 @@ public interface RpcRequestDispatcher {
      * @return 方法执行结果，可能情况：1.null 2.FluentFuture 3.其它结果
      * @throws Exception 异常情况请抛出异常，暂不支持使用特殊的返回值表达失败。
      */
-    Object post(RpcProcessContext context, @Nullable RpcMethodSpec<?> request) throws Exception;
+    Object process(RpcProcessContext context, @Nullable RpcMethodSpec<?> request) throws Exception;
 
 }

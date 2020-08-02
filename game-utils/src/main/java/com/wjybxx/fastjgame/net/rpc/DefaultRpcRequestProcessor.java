@@ -31,14 +31,14 @@ import java.util.List;
  * date - 2019/8/26
  * github - https://github.com/hl845740757
  */
-public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcRequestDispatcher {
+public class DefaultRpcRequestProcessor implements RpcMethodProxyRegistry, RpcRequestProcessor {
 
     /**
      * 所有的Rpc请求处理函数, methodKey -> methodProxy
      */
     private final Int2ObjectMap<RpcMethodProxy> proxyMapping = new Int2ObjectOpenHashMap<>(512);
 
-    public DefaultRpcRequestDispatcher() {
+    public DefaultRpcRequestProcessor() {
 
     }
 
@@ -64,7 +64,7 @@ public class DefaultRpcRequestDispatcher implements RpcMethodProxyRegistry, RpcR
     }
 
     @Override
-    public final Object post(RpcProcessContext context, @Nullable RpcMethodSpec<?> request) throws Exception {
+    public final Object process(RpcProcessContext context, @Nullable RpcMethodSpec<?> request) throws Exception {
         if (context.isOneWay()) {
             // 用户不关心结果，因此直接返回null
             return null;

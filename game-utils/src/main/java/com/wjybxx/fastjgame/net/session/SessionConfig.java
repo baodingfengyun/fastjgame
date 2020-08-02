@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.session;
 
-import com.wjybxx.fastjgame.net.rpc.RpcRequestDispatcher;
+import com.wjybxx.fastjgame.net.rpc.RpcRequestProcessor;
 import com.wjybxx.fastjgame.net.serialization.Serializer;
 import com.wjybxx.fastjgame.util.CheckUtils;
 
@@ -38,7 +38,7 @@ public class SessionConfig {
 
     private final SessionLifecycleAware lifecycleAware;
     private final Serializer serializer;
-    private final RpcRequestDispatcher dispatcher;
+    private final RpcRequestProcessor processor;
     private final long sessionTimeoutMs;
 
     private final boolean rpcAvailable;
@@ -48,7 +48,7 @@ public class SessionConfig {
     protected SessionConfig(SessionConfigBuilder builder) {
         this.lifecycleAware = builder.lifecycleAware;
         this.serializer = builder.serializer;
-        this.dispatcher = builder.rpcRequestDispatcher;
+        this.processor = builder.rpcRequestProcessor;
         this.sessionTimeoutMs = builder.sessionTimeoutMs;
 
         this.rpcAvailable = builder.rpcAvailable;
@@ -73,8 +73,8 @@ public class SessionConfig {
     /**
      * @return 请求分发器
      */
-    public RpcRequestDispatcher dispatcher() {
-        return dispatcher;
+    public RpcRequestProcessor processor() {
+        return processor;
     }
 
     /**
@@ -113,7 +113,7 @@ public class SessionConfig {
 
         private SessionLifecycleAware lifecycleAware;
         private Serializer serializer;
-        private RpcRequestDispatcher rpcRequestDispatcher;
+        private RpcRequestProcessor rpcRequestProcessor;
         private int sessionTimeoutMs = 60 * 1000;
 
         private boolean rpcAvailable = true;
@@ -130,8 +130,8 @@ public class SessionConfig {
             return self();
         }
 
-        public T setDispatcher(@Nonnull RpcRequestDispatcher dispatcher) {
-            this.rpcRequestDispatcher = dispatcher;
+        public T setRpcRequestProcessor(@Nonnull RpcRequestProcessor processor) {
+            this.rpcRequestProcessor = processor;
             return self();
         }
 
@@ -168,7 +168,7 @@ public class SessionConfig {
         protected void checkParams() {
             Objects.requireNonNull(lifecycleAware, "lifecycleAware");
             Objects.requireNonNull(serializer, "serializer");
-            Objects.requireNonNull(rpcRequestDispatcher, "rpcRequestDispatcher");
+            Objects.requireNonNull(rpcRequestProcessor, "rpcRequestProcessor");
         }
 
         @SuppressWarnings("unchecked")
