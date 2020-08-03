@@ -160,7 +160,7 @@ public class DefaultTimerSystem implements TimerSystem {
         timerHandle.setNextExecuteFrameThreshold(curTickFrame + 1);
 
         if (timerHandle.getNextExecuteTimeMs() < curTickTimeMillis) {
-            // 尝试查找既有要执行的timer的前面，记录调用方信息
+            // 尝试插到既有要执行的timer的前面，记录调用方信息
             logger.error("Added a timer for immediate execution, tick will be interrupted, caller info:\n" +
                     ThreadUtils.getCallerInfo(DefaultTimerSystem::isOtherClass));
         }

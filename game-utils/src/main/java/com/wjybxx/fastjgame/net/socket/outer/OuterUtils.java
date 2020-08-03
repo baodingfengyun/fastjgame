@@ -132,6 +132,7 @@ class OuterUtils {
         final OuterSocketMessage outerSocketMessage = new OuterSocketMessage(messageQueue.nextSequence(), msg);
         if (msg instanceof RpcResponseMessage && ((RpcResponseMessage) msg).isSync()) {
             // 同步rpc调用的结果可以安全的插队，因为用户本就期望提前处理该结果
+            // 可能引发的问题：该消息返回成功了，而本在这之前的调用结果却没有返回成功
             messageQueue.getCacheQueue().addFirst(outerSocketMessage);
         } else {
             messageQueue.getCacheQueue().addLast(outerSocketMessage);

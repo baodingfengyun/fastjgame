@@ -36,7 +36,7 @@ public interface CachedTimeProvider extends TimeProvider {
      * 尝试更新系统时间
      *
      * @param curTimeMillis 指定的系统毫秒时间
-     * @return 更新成功则返回true
+     * @return 更新成功则返回true，允许某些情况下不更新（比如某些实现禁止回调时间）
      */
     boolean update(long curTimeMillis);
 }

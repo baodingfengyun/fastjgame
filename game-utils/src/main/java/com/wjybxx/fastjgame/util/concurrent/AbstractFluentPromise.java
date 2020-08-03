@@ -365,7 +365,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
                 if (inResult instanceof AltResult) {
                     // 上一步异常完成，不执行给定动作，直接完成(当前completion只是简单中继)
-                    out.completeRelayThrowable(inResult);
+                    out.completeRelay(inResult);
                     break tryComplete;
                 }
 
@@ -418,7 +418,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         try {
             Throwable cause = relay.cause();
             if (cause != null) {
-                out.completeRelayThrowable(new AltResult(cause));
+                out.completeThrowable(cause);
             } else {
                 out.completeValue(relay.getNow());
             }
@@ -480,7 +480,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
                 Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
-                    out.completeRelayThrowable(inResult);
+                    out.completeRelay(inResult);
                     break tryComplete;
                 }
 
@@ -534,7 +534,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
                 Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
-                    out.completeRelayThrowable(inResult);
+                    out.completeRelay(inResult);
                 } else {
                     try {
                         if (isSyncOrNestedMode(mode) && !claim()) {
@@ -578,7 +578,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
                 Object inResult = input.result;
 
                 if (inResult instanceof AltResult) {
-                    out.completeRelayThrowable(inResult);
+                    out.completeRelay(inResult);
                 } else {
                     try {
                         if (isSyncOrNestedMode(mode) && !claim()) {
@@ -622,7 +622,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
                 Object inResult = in.result;
 
                 if (inResult instanceof AltResult) {
-                    out.completeRelayThrowable(inResult);
+                    out.completeRelay(inResult);
                 } else {
                     try {
                         if (isSyncOrNestedMode(mode) && !claim()) {
@@ -668,7 +668,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
                 Object inResult = in.result;
 
                 if (inResult instanceof AltResult) {
-                    out.completeRelayThrowable(inResult);
+                    out.completeRelay(inResult);
                 } else {
                     try {
                         if (isSyncOrNestedMode(mode) && !claim()) {

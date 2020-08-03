@@ -15,8 +15,8 @@
  */
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
 import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
+import com.wjybxx.fastjgame.util.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.util.concurrent.Promise;
 
 /**
@@ -56,8 +56,8 @@ public class RpcRequestProcessTask implements ProcessTask {
                 promise.trySuccess(null);
                 return;
             }
-            if (result instanceof FluentFuture) {
-                final FluentFuture<?> future = (FluentFuture<?>) result;
+            if (result instanceof ListenableFuture) {
+                final ListenableFuture<?> future = (ListenableFuture<?>) result;
                 setFuture(promise, future);
                 return;
             }
@@ -69,7 +69,7 @@ public class RpcRequestProcessTask implements ProcessTask {
         }
     }
 
-    private static <V> void setFuture(Promise<?> promise, FluentFuture<V> future) {
+    private static <V> void setFuture(Promise<?> promise, ListenableFuture<V> future) {
         @SuppressWarnings("unchecked") final Promise<V> castPromise = (Promise<V>) promise;
         FutureUtils.setFuture(castPromise, future);
     }

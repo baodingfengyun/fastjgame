@@ -317,6 +317,7 @@ public class TemplateEventLoop extends AbstractEventLoop {
             // 2. 压入队列是一个过程！插入队列后，executor的状态可能已开始关闭，因此必须再次校验
             // 由于是多生产者单消费者模型，因此非消费者不能删除元素，因此只能置为null
             if (isShuttingDown() && TASK.compareAndSet(r, task, null)) {
+                // 虽然拒绝了任务，但是r本身还是插入了队列
                 reject(task);
                 return false;
             }

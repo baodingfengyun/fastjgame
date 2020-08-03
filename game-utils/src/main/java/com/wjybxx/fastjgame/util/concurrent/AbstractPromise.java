@@ -138,7 +138,8 @@ abstract class AbstractPromise<V> implements Promise<V> {
      * @return 如果标记成功，则返回true，否则返回false。如果失败，通常意味着future已完成。
      */
     private boolean markSignalNeeded() {
-        return (int) SIGNALNEEDED.compareAndExchange(this, SIGNAL_INIT, SIGNAL_NEEDED) != SIGNAL_NOTIFIED;
+        final int preValue = (int) SIGNALNEEDED.compareAndExchange(this, SIGNAL_INIT, SIGNAL_NEEDED);
+        return preValue != SIGNAL_NOTIFIED;
     }
 
     /**
@@ -147,7 +148,8 @@ abstract class AbstractPromise<V> implements Promise<V> {
      * @return 是否需要通知，如果需要获取锁进行通知，则返回true，否则返回false。如果返回false，意味着没有线程阻塞。
      */
     private boolean markSignalNotified() {
-        return (int) SIGNALNEEDED.getAndSet(this, SIGNAL_NOTIFIED) == SIGNAL_NEEDED;
+        final int preValue = (int) SIGNALNEEDED.getAndSet(this, SIGNAL_NOTIFIED);
+        return preValue == SIGNAL_NEEDED;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,13 +202,6 @@ abstract class AbstractPromise<V> implements Promise<V> {
         return internalComplete(r);
     }
 
-    /**
-     * 使用依赖项的异常结果进入完成状态，通常表示当前{@link Completion}只是一个简单的中继。
-     */
-    final boolean completeRelayThrowable(Object r) {
-        return internalComplete(r);
-    }
-
     // --------------------------------------------- 查询 --------------------------------------------------
 
     /**
@@ -246,6 +241,10 @@ abstract class AbstractPromise<V> implements Promise<V> {
     @Override
     public final boolean isDone() {
         return isDone0(result);
+    }
+
+    public final boolean isNotDone() {
+        return isNotDone0(result);
     }
 
     @Override

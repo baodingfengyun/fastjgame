@@ -57,8 +57,8 @@ public abstract class AbstractConstant<T extends AbstractConstant<T>> implements
     }
 
     @Override
-    public final String toString() {
-        // 通常不应该覆盖该方法，暂时定义为final，除非哪天真的有需求要重写该方法
+    public String toString() {
+        // 通常不应该覆盖该方法
         return name;
     }
 
