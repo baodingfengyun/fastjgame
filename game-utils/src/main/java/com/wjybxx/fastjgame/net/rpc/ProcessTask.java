@@ -13,42 +13,22 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package com.wjybxx.fastjgame.net.rpc;
 
-import com.wjybxx.fastjgame.net.session.Session;
-
 /**
- * 单向消息发送任务
+ * 服务端处理调用任务。
+ * 实现{@link Runnable}是为了消除lambda表达式，减少中间对象。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/26
+ * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public class OneWayWriteTask implements WriteTask {
+public interface ProcessTask extends Runnable {
 
-    private final Session session;
-    private final Object message;
-    private final boolean flush;
-
-    public OneWayWriteTask(Session session, Object message, boolean flush) {
-        this.session = session;
-        this.message = message;
-        this.flush = flush;
-    }
-
-    public Object getMessage() {
-        return message;
-    }
-
-    @Override
-    public void run() {
-        if (flush) {
-            session.fireWriteAndFlush(this);
-        } else {
-            session.fireWrite(this);
-        }
-    }
+    /**
+     * 执行提交操作，此时运行在用户线程下。
+     */
+    void run();
 
 }

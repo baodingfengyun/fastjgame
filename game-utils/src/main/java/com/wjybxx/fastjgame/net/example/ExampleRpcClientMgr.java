@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.net.example;
 
-import com.wjybxx.fastjgame.net.rpc.DefaultRpcClientInvoker;
-import com.wjybxx.fastjgame.net.rpc.RpcClientInvoker;
+import com.wjybxx.fastjgame.net.rpc.DefaultRpcInvoker;
+import com.wjybxx.fastjgame.net.rpc.RpcInvoker;
 import com.wjybxx.fastjgame.net.rpc.RpcMethodSpec;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
@@ -33,7 +33,7 @@ import java.util.concurrent.CompletionException;
  */
 public class ExampleRpcClientMgr {
 
-    private final RpcClientInvoker invoker = new DefaultRpcClientInvoker();
+    private final RpcInvoker invoker = new DefaultRpcInvoker();
 
     public void send(@Nonnull Session session, @Nonnull RpcMethodSpec<?> message) {
         invoker.send(session, message, false);

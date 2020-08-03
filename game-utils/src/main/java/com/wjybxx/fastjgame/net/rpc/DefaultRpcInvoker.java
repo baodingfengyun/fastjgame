@@ -37,9 +37,9 @@ import static com.wjybxx.fastjgame.util.concurrent.FutureUtils.newFailedFuture;
  * @version 1.0
  * date - 2020/3/9
  */
-public final class DefaultRpcClientInvoker implements RpcClientInvoker {
+public final class DefaultRpcInvoker implements RpcInvoker {
 
-    public DefaultRpcClientInvoker() {
+    public DefaultRpcInvoker() {
     }
 
     @Override
@@ -48,7 +48,7 @@ public final class DefaultRpcClientInvoker implements RpcClientInvoker {
             // session不存在或关闭的情况下丢弃消息
             return;
         }
-        session.netEventLoop().execute(new OneWayWriteTask(session, message, flush));
+        session.netEventLoop().execute(new OneWayInvocationTask(session, message, flush));
     }
 
     @Override
@@ -66,7 +66,7 @@ public final class DefaultRpcClientInvoker implements RpcClientInvoker {
         // 会话活动的状态下才会发送
         final Promise<V> promise = FutureUtils.newPromise();
         session.netEventLoop()
-                .execute(new RpcRequestWriteTask(session, request, false, session.config().getAsyncRpcTimeoutMs(), promise, flush));
+                .execute(new RpcRequestInvocationTask(session, request, false, session.config().getAsyncRpcTimeoutMs(), promise, flush));
 
         // 回调到用户线程
         return promise.whenCompleteAsync(FunctionUtils.emptyBiConsumer(), session.appEventLoop());
@@ -91,7 +91,7 @@ public final class DefaultRpcClientInvoker implements RpcClientInvoker {
         final long syncRpcTimeoutMs = session.config().getSyncRpcTimeoutMs();
 
         session.netEventLoop()
-                .execute(new RpcRequestWriteTask(session, request, true, syncRpcTimeoutMs, promise, true));
+                .execute(new RpcRequestInvocationTask(session, request, true, syncRpcTimeoutMs, promise, true));
 
         if (!promise.awaitUninterruptibly(syncRpcTimeoutMs, TimeUnit.MILLISECONDS)) {
             promise.tryFailure(RpcTimeoutException.INSTANCE);

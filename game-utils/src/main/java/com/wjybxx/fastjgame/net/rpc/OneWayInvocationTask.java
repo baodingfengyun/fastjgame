@@ -16,21 +16,39 @@
 
 package com.wjybxx.fastjgame.net.rpc;
 
+import com.wjybxx.fastjgame.net.session.Session;
+
 /**
- * 发送消息任务。
- * 实现{@link Runnable}是为了消除lambda表达式，减少中间对象。
+ * 单向消息发送任务
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/9/27
+ * date - 2019/9/26
  * github - https://github.com/hl845740757
  */
-public interface WriteTask extends Runnable {
+public class OneWayInvocationTask implements InvocationTask {
 
-    /**
-     * 执行发送操作，运行在网络线程下。
-     * 实现{@link Runnable}接口可以减少lambda表达式。
-     */
-    void run();
+    private final Session session;
+    private final Object message;
+    private final boolean flush;
+
+    public OneWayInvocationTask(Session session, Object message, boolean flush) {
+        this.session = session;
+        this.message = message;
+        this.flush = flush;
+    }
+
+    public Object getMessage() {
+        return message;
+    }
+
+    @Override
+    public void run() {
+        if (flush) {
+            session.fireWriteAndFlush(this);
+        } else {
+            session.fireWrite(this);
+        }
+    }
 
 }

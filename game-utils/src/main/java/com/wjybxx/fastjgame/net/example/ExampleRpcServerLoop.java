@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.example;
 import com.wjybxx.fastjgame.net.local.LocalPort;
 import com.wjybxx.fastjgame.net.local.LocalSessionConfig;
 import com.wjybxx.fastjgame.net.misc.NetContext;
-import com.wjybxx.fastjgame.net.rpc.DefaultRpcRequestProcessor;
+import com.wjybxx.fastjgame.net.rpc.DefaultRpcProcessor;
 import com.wjybxx.fastjgame.net.session.Session;
 import com.wjybxx.fastjgame.net.session.SessionLifecycleAware;
 import com.wjybxx.fastjgame.net.socket.SocketSessionConfig;
@@ -43,7 +43,7 @@ import java.util.concurrent.ThreadFactory;
  */
 class ExampleRpcServerLoop extends DisruptorEventLoop {
 
-    private final DefaultRpcRequestProcessor rpcRequestProcessor = new DefaultRpcRequestProcessor();
+    private final DefaultRpcProcessor rpcRequestProcessor = new DefaultRpcProcessor();
 
     private final Promise<LocalPort> localPortPromise;
 
@@ -70,7 +70,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
                 LocalSessionConfig config = LocalSessionConfig.newBuilder()
                         .setSerializer(ExampleConstants.BINARY_SERIALIZER)
                         .setLifecycleAware(new ClientLifeAware())
-                        .setRpcRequestProcessor(rpcRequestProcessor)
+                        .setRpcProcessor(rpcRequestProcessor)
                         .build();
 
                 final LocalPort localPort = netContext.bindLocal(config);
@@ -83,7 +83,7 @@ class ExampleRpcServerLoop extends DisruptorEventLoop {
             SocketSessionConfig config = SocketSessionConfig.newBuilder()
                     .setSerializer(ExampleConstants.BINARY_SERIALIZER)
                     .setLifecycleAware(new ClientLifeAware())
-                    .setRpcRequestProcessor(rpcRequestProcessor)
+                    .setRpcProcessor(rpcRequestProcessor)
 //                    .setAutoReconnect(true)
                     .setAsyncRpcTimeoutMs((int) TimeUtils.MIN)
                     .setMaxPendingMessages(100)

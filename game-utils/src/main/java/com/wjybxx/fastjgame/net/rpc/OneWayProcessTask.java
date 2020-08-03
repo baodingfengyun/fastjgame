@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
  * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public class OneWayCommitTask implements RpcProcessContext, CommitTask {
+public class OneWayProcessTask implements RpcProcessContext, ProcessTask {
 
     /**
      * session - 包含协议分发器
@@ -39,7 +39,7 @@ public class OneWayCommitTask implements RpcProcessContext, CommitTask {
      */
     private final Object message;
 
-    public OneWayCommitTask(Session session, Object message) {
+    public OneWayProcessTask(Session session, Object message) {
         this.session = session;
         this.message = message;
     }
@@ -47,7 +47,7 @@ public class OneWayCommitTask implements RpcProcessContext, CommitTask {
     @Override
     public void run() {
         try {
-            // 忽略结果，也避免创建不必要的promise
+            // 直接忽略结果，这避免了返回不必要的结果给远程调用方
             session.config().processor().process(this, (RpcMethodSpec) message);
         } catch (Throwable e) {
             // 直接抛出，交给执行者处理

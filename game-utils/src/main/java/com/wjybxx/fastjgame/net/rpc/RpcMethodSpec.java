@@ -19,7 +19,7 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.util.misc.MethodSpec;
 
 /**
- * Rpc方法描述信息
+ * Rpc方法描述信息，用于{@link RpcRequestMessage}的body部分。
  * <p>
  * Q: 网关服与玩家之间也使用该对象吗？如果使用的话，是为什么呢？
  * A: 也使用该对象。理由如下：

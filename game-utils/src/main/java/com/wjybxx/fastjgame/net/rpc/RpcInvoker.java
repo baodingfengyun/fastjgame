@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 import java.util.concurrent.CompletionException;
 
 /**
- * rpc客户端真正执行调用的地方。
+ * 用于rpc客户端执行调用。
  * 用户应该使用门面为自己的应用层提供更好的API。
  *
  * <h3>实现要求</h3>
@@ -45,7 +45,7 @@ import java.util.concurrent.CompletionException;
  * @version 1.0
  * date - 2020/3/9
  */
-public interface RpcClientInvoker {
+public interface RpcInvoker {
 
     /**
      * 发送一个单向消息给对方。

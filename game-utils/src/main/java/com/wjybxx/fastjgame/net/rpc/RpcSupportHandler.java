@@ -105,22 +105,22 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
 
     @Override
     public void write(SessionHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof RpcRequestWriteTask) {
+        if (msg instanceof RpcRequestInvocationTask) {
             // rpc请求
-            RpcRequestWriteTask writeTask = (RpcRequestWriteTask) msg;
+            RpcRequestInvocationTask task = (RpcRequestInvocationTask) msg;
 
-            long deadline = ctx.timerSystem().curTimeMillis() + writeTask.getTimeoutMs();
-            RpcTimeoutInfo rpcTimeoutInfo = new RpcTimeoutInfo(writeTask.getPromise(), deadline);
+            long deadline = ctx.timerSystem().curTimeMillis() + task.getTimeoutMs();
+            RpcTimeoutInfo rpcTimeoutInfo = new RpcTimeoutInfo(task.getPromise(), deadline);
             long requestGuid = ++requestGuidSequencer;
 
             // 保存超时信息，如果是同步rpc调用，放在超时信息的首位
-            if (writeTask.isSync()) {
+            if (task.isSync()) {
                 rpcTimeoutInfoMap.putAndMoveToFirst(requestGuid, rpcTimeoutInfo);
             } else {
                 rpcTimeoutInfoMap.put(requestGuid, rpcTimeoutInfo);
             }
 
-            ctx.fireWrite(new RpcRequestMessage(requestGuid, writeTask.isSync(), writeTask.getRequest()));
+            ctx.fireWrite(new RpcRequestMessage(requestGuid, task.isSync(), task.getRequest()));
         } else {
             ctx.fireWrite(msg);
         }
@@ -135,7 +135,7 @@ public class RpcSupportHandler extends SessionDuplexHandlerAdapter {
             final DefaultRpcProcessContext context = new DefaultRpcProcessContext(ctx.session(), requestMessage.getRequestGuid(), requestMessage.isSync());
             final Promise<?> promise = FutureUtils.newPromise();
 
-            ctx.appEventLoop().execute(new RpcRequestCommitTask(context, requestMessage.getBody(), promise));
+            ctx.appEventLoop().execute(new RpcRequestProcessTask(context, requestMessage.getBody(), promise));
 
             promise.addListener(new RpcResultListener(context), ctx.netEventLoop());
         } else if (msg instanceof RpcResponseMessage) {

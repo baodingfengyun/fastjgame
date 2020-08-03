@@ -24,21 +24,19 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * rpc请求分发的默认实现
- *
  * @author wjybxx
  * @version 1.0
  * date - 2019/8/26
  * github - https://github.com/hl845740757
  */
-public class DefaultRpcRequestProcessor implements RpcMethodProxyRegistry, RpcRequestProcessor {
+public class DefaultRpcProcessor implements RpcMethodProxyRegistry, RpcProcessor {
 
     /**
      * 所有的Rpc请求处理函数, methodKey -> methodProxy
      */
-    private final Int2ObjectMap<RpcMethodProxy> proxyMapping = new Int2ObjectOpenHashMap<>(512);
+    private final Int2ObjectMap<RpcMethodProxy> proxyMap = new Int2ObjectOpenHashMap<>(512);
 
-    public DefaultRpcRequestProcessor() {
+    public DefaultRpcProcessor() {
 
     }
 
@@ -46,10 +44,10 @@ public class DefaultRpcRequestProcessor implements RpcMethodProxyRegistry, RpcRe
     public final void register(short serviceId, short methodId, @Nonnull RpcMethodProxy proxy) {
         // rpc请求id不可以重复
         final int methodKey = calMethodKey(serviceId, methodId);
-        if (proxyMapping.containsKey(methodKey)) {
+        if (proxyMap.containsKey(methodKey)) {
             throw new IllegalArgumentException("methodKey " + methodKey + " is already registered!");
         }
-        proxyMapping.put(methodKey, proxy);
+        proxyMap.put(methodKey, proxy);
     }
 
     private static int calMethodKey(short serviceId, short methodId) {
@@ -60,7 +58,7 @@ public class DefaultRpcRequestProcessor implements RpcMethodProxyRegistry, RpcRe
      * 释放所有捕获的对象，避免内存泄漏
      */
     public final void release() {
-        proxyMapping.clear();
+        proxyMap.clear();
     }
 
     @Override
@@ -78,7 +76,7 @@ public class DefaultRpcRequestProcessor implements RpcMethodProxyRegistry, RpcRe
 
     private Object postImp(@Nonnull RpcProcessContext context, @Nonnull DefaultRpcMethodSpec<?> rpcMethodSpec) throws Exception {
         final int methodKey = calMethodKey(rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId());
-        final RpcMethodProxy methodProxy = proxyMapping.get(methodKey);
+        final RpcMethodProxy methodProxy = proxyMap.get(methodKey);
         if (null == methodProxy) {
             final String msg = String.format("rcv unknown request, session %s, serviceId=%d methodId=%d",
                     context.session().sessionId(), rpcMethodSpec.getServiceId(), rpcMethodSpec.getMethodId());

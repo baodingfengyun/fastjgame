@@ -68,8 +68,8 @@ public interface Serializer {
     Object cloneObject(@Nullable Object object) throws Exception;
 
     /**
-     * 估算序列化后的大小，应该是尽量快的计算，有助于用户分配{@link ByteBuf}。
-     * 能估算的对象应返回精确值，无发估算的对象可返回默认值。
+     * 估算序列化后的大小，应该是尽量快的计算，这样有助于用户分配{@link ByteBuf}。
+     * 能估算的对象应返回精确值，无法估算的对象可返回默认值。
      *
      * @param object 带估算的对象
      * @return 一个估算值

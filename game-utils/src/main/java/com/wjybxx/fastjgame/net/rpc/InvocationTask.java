@@ -13,21 +13,23 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.wjybxx.fastjgame.net.rpc;
 
 /**
- * 网络层已收到的消息包，待提交到用户线程执行。
+ * 客户端执行调用任务。
  * 实现{@link Runnable}是为了消除lambda表达式，减少中间对象。
  *
  * @author wjybxx
  * @version 1.0
- * date - 2019/8/8
+ * date - 2019/9/27
  * github - https://github.com/hl845740757
  */
-public interface CommitTask extends Runnable {
+public interface InvocationTask extends Runnable {
 
     /**
-     * 执行提交操作，此时运行在用户线程下。
+     * 执行发送操作，运行在网络线程下。
+     * 实现{@link Runnable}接口可以减少lambda表达式。
      */
     void run();
 

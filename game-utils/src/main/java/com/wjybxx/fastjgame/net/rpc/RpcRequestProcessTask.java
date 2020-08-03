@@ -27,7 +27,7 @@ import com.wjybxx.fastjgame.util.concurrent.Promise;
  * date - 2019/8/8
  * github - https://github.com/hl845740757
  */
-public class RpcRequestCommitTask implements CommitTask {
+public class RpcRequestProcessTask implements ProcessTask {
 
     /**
      * 执行上下文
@@ -42,7 +42,7 @@ public class RpcRequestCommitTask implements CommitTask {
      */
     private final Promise<?> promise;
 
-    public RpcRequestCommitTask(RpcProcessContext context, Object request, Promise<?> promise) {
+    public RpcRequestProcessTask(RpcProcessContext context, Object request, Promise<?> promise) {
         this.context = context;
         this.promise = promise;
         this.request = request;

@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * rpc请求分发器。
+ * 用于rpc服务端处理请求。
  * 注意：该接口实现不必是线程安全的，网络层保证所有的逻辑执行都在用户线程 - 即 {@link NetContext#appEventLoop()}。
  *
  * @author wjybxx
@@ -31,10 +31,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public interface RpcRequestProcessor {
+public interface RpcProcessor {
 
     /**
-     * 推送一个rpc请求
+     * 处理一个rpc请求
      *
      * @param context rpc执行的上下文，用于获取方法参数之外的一些信息
      * @param request rpc请求，如果编解码异常，则可能为null。

@@ -56,7 +56,6 @@ public class SocketConnectRequest implements NetMessage {
         return verifiedTimes;
     }
 
-
     @Override
     public NetMessageType type() {
         return NetMessageType.CONNECT_REQUEST;
