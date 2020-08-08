@@ -43,8 +43,8 @@ public class ObjectWriterImpl implements ObjectWriter {
     private final CodecRegistry codecRegistry;
     private final CodedDataOutputStream outputStream;
 
-    int recursionDepth;
-    int recursionLimit = DEFAULT_RECURSION_LIMIT;
+    private final int recursionLimit = DEFAULT_RECURSION_LIMIT;
+    private int recursionDepth;
 
     ObjectWriterImpl(BinarySerializer serializer, CodecRegistry codecRegistry, CodedDataOutputStream outputStream) {
         this.serializer = serializer;

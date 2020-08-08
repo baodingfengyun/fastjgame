@@ -48,6 +48,20 @@ public class BinaryProtoCodecTest {
         testProtoBuf(serializer, byteBufAllocator);
 
         testCollection(serializer);
+
+        testArray(serializer);
+    }
+
+    private static void testArray(BinarySerializer serializer) throws Exception {
+        int[] array = new int[]{5, 1, 2};
+        final Object cloneResult = serializer.cloneObject(array);
+
+        if (cloneResult instanceof int[]) {
+            final boolean equals = Arrays.equals(array, (int[]) cloneResult);
+            System.out.println("cloneResult instance of int[], equals=" + equals);
+        } else {
+            throw new AssertionError("cloneResult is not int[]");
+        }
     }
 
     private static void testCustomBean(BinarySerializer serializer, ByteBufAllocator byteBufAllocator) throws Exception {
@@ -88,11 +102,11 @@ public class BinaryProtoCodecTest {
         linkedList.add(1024);
 
         final Object cloneResult = serializer.cloneObject(linkedList);
-        final boolean equals = linkedList.equals(cloneResult);
         if (cloneResult instanceof LinkedList) {
+            final boolean equals = linkedList.equals(cloneResult);
             System.out.println("cloneResult instance of linkedList, equals=" + equals);
         } else {
-            System.out.println("cloneResult is not linkedList, equals=" + equals);
+            throw new AssertionError("cloneResult is not linkedList");
         }
     }
 

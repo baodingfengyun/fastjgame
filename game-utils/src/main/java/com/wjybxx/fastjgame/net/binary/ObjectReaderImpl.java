@@ -42,8 +42,8 @@ public class ObjectReaderImpl implements ObjectReader {
     private final CodecRegistry codecRegistry;
     private final CodedDataInputStream inputStream;
 
-    int recursionDepth;
-    int recursionLimit = ObjectWriterImpl.DEFAULT_RECURSION_LIMIT;
+    private final int recursionLimit = ObjectWriterImpl.DEFAULT_RECURSION_LIMIT;
+    private int recursionDepth;
 
     ObjectReaderImpl(BinarySerializer serializer, CodecRegistry codecRegistry, CodedDataInputStream inputStream) {
         this.serializer = serializer;
@@ -360,7 +360,7 @@ public class ObjectReaderImpl implements ObjectReader {
     private <E> E readToSubType(TypeId typeId, Supplier<E> factory) throws Exception {
         final PojoCodec<E> pojoCodec = getPojoCodec(typeId);
         if (null == pojoCodec) {
-            throw new IOException("Unsupported type " + typeId);
+            throw new IOException("Unsupported typeId " + typeId);
         }
 
         final E result = factory.get();
