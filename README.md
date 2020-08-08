@@ -51,7 +51,8 @@ fastjgame 为 fast java game framework的缩写，如名字一样，该项目的
 4. 反序列化就不多说了，应该能想到了。
 5. 多态问题：任意的集合/Map/数组的内容都是可序列化的，但其类型信息不一定是可序列化的。比如一些不可变集合，它们只能使用普通集合的**TypeId**序列化，因此默认
 解码之后是**ArrayList**或**LinkedHashMap**或**LinkedHashSet**，那如果想解码为其它类型怎么办？ - 在解码时传入工厂，详见**ObjectReader**中的读取集合数组等方法。
-6. 为方便使用，提供了**SerializableClass**、**SerializableField**以及**Impl**注解，注解处理器会自动生成对应的编解码处理器。在**example**包中有示例。
+6. 为方便使用，提供了**SerializableClass**、**SerializableField**以及**Impl**注解，注解处理器会自动生成对应的编解码处理器。在**example**包中有示例。  
+表现: （反）序列化速度还是很快的；不必定义proto文件，支持任意的数据结构；可以通过注解为bean生成编解码类，也可以手动编解码（简单易用的编解码API）；可以更好的处理多态问题。
 
 ### 日志搜集
 日志搜集组件是**插件式**的，类似SLF和Log4J。应用基于log-api发布和消费日志，在启动时指定具体的实现和对应的适配组件。

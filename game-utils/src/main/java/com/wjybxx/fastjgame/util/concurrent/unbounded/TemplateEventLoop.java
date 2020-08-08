@@ -298,6 +298,7 @@ public class TemplateEventLoop extends AbstractEventLoop {
 
     @Override
     public final void execute(@Nonnull Runnable task) {
+        Objects.requireNonNull(task, "task");
         if (addTask(task) && !inEventLoop()) {
             waitStrategy.signalAllWhenBlocking();
             ensureStarted();

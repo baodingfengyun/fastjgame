@@ -16,10 +16,8 @@
 
 package com.wjybxx.fastjgame.net.example;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
-import com.google.protobuf.Message;
-import com.google.protobuf.Parser;
+import com.google.protobuf.*;
+import com.wjybxx.fastjgame.net.binary.BinaryValueType;
 import com.wjybxx.fastjgame.net.serialization.DefaultTypeIdMapper;
 import com.wjybxx.fastjgame.net.serialization.TypeId;
 import com.wjybxx.fastjgame.net.serialization.TypeIdMapper;
@@ -44,8 +42,9 @@ import java.util.Map;
 public class ProtoBufSerializePerformanceTest {
 
     private static final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8192);
+    private static final ExtensionRegistryLite emptyRegistry = ExtensionRegistryLite.getEmptyRegistry();
 
-    private static final TypeIdMapper TYPE_MODEL_MAPPER = DefaultTypeIdMapper.newInstance(
+    private static final TypeIdMapper TYPE_ID_MAPPER = DefaultTypeIdMapper.newInstance(
             Collections.singleton(p_test.p_testMsg.class), ExampleConstants.typeIdMappingStrategy);
 
     /**
@@ -62,10 +61,12 @@ public class ProtoBufSerializePerformanceTest {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println(msg.toString());
-        equalsTest(msg);
 
         Map<Class<?>, Parser<? extends Message>> parserMap = new IdentityHashMap<>();
         parserMap.put(msg.getClass(), msg.getParserForType());
+
+        equalsTest(msg, parserMap);
+
         System.out.println();
 
         // 预热
@@ -77,36 +78,51 @@ public class ProtoBufSerializePerformanceTest {
         Thread.sleep(1000);
     }
 
-    private static void equalsTest(p_test.p_testMsg msg) throws IOException {
-        final Parser<p_test.p_testMsg> parser = msg.getParserForType();
-
-        final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(byteBuffer);
-        writeTypeId(msg, codedOutputStream);
-        msg.writeTo(codedOutputStream);
-        codedOutputStream.flush();
+    private static void equalsTest(MessageLite msg, Map<Class<?>, Parser<? extends Message>> parserMap) throws IOException {
+        final CodedOutputStream codedOutputStream = encode(msg);
         System.out.println("encode result bytes = " + codedOutputStream.getTotalBytesWritten());
 
         byteBuffer.flip();
 
-        final CodedInputStream inputStream = CodedInputStream.newInstance(byteBuffer);
-        final Class<?> type = readType(inputStream);
-        final Object decodeMsg = parser.parseFrom(inputStream);
+        final Object decodeMsg = decode(parserMap);
         System.out.println("codec equals result = " + msg.equals(decodeMsg));
 
         byteBuffer.clear();
     }
 
+    private static CodedOutputStream encode(MessageLite msg) throws IOException {
+        final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(byteBuffer);
+        codedOutputStream.writeRawByte(BinaryValueType.OBJECT.getNumber());
+        codedOutputStream.writeFixed32NoTag(0);
+
+        writeTypeId(msg, codedOutputStream);
+        codedOutputStream.writeMessageNoTag(msg);
+
+        codedOutputStream.flush();
+        return codedOutputStream;
+    }
+
     private static void writeTypeId(Object msg, CodedOutputStream codedOutputStream) throws IOException {
-        final TypeId typeId = TYPE_MODEL_MAPPER.ofType(msg.getClass());
+        final TypeId typeId = TYPE_ID_MAPPER.ofType(msg.getClass());
         assert null != typeId;
         codedOutputStream.writeRawByte(typeId.getNamespace());
         codedOutputStream.writeFixed32NoTag(typeId.getClassId());
     }
 
+    private static Object decode(Map<Class<?>, Parser<? extends Message>> parserMap) throws IOException {
+        final CodedInputStream inputStream = CodedInputStream.newInstance(byteBuffer);
+        final BinaryValueType valueType = BinaryValueType.forNumber(inputStream.readRawByte());
+        final int length = inputStream.readFixed32();
+
+        final Class<?> messageClass = readType(inputStream);
+        final Parser<? extends Message> parser = parserMap.get(messageClass);
+        return inputStream.readMessage(parser, emptyRegistry);
+    }
+
     private static Class<?> readType(CodedInputStream inputStream) throws IOException {
         final byte nameSpace = inputStream.readRawByte();
         final int classId = inputStream.readFixed32();
-        final Class<?> type = TYPE_MODEL_MAPPER.ofId(new TypeId(nameSpace, classId));
+        final Class<?> type = TYPE_ID_MAPPER.ofId(new TypeId(nameSpace, classId));
         assert null != type;
         return type;
     }
@@ -114,18 +130,11 @@ public class ProtoBufSerializePerformanceTest {
     private static void codecTest(Message msg, int loopTimes, Map<Class<?>, Parser<? extends Message>> parserMap) throws IOException {
         final long start = System.currentTimeMillis();
         for (int index = 0; index < loopTimes; index++) {
-            // 这里需要简单模拟下解码过程
-            final CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(byteBuffer);
-            writeTypeId(msg, codedOutputStream);
-            msg.writeTo(codedOutputStream);
-            codedOutputStream.flush();
+            encode(msg);
 
             byteBuffer.flip();
 
-            final CodedInputStream inputStream = CodedInputStream.newInstance(byteBuffer);
-            final Class<?> messageClass = readType(inputStream);
-            final Parser<?> parser = parserMap.get(messageClass);
-            final Object decodeMsg = parser.parseFrom(inputStream);
+            decode(parserMap);
 
             byteBuffer.clear();
         }

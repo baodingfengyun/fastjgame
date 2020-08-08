@@ -303,6 +303,7 @@ public class DisruptorEventLoop extends AbstractEventLoop {
 
     @Override
     public final void execute(@Nonnull Runnable task) {
+        Objects.requireNonNull(task, "task");
         // 这里不先判断{@code isShuttingDown()}，在申请sequence之后判断是否拒绝任务，可以减小整体开销
         try {
             tryPublish(task, ringBuffer.tryNext(1));

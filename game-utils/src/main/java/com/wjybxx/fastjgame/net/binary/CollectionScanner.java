@@ -106,7 +106,7 @@ public class CollectionScanner {
             return false;
         }
 
-        if (StringUtils.countMatches(name, '2') > 0 && (name.contains("Double") || name.contains("Float"))) {
+        if (StringUtils.contains(name, '2') && (name.contains("Double") || name.contains("Float"))) {
             // float 和 double的map不常用
             return false;
         }

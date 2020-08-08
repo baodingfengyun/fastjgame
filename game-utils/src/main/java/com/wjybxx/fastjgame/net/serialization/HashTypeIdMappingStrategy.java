@@ -19,6 +19,9 @@ package com.wjybxx.fastjgame.net.serialization;
 import com.google.protobuf.Message;
 import com.google.protobuf.ProtocolMessageEnum;
 
+import java.util.Collection;
+import java.util.Map;
+
 /**
  * 基于hash的消息映射方法，由类的简单名计算hash值。
  *
@@ -60,6 +63,15 @@ public class HashTypeIdMappingStrategy implements TypeIdMappingStrategy {
         if (ProtocolMessageEnum.class.isAssignableFrom(messageClass)) {
             return 2;
         }
-        return 3;
+        if (Collection.class.isAssignableFrom(messageClass)) {
+            return 3;
+        }
+        if (Map.class.isAssignableFrom(messageClass)) {
+            return 4;
+        }
+        if (messageClass.isArray()) {
+            return 5;
+        }
+        return 6;
     }
 }

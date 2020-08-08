@@ -52,18 +52,6 @@ public class BinaryProtoCodecTest {
         testArray(serializer);
     }
 
-    private static void testArray(BinarySerializer serializer) throws Exception {
-        int[] array = new int[]{5, 1, 2};
-        final Object cloneResult = serializer.cloneObject(array);
-
-        if (cloneResult instanceof int[]) {
-            final boolean equals = Arrays.equals(array, (int[]) cloneResult);
-            System.out.println("cloneResult instance of int[], equals=" + equals);
-        } else {
-            throw new AssertionError("cloneResult is not int[]");
-        }
-    }
-
     private static void testCustomBean(BinarySerializer serializer, ByteBufAllocator byteBufAllocator) throws Exception {
         ExampleMessages.FullMessage fullMessage = newFullMessage();
         final ByteBuf encodeResult = byteBufAllocator.directBuffer(serializer.estimateSerializedSize(fullMessage));
@@ -107,6 +95,19 @@ public class BinaryProtoCodecTest {
             System.out.println("cloneResult instance of linkedList, equals=" + equals);
         } else {
             throw new AssertionError("cloneResult is not linkedList");
+        }
+    }
+
+    private static void testArray(BinarySerializer serializer) throws Exception {
+        System.out.println("-----------------------array--------------------");
+        int[] array = new int[]{5, 1, 2};
+        final Object cloneResult = serializer.cloneObject(array);
+
+        if (cloneResult instanceof int[]) {
+            final boolean equals = Arrays.equals(array, (int[]) cloneResult);
+            System.out.println("cloneResult instance of int[], equals=" + equals);
+        } else {
+            throw new AssertionError("cloneResult is not int[]");
         }
     }
 

@@ -91,10 +91,10 @@ public class BinarySerializer implements Serializer {
             return 1;
         }
 
-        if (object instanceof Message) {
+        if (object instanceof MessageLite) {
             // 对protoBuf协议的优化
-            // tag + length + nameSpace + classId + msg.getSerializedSize() + content
-            return 1 + 4 + 1 + 4 + 4 + ((Message) object).getSerializedSize();
+            // tag + length + nameSpace + classId + length + content
+            return 1 + 4 + 1 + 4 + 4 + ((MessageLite) object).getSerializedSize();
         }
 
         if (object instanceof byte[]) {

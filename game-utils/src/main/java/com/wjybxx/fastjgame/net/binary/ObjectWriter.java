@@ -24,6 +24,9 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
+ * 该接口用于{@link PojoCodecImpl}的实现类编码对象。
+ * 该接口用于隐藏底层的细节信息，为解码器提供简单易用的API。
+ *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/13
@@ -93,6 +96,7 @@ public interface ObjectWriter extends AutoCloseable {
     <T> void writeObject(@Nonnull T value, @Nonnull Class<? super T> superClass) throws Exception;
 
     // ----------------------------------------- 其它 ----------------------------------
+    // 以下写入方法仅仅是用于加快编码速度
 
     /**
      * 向输出流中写入一个protoBuf消息

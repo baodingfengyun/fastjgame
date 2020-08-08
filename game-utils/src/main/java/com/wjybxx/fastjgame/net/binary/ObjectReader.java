@@ -25,7 +25,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Pojo对象输入流
+ * 该接口用于{@link PojoCodecImpl}的实现类解码对象。
+ * 该接口用于隐藏底层的细节信息，为解码器提供简单易用的API。
  *
  * @author wjybxx
  * @version 1.0
@@ -92,6 +93,7 @@ public interface ObjectReader {
      *
      * @param componentType 数组元素类型，支持基本类型（因此未定义为泛型参数）
      * @param <T>           这里的泛型仅仅用于方便转型
+     * @throws ArrayStoreException 如果元素不可以保存在该数组中，则抛出该异常
      */
     @Nullable
     <T> T readArray(@Nonnull Class<?> componentType) throws Exception;

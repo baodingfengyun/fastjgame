@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.*;
 
 /**
@@ -115,6 +116,7 @@ public class GlobalEventLoop extends AbstractEventLoop {
 
     @Override
     public void execute(@Nonnull Runnable task) {
+        Objects.requireNonNull(task, "task");
         executorService.execute(() -> safeExecute(task));
     }
 

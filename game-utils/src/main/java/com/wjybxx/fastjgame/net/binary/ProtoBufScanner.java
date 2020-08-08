@@ -21,6 +21,7 @@ import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.util.ClassScanner;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,6 +51,9 @@ public class ProtoBufScanner {
     }
 
     private static boolean isProtoBufferClass(Class<?> messageClazz) {
+        if (Modifier.isAbstract(messageClazz.getModifiers())) {
+            return false;
+        }
         return AbstractMessage.class.isAssignableFrom(messageClazz)
                 || ProtocolMessageEnum.class.isAssignableFrom(messageClazz);
     }
