@@ -45,10 +45,14 @@ import java.util.*;
 @AutoService(Processor.class)
 public class SerializableClassProcessor extends MyAbstractProcessor {
 
+
     // 使用这种方式可以脱离对utils，net包的依赖
     private static final String SERIALIZABLE_CLASS_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.SerializableClass";
     private static final String SERIALIZABLE_FIELD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.SerializableField";
     public static final String IMPL_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.Impl";
+
+    public static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.LazySerializable";
+    public static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.PreDeserializable";
 
     private static final String CODEC_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.PojoCodecImpl";
     private static final String ABSTRACT_CODEC_CANONICAL_NAME = "com.wjybxx.fastjgame.net.binary.AbstractPojoCodecImpl";

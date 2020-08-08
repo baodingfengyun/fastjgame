@@ -53,7 +53,7 @@ import java.lang.annotation.Target;
  * date - 2020/2/17
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.PARAMETER})
 public @interface
 Impl {
 

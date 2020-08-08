@@ -17,10 +17,9 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.function.IntFunction;
 
 /**
- * 自定义POJO对象编解码实现接口，该接口与{@link CustomPojoCodec}协同工作，为典型的桥接模式。
+ * 自定义POJO对象编解码实现接口，该接口与{@link PojoCodec}协同工作，为典型的桥接模式。
  * <p>
  * 实体类序列化工具类，每一个{@link PojoCodecImpl}只负责一个固定类型的解析。
  * 生成的代码会实现该接口，用户手动实现编解码时也实现该接口。
@@ -37,7 +36,7 @@ import java.util.function.IntFunction;
  * 1. 必须保证线程安全，最好是无状态的。
  * 2. 最好实现为目标类的静态内部类，且最好是private级别，不要暴露给外层。
  * 3. 必须有一个无参构造方法(可以private)。
- * 4. 必须使用{@link ObjectReader#readMap(IntFunction)}{@link ObjectReader#readCollection(IntFunction)}
+ * 4. 必须使用{@link ObjectReader#readMap(java.util.function.Supplier)}{@link ObjectReader#readCollection(java.util.function.Supplier)}
  * 去读取map和collection，否则可能由于多态问题赋值失败。
  *
  * <br>-------------------------------如何实现多态解析----------------------<br>
@@ -45,7 +44,7 @@ import java.util.function.IntFunction;
  * 1. 必须手写实现。
  * 2. 必须采用组合方式，将要多态处理的类作为成员字段。
  * 3. 使用特定方法进行读写
- * {@link ObjectReader#readEntity(EntityFactory, Class)}
+ * {@link ObjectReader#readObject(java.util.function.Supplier)}
  * {@link ObjectWriter#writeObject(Object, Class)}
  * PS: 其实Map和Collection的处理就是例子。
  *

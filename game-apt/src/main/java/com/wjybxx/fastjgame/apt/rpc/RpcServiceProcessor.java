@@ -20,6 +20,7 @@ import com.google.auto.service.AutoService;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import com.wjybxx.fastjgame.apt.core.MyAbstractProcessor;
+import com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 
 import javax.annotation.processing.Processor;
@@ -52,9 +53,6 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
 
     private static final String RPC_SERVICE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcService";
     private static final String RPC_METHOD_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethod";
-
-    static final String LAZY_SERIALIZABLE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.LazySerializable";
-    static final String PRE_DESERIALIZE_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.PreDeserializable";
 
     private static final String METHOD_SPEC_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.RpcMethodSpec";
     private static final String DEFAULT_METHOD_SPEC_CANONICAL_NAME = "com.wjybxx.fastjgame.net.rpc.DefaultRpcMethodSpec";
@@ -115,8 +113,8 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
         methodSpecElement = elementUtils.getTypeElement(METHOD_SPEC_CANONICAL_NAME);
         defaultMethodSpecRawTypeName = TypeName.get(typeUtils.getDeclaredType(elementUtils.getTypeElement(DEFAULT_METHOD_SPEC_CANONICAL_NAME)));
 
-        lazySerializableDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(LAZY_SERIALIZABLE_CANONICAL_NAME));
-        preDeserializeDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(PRE_DESERIALIZE_CANONICAL_NAME));
+        lazySerializableDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SerializableClassProcessor.LAZY_SERIALIZABLE_CANONICAL_NAME));
+        preDeserializeDeclaredType = typeUtils.getDeclaredType(elementUtils.getTypeElement(SerializableClassProcessor.PRE_DESERIALIZE_CANONICAL_NAME));
 
         mapTypeMirror = elementUtils.getTypeElement(Map.class.getCanonicalName()).asType();
         linkedHashMapTypeMirror = elementUtils.getTypeElement(LinkedHashMap.class.getCanonicalName()).asType();

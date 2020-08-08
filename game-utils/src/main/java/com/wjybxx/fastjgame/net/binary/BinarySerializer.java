@@ -16,16 +16,11 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.common.collect.Sets;
-import com.google.protobuf.Internal;
-import com.google.protobuf.Message;
-import com.google.protobuf.Parser;
-import com.google.protobuf.ProtocolMessageEnum;
+import com.google.protobuf.*;
 import com.wjybxx.fastjgame.net.misc.BufferPool;
-import com.wjybxx.fastjgame.net.serialization.JsonSerializer;
-import com.wjybxx.fastjgame.net.serialization.Serializer;
-import com.wjybxx.fastjgame.net.type.TypeModelMapper;
+import com.wjybxx.fastjgame.net.serialization.*;
 import com.wjybxx.fastjgame.net.utils.ProtoUtils;
+import com.wjybxx.fastjgame.util.CollectionUtils;
 import io.netty.buffer.ByteBuf;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -35,11 +30,11 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+import java.util.function.Supplier;
 
 /**
  * 基于protoBuf的二进制格式编解码器。
@@ -58,14 +53,35 @@ import java.util.stream.Stream;
 public class BinarySerializer implements Serializer {
 
     private final CodecRegistry codecRegistry;
+    final TypeIdMapper typeIdMapper;
+    final Map<Class<?>, Supplier<? extends Collection<?>>> collectionFactoryMap;
+    final Map<Class<?>, Supplier<? extends Map<?, ?>>> mapFactoryMap;
+
+    final Map<Class<?>, Parser<? extends MessageLite>> parserMap;
+    final Map<Class<?>, Internal.EnumLiteMap<? extends ProtocolMessageEnum>> protocolEnumMap;
+
     private final int defaultByteBufCapacity;
 
-    private BinarySerializer(CodecRegistry codecRegistry) {
-        this(codecRegistry, 256);
+    private BinarySerializer(TypeIdMapper typeIdMapper, CodecRegistry codecRegistry,
+                             Map<Class<?>, Supplier<? extends Collection<?>>> collectionFactoryMap,
+                             Map<Class<?>, Supplier<? extends Map<?, ?>>> mapFactoryMap,
+                             Map<Class<?>, Parser<? extends MessageLite>> parserMap,
+                             Map<Class<?>, Internal.EnumLiteMap<? extends ProtocolMessageEnum>> protocolEnumMap) {
+        this(typeIdMapper, codecRegistry, collectionFactoryMap, mapFactoryMap, parserMap, protocolEnumMap, 256);
     }
 
-    public BinarySerializer(CodecRegistry codecRegistry, int defaultByteBufCapacity) {
+    public BinarySerializer(TypeIdMapper typeIdMapper, CodecRegistry codecRegistry,
+                            Map<Class<?>, Supplier<? extends Collection<?>>> collectionFactoryMap,
+                            Map<Class<?>, Supplier<? extends Map<?, ?>>> mapFactoryMap,
+                            Map<Class<?>, Parser<? extends MessageLite>> parserMap,
+                            Map<Class<?>, Internal.EnumLiteMap<? extends ProtocolMessageEnum>> protocolEnumMap,
+                            int defaultByteBufCapacity) {
         this.codecRegistry = codecRegistry;
+        this.typeIdMapper = typeIdMapper;
+        this.parserMap = parserMap;
+        this.protocolEnumMap = protocolEnumMap;
+        this.collectionFactoryMap = collectionFactoryMap;
+        this.mapFactoryMap = mapFactoryMap;
         this.defaultByteBufCapacity = defaultByteBufCapacity;
     }
 
@@ -74,16 +90,16 @@ public class BinarySerializer implements Serializer {
         if (object == null) {
             return 1;
         }
+
         if (object instanceof Message) {
             // 对protoBuf协议的优化
-            // tag + nameSpace + classId + length + content
-            // 1 + 1 + 4 + 4 + msg.getSerializedSize()
-            return 1 + 1 + 4 + 4 + ((Message) object).getSerializedSize();
+            // tag + length + nameSpace + classId + msg.getSerializedSize() + content
+            return 1 + 4 + 1 + 4 + 4 + ((Message) object).getSerializedSize();
         }
 
         if (object instanceof byte[]) {
-            // tag + childTag + length + content
-            return 1 + 1 + 4 + ((byte[]) object).length;
+            // tag  + length + content
+            return 1 + 4 + ((byte[]) object).length;
         }
 
         return defaultByteBufCapacity;
@@ -125,7 +141,7 @@ public class BinarySerializer implements Serializer {
             encodeObject(outputStream, object);
 
             // 拷贝序列化结果
-            final byte[] resultBytes = new byte[outputStream.writerIndex()];
+            final byte[] resultBytes = new byte[outputStream.getTotalBytesWritten()];
             System.arraycopy(localBuffer, 0, resultBytes, 0, resultBytes.length);
             return resultBytes;
         } finally {
@@ -150,81 +166,125 @@ public class BinarySerializer implements Serializer {
             encodeObject(outputStream, object);
 
             // 读出
-            final CodedDataInputStream inputStream = CodedDataInputStream.newInstance(localBuffer, 0, outputStream.writerIndex());
+            final CodedDataInputStream inputStream = CodedDataInputStream.newInstance(localBuffer, 0, outputStream.getTotalBytesWritten());
             return decodeObject(inputStream);
         } finally {
             BufferPool.releaseBuffer(localBuffer);
         }
     }
 
-    private void encodeObject(DataOutputStream outputStream, @Nullable Object value) throws Exception {
-        final ObjectWriter writer = new ObjectWriterImp(codecRegistry, outputStream);
+    private void encodeObject(CodedDataOutputStream outputStream, @Nullable Object value) throws Exception {
+        final ObjectWriter writer = new ObjectWriterImpl(this, codecRegistry, outputStream);
         writer.writeObject(value);
         writer.flush();
     }
 
-    private Object decodeObject(DataInputStream inputStream) throws Exception {
-        final ObjectReader reader = new ObjectReaderImp(codecRegistry, inputStream);
+    private Object decodeObject(CodedDataInputStream inputStream) throws Exception {
+        final ObjectReader reader = new ObjectReaderImpl(this, codecRegistry, inputStream);
         return reader.readObject();
     }
 
     // ------------------------------------------------- 工厂方法 ------------------------------------------------------
 
-    public static BinarySerializer newInstance(TypeModelMapper typeModelMapper) {
-        return newInstance(typeModelMapper, c -> true);
+    public static BinarySerializer newInstance(final TypeIdMappingStrategy typeIdMappingStrategy,
+                                               final CollectionScanner.ScanResult scanResult) {
+        return newInstance(typeIdMappingStrategy,
+                scanResult.collectionFactories,
+                scanResult.mapFactories,
+                scanResult.arrayTypes);
     }
 
     /**
-     * @param typeModelMapper 类型映射信息
-     * @param filter          由于{@link BinarySerializer}支持的消息类是确定的，不能加入，但是允许过滤删除
+     * @param collectionFactories 所有精确解析的集合
+     * @param mapFactories        所有支精确解析的map
+     * @param arrayTypes          所有精确解析的数组
      */
     @SuppressWarnings("unchecked")
-    public static BinarySerializer newInstance(TypeModelMapper typeModelMapper, Predicate<Class<?>> filter) {
-        final Set<Class<?>> supportedClassSet = getFilteredSupportedClasses(filter);
-        final List<PojoCodec<?>> codecList = new ArrayList<>(supportedClassSet.size());
-        try {
-            for (Class<?> messageClazz : supportedClassSet) {
-                // protoBuf消息
-                if (Message.class.isAssignableFrom(messageClazz)) {
-                    Parser<?> parser = ProtoUtils.findParser((Class<? extends Message>) messageClazz);
-                    codecList.add(new ProtoMessageCodec(messageClazz, parser));
-                    continue;
-                }
+    public static BinarySerializer newInstance(final TypeIdMappingStrategy typeIdMappingStrategy,
+                                               final Collection<Supplier<? extends Collection<?>>> collectionFactories,
+                                               final Collection<Supplier<? extends Map<?, ?>>> mapFactories,
+                                               final Collection<Class<?>> arrayTypes) {
+        final Map<Class<?>, Supplier<? extends Collection<?>>> collectionFactoryMap = indexCollectionFactories(collectionFactories);
+        final Map<Class<?>, Supplier<? extends Map<?, ?>>> mapFactoryMap = indexMapFactories(mapFactories);
 
-                // protoBufEnum
-                if (ProtocolMessageEnum.class.isAssignableFrom(messageClazz)) {
-                    final Internal.EnumLiteMap<?> mapper = ProtoUtils.findMapper((Class<? extends ProtocolMessageEnum>) messageClazz);
-                    codecList.add(new ProtoEnumCodec(messageClazz, mapper));
-                    continue;
-                }
+        // protoBuf支持
+        final Set<Class<?>> allProtoBufferClasses = ProtoBufScanner.scan();
+        final Map<Class<?>, Parser<? extends MessageLite>> parserMap = new IdentityHashMap<>();
+        final Map<Class<?>, Internal.EnumLiteMap<? extends ProtocolMessageEnum>> protocolEnumMap = new IdentityHashMap<>();
 
-                // 带有DBEntity和SerializableClass注解的所有类，和手写Serializer的类
-                final Class<? extends PojoCodecImpl<?>> serializerClass = CodecScanner.getCodecClass(messageClazz);
-                if (serializerClass != null) {
-                    final PojoCodecImpl<?> codec = createCodecInstance(serializerClass);
-                    codecList.add(new CustomPojoCodec(codec));
-                    continue;
-                }
-
-                throw new IllegalArgumentException("Unsupported class " + messageClazz.getName());
+        for (Class<?> messageClazz : allProtoBufferClasses) {
+            // protoBuf消息
+            if (Message.class.isAssignableFrom(messageClazz)) {
+                Parser<? extends MessageLite> parser = ProtoUtils.findParser((Class<? extends Message>) messageClazz);
+                parserMap.put(messageClazz, parser);
+                continue;
             }
+            // protoBufEnum
+            if (ProtocolMessageEnum.class.isAssignableFrom(messageClazz)) {
+                final Internal.EnumLiteMap<? extends ProtocolMessageEnum> mapper = ProtoUtils.findMapper((Class<? extends ProtocolMessageEnum>) messageClazz);
+                protocolEnumMap.put(messageClazz, mapper);
+                continue;
+            }
+            throw new IllegalArgumentException("Unsupported class " + messageClazz.getName());
+        }
 
-            final CodecRegistry codecRegistry = CodecRegistrys.fromAppPojoCodecs(typeModelMapper, codecList);
-            return new BinarySerializer(codecRegistry);
+        try {
+            // 定义有PojoCodec的类
+            final Map<Class<?>, PojoCodec<?>> pojoCodecMap = indexPojoCodcMap();
+
+            final Set<Class<?>> allClass = CollectionUtils.newHashSetWithExpectedSize(collectionFactoryMap.size() + mapFactoryMap.size() + arrayTypes.size()
+                    + allProtoBufferClasses.size() + pojoCodecMap.size());
+
+            allClass.addAll(collectionFactoryMap.keySet());
+            allClass.addAll(mapFactoryMap.keySet());
+            allClass.addAll(arrayTypes);
+            allClass.addAll(allProtoBufferClasses);
+            allClass.addAll(pojoCodecMap.keySet());
+
+            final DefaultTypeIdMapper typeIdMapper = DefaultTypeIdMapper.newInstance(allClass, typeIdMappingStrategy);
+            final CodecRegistry codecRegistry = CodecRegistries.fromAppPojoCodecs(pojoCodecMap);
+
+            return new BinarySerializer(typeIdMapper, codecRegistry, collectionFactoryMap, mapFactoryMap, parserMap, protocolEnumMap);
         } catch (Exception e) {
             return ExceptionUtils.rethrow(e);
         }
     }
 
-    private static Set<Class<?>> getFilteredSupportedClasses(Predicate<Class<?>> filter) {
-        final Set<Class<?>> allCustomCodecClass = CodecScanner.getAllCustomCodecClass();
-        final Set<Class<?>> allProtoBufferClasses = ProtoBufferScanner.getAllProtoBufferClasses();
-        final Set<Class<?>> supportedClassSet = Sets.newHashSetWithExpectedSize(allCustomCodecClass.size() + allProtoBufferClasses.size());
+    private static Map<Class<?>, Supplier<? extends Collection<?>>> indexCollectionFactories(Collection<Supplier<? extends Collection<?>>> collectionFactories) {
+        final Map<Class<?>, Supplier<? extends Collection<?>>> result = new IdentityHashMap<>(collectionFactories.size());
+        for (Supplier<? extends Collection<?>> supplier : collectionFactories) {
+            // 创建空的集合实现索引
+            final Class<? extends Collection> type = supplier.get().getClass();
+            CollectionUtils.requireNotContains(result, type, type.getName());
+            result.put(type, supplier);
+        }
+        return result;
+    }
 
-        Stream.concat(allCustomCodecClass.stream(), allProtoBufferClasses.stream())
-                .filter(filter)
-                .forEach(supportedClassSet::add);
-        return supportedClassSet;
+    private static Map<Class<?>, Supplier<? extends Map<?, ?>>> indexMapFactories(Collection<Supplier<? extends Map<?, ?>>> mapFactories) {
+        final Map<Class<?>, Supplier<? extends Map<?, ?>>> result = new IdentityHashMap<>(mapFactories.size());
+        for (Supplier<? extends Map<?, ?>> supplier : mapFactories) {
+            // 创建空的Map实现索引
+            final Class<? extends Map> type = supplier.get().getClass();
+            CollectionUtils.requireNotContains(result, type, type.getName());
+            result.put(type, supplier);
+        }
+        return result;
+    }
+
+    private static Map<Class<?>, PojoCodec<?>> indexPojoCodcMap() throws Exception {
+        final Map<Class<?>, Class<? extends PojoCodecImpl<?>>> scanResult = CodecScanner.scan();
+        final Map<Class<?>, PojoCodec<?>> pojoCodecMap = new IdentityHashMap<>(scanResult.size());
+        for (Map.Entry<Class<?>, Class<? extends PojoCodecImpl<?>>> entry : scanResult.entrySet()) {
+            final Class<?> type = entry.getKey();
+            CollectionUtils.requireNotContains(pojoCodecMap, type, type.getName());
+
+            final Class<? extends PojoCodecImpl<?>> codecClass = entry.getValue();
+            final PojoCodecImpl<?> codec = createCodecInstance(codecClass);
+
+            pojoCodecMap.put(type, new PojoCodec<>(codec));
+        }
+        return pojoCodecMap;
     }
 
     private static PojoCodecImpl<?> createCodecInstance(Class<? extends PojoCodecImpl<?>> codecClass) throws Exception {

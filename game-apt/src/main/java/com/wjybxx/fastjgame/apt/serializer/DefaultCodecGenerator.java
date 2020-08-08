@@ -274,20 +274,14 @@ class DefaultCodecGenerator extends AbstractGenerator<SerializableClassProcessor
 
             final TypeName elementRawTypeName = TypeName.get(typeUtils.erasure(elementTypeMirror));
 
-            final TypeName enumSetRawTypeName = ClassName.get(processor.enumSetRawTypeMirror);
-
-            readFormat.append("reader.$L(size -> $T.noneOf($T.class))");
+            readFormat.append("reader.$L($T.enumSetFactory($T.class))");
             params.add(READ_COLLECTION_METHOD_NAME);
-            params.add(enumSetRawTypeName);
+            params.add(AptReflectUtils.class);
             params.add(elementRawTypeName);
         } else {
             final TypeName impTypeName = TypeName.get(typeUtils.erasure(impTypeMirror));
-            if (containsOneIntArgConstructor(impTypeMirror)) {
-                readFormat.append("reader.$L($T::new)");
-            } else {
-                readFormat.append("reader.$L(size -> new $T<>())");
-            }
 
+            readFormat.append("reader.$L($T::new)");
             params.add(READ_COLLECTION_METHOD_NAME);
             params.add(impTypeName);
         }
@@ -312,15 +306,10 @@ class DefaultCodecGenerator extends AbstractGenerator<SerializableClassProcessor
     }
 
     /**
-     * 是否包含单int参数的构造方法
+     * 是否包含无参构造方法
      */
-    private boolean containsOneIntArgConstructor(DeclaredType declaredType) {
-        return declaredType.asElement().getEnclosedElements().stream()
-                .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
-                .map(e -> (ExecutableElement) e)
-                .filter(e -> e.getParameters().size() == 1)
-                .map(e -> e.getParameters().get(0))
-                .anyMatch(e -> e.asType().getKind() == TypeKind.INT);
+    private boolean containsNoArgsConstructor(DeclaredType declaredType) {
+        return BeanUtils.containsNoArgsConstructor((TypeElement) declaredType.asElement());
     }
 
     private void appendReadMapStatement(VariableElement variableElement, StringBuilder readFormat, List<Object> params) {
@@ -335,21 +324,14 @@ class DefaultCodecGenerator extends AbstractGenerator<SerializableClassProcessor
 
             final TypeName keyRawTypeName = TypeName.get(typeUtils.erasure(keyTypeMirror));
 
-            final TypeName enumMapRawTypeName = ClassName.get(processor.enumMapRawTypeMirror);
-
-            readFormat.append("reader.$L(size -> new $T<>($T.class))");
+            readFormat.append("reader.$L($T.enumMapFactory($T.class))");
             params.add(READ_MAP_METHOD_NAME);
-            params.add(enumMapRawTypeName);
+            params.add(AptReflectUtils.class);
             params.add(keyRawTypeName);
         } else {
             final TypeName impTypeName = TypeName.get(typeUtils.erasure(impTypeMirror));
 
-            if (containsOneIntArgConstructor(impTypeMirror)) {
-                readFormat.append("reader.$L($T::new)");
-            } else {
-                readFormat.append("reader.$L(size -> new $T<>())");
-            }
-
+            readFormat.append("reader.$L($T::new)");
             params.add(READ_MAP_METHOD_NAME);
             params.add(impTypeName);
         }

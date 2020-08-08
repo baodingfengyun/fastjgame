@@ -134,15 +134,14 @@ public class DefaultTimerSystem implements TimerSystem {
      */
     private <T extends AbstractTimerHandle> T tryAddTimerAndInit(T timerHandle) {
         if (isClosed()) {
-            // timer系统已关闭，不压入队列
             timerHandle.closeWithoutRemove();
+            throw new IllegalStateException("closed");
         } else {
-            // 先初始化，才能获得首次执行时间
             timerHandle.adjustNextExecuteTime();
             timerQueue.add(timerHandle);
             checkInterruptTick(timerHandle);
+            return timerHandle;
         }
-        return timerHandle;
     }
 
     private <T extends AbstractTimerHandle> void checkInterruptTick(T timerHandle) {

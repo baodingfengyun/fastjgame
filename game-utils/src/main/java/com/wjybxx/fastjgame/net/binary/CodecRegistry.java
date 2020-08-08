@@ -16,9 +16,6 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.wjybxx.fastjgame.net.type.TypeId;
-import com.wjybxx.fastjgame.net.type.TypeModelMapper;
-
 import javax.annotation.Nullable;
 
 /**
@@ -31,21 +28,9 @@ import javax.annotation.Nullable;
 public interface CodecRegistry {
 
     /**
-     * 获取关联的{@link TypeModelMapper}
-     */
-    TypeModelMapper typeModelMapper();
-
-    /**
      * 获取指定类class对应的编解码器
      */
     @Nullable
     <T> PojoCodec<T> get(Class<T> clazz);
-
-    /**
-     * 通过类型的id获取对应的编解码器。
-     * {@link TypeModelMapper#ofId(TypeId)}和{@link #get(Class)}的快捷调用
-     */
-    @Nullable
-    <T> PojoCodec<T> get(TypeId typeId);
 
 }

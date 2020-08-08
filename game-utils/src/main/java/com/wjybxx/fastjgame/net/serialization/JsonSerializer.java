@@ -18,9 +18,6 @@ package com.wjybxx.fastjgame.net.serialization;
 
 import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.misc.BufferPool;
-import com.wjybxx.fastjgame.net.type.TypeId;
-import com.wjybxx.fastjgame.net.type.TypeModel;
-import com.wjybxx.fastjgame.net.type.TypeModelMapper;
 import com.wjybxx.fastjgame.util.JsonUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -46,15 +43,15 @@ import java.io.InputStream;
 @ThreadSafe
 public class JsonSerializer implements Serializer {
 
-    private final TypeModelMapper typeModelMapper;
+    private final TypeIdMapper typeIdMapper;
     private final int defaultByteBufSize;
 
-    private JsonSerializer(TypeModelMapper typeModelMapper) {
-        this(typeModelMapper, 256);
+    private JsonSerializer(TypeIdMapper typeIdMapper) {
+        this(typeIdMapper, 256);
     }
 
-    private JsonSerializer(TypeModelMapper typeModelMapper, int defaultByteBufSize) {
-        this.typeModelMapper = typeModelMapper;
+    private JsonSerializer(TypeIdMapper typeIdMapper, int defaultByteBufSize) {
+        this.typeIdMapper = typeIdMapper;
         this.defaultByteBufSize = defaultByteBufSize;
     }
 
@@ -160,12 +157,12 @@ public class JsonSerializer implements Serializer {
     }
 
     private void writeTypeId(ByteBufOutputStream byteBufOutputStream, Class<?> type) throws IOException {
-        final TypeModel typeModel = typeModelMapper.ofType(type);
-        if (null == typeModel) {
+        final TypeId typeId = typeIdMapper.ofType(type);
+        if (null == typeId) {
             throw new IOException("Unsupported type " + type.getName());
         }
-        byteBufOutputStream.writeByte(typeModel.typeId().getNamespace());
-        byteBufOutputStream.writeByte(typeModel.typeId().getClassId());
+        byteBufOutputStream.writeByte(typeId.getNamespace());
+        byteBufOutputStream.writeByte(typeId.getClassId());
     }
 
     @Override
@@ -182,14 +179,14 @@ public class JsonSerializer implements Serializer {
         final byte nameSpace = data.readByte();
         final int classId = data.readInt();
         final TypeId typeId = new TypeId(nameSpace, classId);
-        final TypeModel typeModel = typeModelMapper.ofId(typeId);
-        if (null == typeModel) {
+        final Class<?> type = typeIdMapper.ofId(typeId);
+        if (null == type) {
             throw new IOException("Unknown typeId " + typeId);
         }
-        return typeModel.type();
+        return type;
     }
 
-    public static JsonSerializer newInstance(TypeModelMapper typeModelMapper) {
-        return new JsonSerializer(typeModelMapper);
+    public static JsonSerializer newInstance(TypeIdMapper typeIdMapper) {
+        return new JsonSerializer(typeIdMapper);
     }
 }

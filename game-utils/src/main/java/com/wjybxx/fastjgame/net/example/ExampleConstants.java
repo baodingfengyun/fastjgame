@@ -17,15 +17,13 @@ package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.binary.BinarySerializer;
 import com.wjybxx.fastjgame.net.binary.CodecScanner;
-import com.wjybxx.fastjgame.net.binary.ProtoBufferScanner;
+import com.wjybxx.fastjgame.net.binary.CollectionScanner;
+import com.wjybxx.fastjgame.net.binary.ProtoBufScanner;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroupBuilder;
-import com.wjybxx.fastjgame.net.serialization.HashTypeMappingStrategy;
-import com.wjybxx.fastjgame.net.serialization.JsonSerializer;
-import com.wjybxx.fastjgame.net.type.DefaultTypeModelMapper;
-import com.wjybxx.fastjgame.net.type.TypeMappingStrategy;
-import com.wjybxx.fastjgame.net.type.TypeModelMapper;
+import com.wjybxx.fastjgame.net.serialization.*;
 
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,19 +37,18 @@ import java.util.stream.Stream;
  */
 public final class ExampleConstants {
 
-    public static TypeMappingStrategy typeMappingStrategy = new HashTypeMappingStrategy();
+    public static TypeIdMappingStrategy typeIdMappingStrategy = new HashTypeIdMappingStrategy();
 
-    public static TypeModelMapper typeModelMapper = DefaultTypeModelMapper.newInstance(
-            Stream.concat(CodecScanner.getAllCustomCodecClass().stream(), ProtoBufferScanner.getAllProtoBufferClasses().stream())
-                    .map(typeMappingStrategy::mapping)
-                    .collect(Collectors.toList())
+    private static TypeIdMapper typeIdMapper = DefaultTypeIdMapper.newInstance(
+            Stream.concat(CodecScanner.scan().keySet().stream(), ProtoBufScanner.scan().stream())
+                    .collect(Collectors.toMap(Function.identity(), typeIdMappingStrategy::mapping))
     );
 
     /**
      * 测试用例使用的codec
      */
-    public static final JsonSerializer JSON_SERIALIZER = JsonSerializer.newInstance(typeModelMapper);
-    public static final BinarySerializer BINARY_SERIALIZER = BinarySerializer.newInstance(typeModelMapper);
+    public static final JsonSerializer JSON_SERIALIZER = JsonSerializer.newInstance(typeIdMapper);
+    public static final BinarySerializer BINARY_SERIALIZER = BinarySerializer.newInstance(typeIdMappingStrategy, CollectionScanner.scan());
 
     public static final NetEventLoopGroup netEventLoop = new NetEventLoopGroupBuilder()
             .setWorkerGroupThreadNum(2)

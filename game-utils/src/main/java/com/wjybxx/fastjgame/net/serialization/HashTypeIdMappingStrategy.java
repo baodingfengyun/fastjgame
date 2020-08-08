@@ -18,9 +18,6 @@ package com.wjybxx.fastjgame.net.serialization;
 
 import com.google.protobuf.Message;
 import com.google.protobuf.ProtocolMessageEnum;
-import com.wjybxx.fastjgame.net.type.TypeId;
-import com.wjybxx.fastjgame.net.type.TypeMappingStrategy;
-import com.wjybxx.fastjgame.net.type.TypeModel;
 
 /**
  * 基于hash的消息映射方法，由类的简单名计算hash值。
@@ -30,25 +27,24 @@ import com.wjybxx.fastjgame.net.type.TypeModel;
  * date - 2019/5/15 15:21
  * github - https://github.com/hl845740757
  */
-public class HashTypeMappingStrategy implements TypeMappingStrategy {
+public class HashTypeIdMappingStrategy implements TypeIdMappingStrategy {
 
-    public HashTypeMappingStrategy() {
+    public HashTypeIdMappingStrategy() {
 
     }
 
     @Override
-    public TypeModel mapping(Class<?> messageClass) {
-        return hash(messageClass);
+    public TypeId mapping(Class<?> type) {
+        return hash(type);
     }
 
     /**
      * 计算一个消息类的唯一hash值
      */
-    private static TypeModel hash(Class<?> type) {
+    private static TypeId hash(Class<?> type) {
         final byte namespace = calNamespace(type);
         final int classId = calClassId(type);
-        final TypeId typeId = new TypeId(namespace, classId);
-        return new TypeModel(type, type.getSimpleName(), typeId);
+        return new TypeId(namespace, classId);
     }
 
     private static int calClassId(Class<?> type) {

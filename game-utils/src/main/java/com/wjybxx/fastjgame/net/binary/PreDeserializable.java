@@ -14,9 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.net.rpc;
-
-import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
+package com.wjybxx.fastjgame.net.binary;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -46,7 +44,7 @@ import java.lang.annotation.Target;
  * github - https://github.com/hl845740757
  */
 @Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.PARAMETER)
+@Target({ElementType.PARAMETER, ElementType.FIELD})
 public @interface PreDeserializable {
 
 }

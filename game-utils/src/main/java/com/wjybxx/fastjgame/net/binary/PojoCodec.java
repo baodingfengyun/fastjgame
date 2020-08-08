@@ -24,22 +24,47 @@ package com.wjybxx.fastjgame.net.binary;
  * date - 2020/8/1
  * github - https://github.com/hl845740757
  */
-interface PojoCodec<T> {
+public final class PojoCodec<T> {
+
+    private PojoCodecImpl<T> codec;
+
+    PojoCodec(PojoCodecImpl<T> codec) {
+        this.codec = codec;
+    }
 
     /**
      * 获取负责编解码的类对象
      */
-    Class<T> getEncoderClass();
+    public Class<T> getEncoderClass() {
+        return codec.getEncoderClass();
+    }
 
     /**
      * 从输入流中解析指定对象。
      * 它应该创建对象，并反序列化该类及其所有超类定义的所有要序列化的字段。
      */
-    T readObject(DataInputStream dataInputStream, CodecRegistry codecRegistry, ObjectReader reader) throws Exception;
+    public T readObject(ObjectReader reader, CodecRegistry codecRegistry) throws Exception {
+        return codec.readObject(reader);
+    }
 
     /**
      * 将对象写入输出流。
      * 将对象及其所有超类定义的所有要序列化的字段写入输出流。
      */
-    void writeObject(T instance, DataOutputStream dataOutputStream, CodecRegistry codecRegistry, ObjectWriter writer) throws Exception;
+    public void writeObject(ObjectWriter writer, T instance, CodecRegistry codecRegistry) throws Exception {
+        codec.writeObject(instance, writer);
+    }
+
+    /**
+     * 是否支持读取字段方法
+     */
+    public boolean isReadFieldsSupported() {
+        return codec instanceof AbstractPojoCodecImpl;
+    }
+
+    public void readFields(ObjectReader reader, T instance, CodecRegistry codecRegistry) throws Exception {
+        final AbstractPojoCodecImpl<T> abstractPojoCodec = (AbstractPojoCodecImpl<T>) codec;
+        abstractPojoCodec.readFields(instance, reader);
+    }
+
 }

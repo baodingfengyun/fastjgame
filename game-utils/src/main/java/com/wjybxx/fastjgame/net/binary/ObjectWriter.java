@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.Message;
+import com.google.protobuf.MessageLite;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,14 +24,22 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Pojo对象输出流。
- *
  * @author wjybxx
  * @version 1.0
  * date - 2020/1/13
  * github - https://github.com/hl845740757
  */
-public interface ObjectWriter {
+public interface ObjectWriter extends AutoCloseable {
+
+    /**
+     * 获取关联的{@link BinarySerializer}
+     */
+    BinarySerializer serializer();
+
+    /**
+     * 获取关联的{@link CodecRegistry}
+     */
+    CodecRegistry codecRegistry();
 
     void writeInt(int value) throws Exception;
 
@@ -62,43 +70,11 @@ public interface ObjectWriter {
     void writeBytes(@Nonnull byte[] bytes, int offset, int length) throws Exception;
 
     /**
-     * 向输出流中写入一个protoBuffer消息
-     */
-    void writeMessage(@Nullable Message message) throws Exception;
-
-    /**
      * 向输出流中写入一个字段，如果没有对应的简便方法，可以使用该方法
      *
      * @param value 字段的值
      */
-    <T> void writeObject(@Nullable T value) throws Exception;
-    // ----------------------------------------- 处理多态问题 ----------------------------------
-
-    /**
-     * 向输出流中写一个collection
-     */
-    <E> void writeCollection(@Nullable Collection<? extends E> collection) throws Exception;
-
-    /**
-     * 向输出流中写入一个map
-     */
-    <K, V> void writeMap(@Nullable Map<K, V> map) throws Exception;
-
-    /**
-     * 向输出流中写入一个数组
-     *
-     * @param array 要支持基本类型数组，因此为{@link Object}而不是泛型数组
-     */
-    void writeArray(@Nullable Object array) throws Exception;
-
-    /**
-     * 向输出流中写一个多态实体对象（按照超类格式写入数据，并忽略子类字段）
-     *
-     * @param superClass 实体对象的指定超类型
-     */
-    <E> void writeObject(@Nullable E value, Class<? super E> superClass) throws Exception;
-
-    // --------------------------------------- 处理延迟序列化问题 ----------------------------------
+    void writeObject(@Nullable Object value) throws Exception;
 
     /**
      * 写入一个需要延迟序列化的对象。
@@ -107,10 +83,40 @@ public interface ObjectWriter {
      */
     void writeLazySerializeObject(@Nullable Object value) throws Exception;
 
-    // --------------------------------------- 其它 ----------------------------------
+    // ---------------------------------------- 多态问题 ----------------------------------
+
+    /**
+     * 向输出流中写一个实体对象（按照超类格式写入数据，并忽略子类字段）
+     *
+     * @param superClass 实体对象的指定超类型
+     */
+    <T> void writeObject(@Nonnull T value, @Nonnull Class<? super T> superClass) throws Exception;
+
+    // ----------------------------------------- 其它 ----------------------------------
+
+    /**
+     * 向输出流中写入一个protoBuf消息
+     */
+    void writeMessage(@Nullable MessageLite messageLite) throws Exception;
+
+    /**
+     * 向输出流中写入一个数组
+     */
+    void writeArray(@Nullable Object array) throws Exception;
+
+    /**
+     * 向输出流中写一个collection
+     */
+    void writeCollection(@Nullable Collection<?> collection) throws Exception;
+
+    /**
+     * 向输出流中写入一个map
+     */
+    void writeMap(@Nullable Map<?, ?> map) throws Exception;
 
     /**
      * 如果存在缓冲区，则刷新缓冲区
      */
     void flush() throws Exception;
+
 }

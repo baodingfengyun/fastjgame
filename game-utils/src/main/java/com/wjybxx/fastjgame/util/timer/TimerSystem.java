@@ -60,7 +60,7 @@ public interface TimerSystem extends TimeProvider {
      * 在指定延迟之后执行一次指定任务。
      * 该类型的任务有严格的时序保证！你认为先执行的一定先执行。
      *
-     * @param timeout 过期时间，毫秒，如果参数小于等于0，等效于调用{@link #nextTick(TimerTask)}。
+     * @param timeout 过期时间，毫秒，如果参数等于0，等效于调用{@link #nextTick(TimerTask)}。
      * @param task    需要执行的任务
      * @return Timer对应的句柄
      */
@@ -129,13 +129,14 @@ public interface TimerSystem extends TimeProvider {
 
     /**
      * timer系统是否已关闭。
+     * 向已关闭的timer系统中添加timer会抛出{@link IllegalStateException}
      *
      * @return 当timer系统已关闭时返回true。
      */
     boolean isClosed();
 
     /**
-     * 关闭timer系统，在这之前的任务都会被取消，新添加的任务都会直接进入终止状态！
+     * 关闭timer系统。
      * 目的：显式的进行清理，避免内存泄漏（避免某一个handle引用了该timer系统，导致该timer系统上的所有任务都得不到释放的情况）
      */
     void close();

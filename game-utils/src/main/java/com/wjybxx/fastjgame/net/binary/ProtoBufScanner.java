@@ -32,17 +32,19 @@ import java.util.stream.Collectors;
  * @version 1.0
  * date - 2020/2/20
  */
-public class ProtoBufferScanner {
+public class ProtoBufScanner {
 
     private static final Set<String> SCAN_PACKAGES = Set.of("com.wjybxx.fastjgame");
 
-    private static final Set<Class<?>> protoBufferSet;
+    public static Set<Class<?>> scan() {
+        return scan(SCAN_PACKAGES);
+    }
 
-    static {
-        protoBufferSet = SCAN_PACKAGES.stream()
+    public static Set<Class<?>> scan(Set<String> packages) {
+        return packages.stream()
                 .map(scanPackage -> ClassScanner.findClasses(scanPackage,
                         name -> StringUtils.countMatches(name, "$") > 0,
-                        ProtoBufferScanner::isProtoBufferClass))
+                        ProtoBufScanner::isProtoBufferClass))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toUnmodifiableSet());
     }
@@ -50,10 +52,6 @@ public class ProtoBufferScanner {
     private static boolean isProtoBufferClass(Class<?> messageClazz) {
         return AbstractMessage.class.isAssignableFrom(messageClazz)
                 || ProtocolMessageEnum.class.isAssignableFrom(messageClazz);
-    }
-
-    public static Set<Class<?>> getAllProtoBufferClasses() {
-        return protoBufferSet;
     }
 
 }

@@ -21,6 +21,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
 import com.wjybxx.fastjgame.apt.core.AbstractGenerator;
+import com.wjybxx.fastjgame.apt.serializer.SerializableClassProcessor;
 import com.wjybxx.fastjgame.apt.utils.AutoUtils;
 
 import javax.lang.model.element.*;
@@ -173,7 +174,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
     /**
      * 是否可延迟序列化的参数？（无论对方发送什么，我接收为一个byte[]）
-     * 1. 必须带有{@link RpcServiceProcessor#LAZY_SERIALIZABLE_CANONICAL_NAME}注解
+     * 1. 必须带有{@link SerializableClassProcessor#LAZY_SERIALIZABLE_CANONICAL_NAME}注解
      * 2. 必须是字节数组
      */
     private boolean isLazySerializeParameter(VariableElement variableElement) {
@@ -198,7 +199,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
     /**
      * 是否是需要提前反序列化的参数？（无论对方发送什么，我接收为一个非byte[]对象）
-     * 1. 必须带有{@link RpcServiceProcessor#PRE_DESERIALIZE_CANONICAL_NAME}注解
+     * 1. 必须带有{@link SerializableClassProcessor#PRE_DESERIALIZE_CANONICAL_NAME}注解
      * 2. 不能是字节数组
      */
     private boolean isPreDeserializeParameter(VariableElement variableElement) {

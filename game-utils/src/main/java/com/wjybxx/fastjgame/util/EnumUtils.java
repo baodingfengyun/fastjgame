@@ -20,6 +20,8 @@ import com.wjybxx.fastjgame.util.dsl.IndexableEnum;
 import com.wjybxx.fastjgame.util.dsl.IndexableEnumMapper;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
@@ -38,6 +40,21 @@ public class EnumUtils {
 
     private EnumUtils() {
         // close
+    }
+
+    public static <T extends IndexableEnum> void checkNumberDuplicate(T[] values) {
+        checkNumberDuplicate(values, IndexableEnum::getNumber);
+    }
+
+    public static <T> void checkNumberDuplicate(T[] values, ToIntFunction<T> func) {
+        final IntSet numberSet = new IntOpenHashSet(values.length);
+        for (T t : values) {
+            final int number = func.applyAsInt(t);
+            if (!numberSet.add(number)) {
+                final String msg = String.format("The number %d of %s is duplicate", number, t.toString());
+                throw new IllegalArgumentException(msg);
+            }
+        }
     }
 
     /**
@@ -114,6 +131,33 @@ public class EnumUtils {
         return null;
     }
 
+    public static <T extends IndexableEnum> T[] lookup(final T[] values) {
+        final int minNumber = minNumber(values);
+        final int maxNumber = maxNumber(values);
+
+        if (maxNumber - minNumber - values.length > 256) {
+            throw new IllegalArgumentException("lookup is not a good idea");
+        }
+
+        final IntOpenHashSet numberSet = new IntOpenHashSet(values.length);
+        for (T t : values) {
+            if (t.getNumber() < 0) {
+                throw new IllegalArgumentException(t.getClass().getSimpleName() + " number:" + t.getNumber() + " is negative");
+            }
+            if (!numberSet.add(t.getNumber())) {
+                throw new IllegalArgumentException(t.getClass().getSimpleName() + " number:" + t.getNumber() + " is duplicate");
+            }
+        }
+
+        // 必定相同的类型
+        @SuppressWarnings("unchecked") final T[] result = (T[]) Array.newInstance(values.getClass().getComponentType(), maxNumber + 1);
+        for (T t : values) {
+            result[t.getNumber()] = t;
+        }
+        return result;
+    }
+
+
     /**
      * 根据枚举的values建立索引；
      *
@@ -148,15 +192,8 @@ public class EnumUtils {
             result.put(t.getNumber(), t);
         }
 
-        final int minNumber = Arrays.stream(values)
-                .mapToInt(IndexableEnum::getNumber)
-                .min()
-                .getAsInt();
-
-        final int maxNumber = Arrays.stream(values)
-                .mapToInt(IndexableEnum::getNumber)
-                .max()
-                .getAsInt();
+        final int minNumber = minNumber(values);
+        final int maxNumber = maxNumber(values);
 
         // 保护性拷贝，避免出现并发问题 - 不确定values()是否会被修改
         final T[] copiedValues = Arrays.copyOf(values, values.length);
@@ -165,6 +202,20 @@ public class EnumUtils {
         } else {
             return new MapBasedMapper<>(copiedValues, result);
         }
+    }
+
+    public static <T extends IndexableEnum> int minNumber(T[] values) {
+        return Arrays.stream(values)
+                .mapToInt(IndexableEnum::getNumber)
+                .min()
+                .orElseThrow();
+    }
+
+    public static <T extends IndexableEnum> int maxNumber(T[] values) {
+        return Arrays.stream(values)
+                .mapToInt(IndexableEnum::getNumber)
+                .max()
+                .orElseThrow();
     }
 
     private static boolean isArrayAvailable(int minNumber, int maxNumber, int length, boolean fastQuery) {

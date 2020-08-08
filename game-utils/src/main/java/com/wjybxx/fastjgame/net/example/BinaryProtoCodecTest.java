@@ -43,6 +43,14 @@ public class BinaryProtoCodecTest {
         // NetUtils初始化，避免输出扰乱视听
         System.out.println(NetUtils.getOuterIp());
 
+        testCustomBean(serializer, byteBufAllocator);
+
+        testProtoBuf(serializer, byteBufAllocator);
+
+        testCollection(serializer);
+    }
+
+    private static void testCustomBean(BinarySerializer serializer, ByteBufAllocator byteBufAllocator) throws Exception {
         ExampleMessages.FullMessage fullMessage = newFullMessage();
         final ByteBuf encodeResult = byteBufAllocator.directBuffer(serializer.estimateSerializedSize(fullMessage));
         serializer.writeObject(encodeResult, fullMessage);
@@ -63,12 +71,29 @@ public class BinaryProtoCodecTest {
         System.out.println("-----------------------clone--------------------");
         final Object cloneResult = serializer.cloneObject(fullMessage);
         System.out.println("clone equals = " + fullMessage.equals(cloneResult));
+    }
 
+    private static void testProtoBuf(BinarySerializer serializer, ByteBufAllocator byteBufAllocator) throws Exception {
         System.out.println("-----------------------protoBuf--------------------");
         final ByteBuf protoMsgByteBuf = byteBufAllocator.directBuffer(serializer.estimateSerializedSize(ProtoBufSerializePerformanceTest.msg));
         serializer.writeObject(protoMsgByteBuf, ProtoBufSerializePerformanceTest.msg);
         Object protoMsgDecode = serializer.readObject(protoMsgByteBuf);
         System.out.println("protoBuf equals = " + ProtoBufSerializePerformanceTest.msg.equals(protoMsgDecode));
+    }
+
+    private static void testCollection(BinarySerializer serializer) throws Exception {
+        System.out.println("-----------------------Collection--------------------");
+        final LinkedList<Object> linkedList = new LinkedList<>();
+        linkedList.add("hello world");
+        linkedList.add(1024);
+
+        final Object cloneResult = serializer.cloneObject(linkedList);
+        final boolean equals = linkedList.equals(cloneResult);
+        if (cloneResult instanceof LinkedList) {
+            System.out.println("cloneResult instance of linkedList, equals=" + equals);
+        } else {
+            System.out.println("cloneResult is not linkedList, equals=" + equals);
+        }
     }
 
     /**

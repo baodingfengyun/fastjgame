@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.net.utils;
 
-import com.google.protobuf.Internal;
-import com.google.protobuf.Message;
-import com.google.protobuf.Parser;
-import com.google.protobuf.ProtocolMessageEnum;
+import com.google.protobuf.*;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
@@ -41,7 +38,7 @@ public class ProtoUtils {
      * @param clazz protoBuffer class
      * @return parser
      */
-    public static <T extends Message> Parser<T> findParser(@Nonnull Class<T> clazz) {
+    public static <T extends MessageLite> Parser<T> findParser(@Nonnull Class<T> clazz) {
         Objects.requireNonNull(clazz);
         try {
             final Method method = clazz.getDeclaredMethod("getDefaultInstance");

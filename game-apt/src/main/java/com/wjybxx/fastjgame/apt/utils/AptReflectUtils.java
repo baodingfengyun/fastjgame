@@ -22,6 +22,9 @@ import com.google.common.primitives.Ints;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.function.Supplier;
 
 /**
  * 为生成代码服务器的注解处理器工具类 - 手写代码最好不要使用该类。
@@ -88,5 +91,13 @@ public class AptReflectUtils {
         }
 
         return Integer.MAX_VALUE; // any large value
+    }
+
+    public static <E extends Enum<E>> Supplier<EnumSet<E>> enumSetFactory(Class<E> type) {
+        return () -> EnumSet.noneOf(type);
+    }
+
+    public static <K extends Enum<K>, V> Supplier<EnumMap<K, V>> enumMapFactory(Class<K> type) {
+        return () -> new EnumMap<K, V>(type);
     }
 }

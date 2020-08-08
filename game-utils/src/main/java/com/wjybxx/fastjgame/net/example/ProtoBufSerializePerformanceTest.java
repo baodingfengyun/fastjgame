@@ -20,17 +20,15 @@ import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.Message;
 import com.google.protobuf.Parser;
-import com.wjybxx.fastjgame.net.type.DefaultTypeModelMapper;
-import com.wjybxx.fastjgame.net.type.TypeId;
-import com.wjybxx.fastjgame.net.type.TypeModel;
-import com.wjybxx.fastjgame.net.type.TypeModelMapper;
+import com.wjybxx.fastjgame.net.serialization.DefaultTypeIdMapper;
+import com.wjybxx.fastjgame.net.serialization.TypeId;
+import com.wjybxx.fastjgame.net.serialization.TypeIdMapper;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 一个不太靠谱的protoBuf编解码测试。
@@ -47,10 +45,8 @@ public class ProtoBufSerializePerformanceTest {
 
     private static final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(8192);
 
-    private static final TypeModelMapper TYPE_MODEL_MAPPER = DefaultTypeModelMapper.newInstance(Stream.of(p_test.p_testMsg.class)
-            .map(ExampleConstants.typeMappingStrategy::mapping)
-            .collect(Collectors.toList())
-    );
+    private static final TypeIdMapper TYPE_MODEL_MAPPER = DefaultTypeIdMapper.newInstance(
+            Collections.singleton(p_test.p_testMsg.class), ExampleConstants.typeIdMappingStrategy);
 
     /**
      * 默认值不会被序列化(0, false)，因此我们要避免默认值
@@ -101,18 +97,18 @@ public class ProtoBufSerializePerformanceTest {
     }
 
     private static void writeTypeId(Object msg, CodedOutputStream codedOutputStream) throws IOException {
-        final TypeModel typeModel = TYPE_MODEL_MAPPER.ofType(msg.getClass());
-        assert null != typeModel;
-        codedOutputStream.writeRawByte(typeModel.typeId().getNamespace());
-        codedOutputStream.writeFixed32NoTag(typeModel.typeId().getClassId());
+        final TypeId typeId = TYPE_MODEL_MAPPER.ofType(msg.getClass());
+        assert null != typeId;
+        codedOutputStream.writeRawByte(typeId.getNamespace());
+        codedOutputStream.writeFixed32NoTag(typeId.getClassId());
     }
 
     private static Class<?> readType(CodedInputStream inputStream) throws IOException {
         final byte nameSpace = inputStream.readRawByte();
         final int classId = inputStream.readFixed32();
-        final TypeModel typeModel = TYPE_MODEL_MAPPER.ofId(new TypeId(nameSpace, classId));
-        assert null != typeModel;
-        return typeModel.type();
+        final Class<?> type = TYPE_MODEL_MAPPER.ofId(new TypeId(nameSpace, classId));
+        assert null != type;
+        return type;
     }
 
     private static void codecTest(Message msg, int loopTimes, Map<Class<?>, Parser<? extends Message>> parserMap) throws IOException {

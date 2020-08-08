@@ -162,9 +162,9 @@ public class EntityExample {
             final boolean isChild1 = reader.readBoolean();
             final Parent parent;
             if (isChild1) {
-                parent = reader.readEntity(Child1::new, Parent.class);
+                parent = reader.readObject(Child1::new);
             } else {
-                parent = reader.readEntity(Child2::new, Parent.class);
+                parent = reader.readObject(Child2::new);
             }
             return new ChildBean(parent, isChild1);
         }
