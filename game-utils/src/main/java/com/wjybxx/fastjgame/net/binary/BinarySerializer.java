@@ -93,8 +93,8 @@ public class BinarySerializer implements Serializer {
 
         if (object instanceof MessageLite) {
             // 对protoBuf协议的优化
-            // tag + length + nameSpace + classId + length + content
-            return 1 + 4 + 1 + 4 + 4 + ((MessageLite) object).getSerializedSize();
+            // tag + length + typeId + content
+            return 1 + 4 + 5 + ((MessageLite) object).getSerializedSize();
         }
 
         if (object instanceof byte[]) {
@@ -242,7 +242,7 @@ public class BinarySerializer implements Serializer {
             allClass.addAll(pojoCodecMap.keySet());
 
             final DefaultTypeIdMapper typeIdMapper = DefaultTypeIdMapper.newInstance(allClass, typeIdMappingStrategy);
-            final CodecRegistry codecRegistry = CodecRegistries.fromAppPojoCodecs(pojoCodecMap);
+            final CodecRegistry codecRegistry = CodecRegistries.fromPojoCodecs(pojoCodecMap);
 
             return new BinarySerializer(typeIdMapper, codecRegistry, collectionFactoryMap, mapFactoryMap, parserMap, protocolEnumMap);
         } catch (Exception e) {

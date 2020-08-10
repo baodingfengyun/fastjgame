@@ -60,13 +60,27 @@ public enum BinaryValueType implements IndexableEnum {
      */
     BINARY(10),
 
+    /**
+     * protoBuf的{@link com.google.protobuf.MessageLite}
+     * 序列化格式：tag + length + typeId + content
+     * 如果将其看作容器的话，它是有单个字节数组属性的容器。这样会影响编解码效率，因为需要先序列化为字节数组，再通过{@link ObjectWriter}写入。
+     * 考虑到比重较大，我们将其列为基本值类型，以方便底层对其优化，直接写入流中。
+     * 而protoBuf的枚举，使用比例和序列化成本并不高，当作普通的单值容器序列化即可。
+     * <p>
+     * Q: 为什么length要方前面？
+     * A: length放前面是有好处的，可以方便快速拆包，解包，因为有效内容是连续的。
+     */
+    MESSAGE(11),
+
     // --------------------------------------- 容器对象 -------------------------------
     /**
-     * 对象 - 自定义Bean,Map,Collection,Array等容器都属于该类型。
-     * 序列化格式： type + typeId + value,value,value....
-     * 注意：你可以将对方序列化的一个对象，读取为其它容器类型。
+     * 对象（容器） - 自定义Bean,Map,Collection,Array等容器都属于该类型。
+     * 序列化格式： tag + length + typeId + value,value,value....
+     * 注意：
+     * 1. 容器的每一个值都是调用{@link ObjectWriter}中的方法进行序列化的，否则就不算容器。
+     * 2. 你可以将对方序列化的一个对象，读取为其它容器类型。比如对方序列化的任意容器都可以读取为一个ArrayList。
      */
-    OBJECT(11);
+    OBJECT(12);
 
     private final int number;
 

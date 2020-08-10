@@ -44,6 +44,8 @@ public interface ObjectWriter extends AutoCloseable {
      */
     CodecRegistry codecRegistry();
 
+    // ---------------------------------------------- 基本值 ------------------------------------------
+
     void writeInt(int value) throws Exception;
 
     void writeLong(long value) throws Exception;
@@ -73,35 +75,11 @@ public interface ObjectWriter extends AutoCloseable {
     void writeBytes(@Nonnull byte[] bytes, int offset, int length) throws Exception;
 
     /**
-     * 向输出流中写入一个字段，如果没有对应的简便方法，可以使用该方法
-     *
-     * @param value 字段的值
-     */
-    void writeObject(@Nullable Object value) throws Exception;
-
-    /**
-     * 写入一个需要延迟序列化的对象。
-     * 如果该参数不是bytes，则会先序列化为bytes，再以bytes写入输出流。
-     * 主要目的：期望减少额外的字节数组创建。
-     */
-    void writeLazySerializeObject(@Nullable Object value) throws Exception;
-
-    // ---------------------------------------- 多态问题 ----------------------------------
-
-    /**
-     * 向输出流中写一个实体对象（按照超类格式写入数据，并忽略子类字段）
-     *
-     * @param superClass 实体对象的指定超类型
-     */
-    <T> void writeObject(@Nonnull T value, @Nonnull Class<? super T> superClass) throws Exception;
-
-    // ----------------------------------------- 其它 ----------------------------------
-    // 以下写入方法仅仅是用于加快编码速度
-
-    /**
      * 向输出流中写入一个protoBuf消息
      */
     void writeMessage(@Nullable MessageLite messageLite) throws Exception;
+
+    // ---------------------------------------------- 通用容器对象 ------------------------------------------
 
     /**
      * 向输出流中写入一个数组
@@ -117,6 +95,29 @@ public interface ObjectWriter extends AutoCloseable {
      * 向输出流中写入一个map
      */
     void writeMap(@Nullable Map<?, ?> map) throws Exception;
+
+    // ----------------------------------------------- 其它 --------------------------------------------------
+
+    /**
+     * 向输出流中写入一个字段，如果没有对应的简便方法，可以使用该方法
+     *
+     * @param value 字段的值
+     */
+    void writeObject(@Nullable Object value) throws Exception;
+
+    /**
+     * 向输出流中写一个实体对象（按照超类格式写入数据，会忽略子类字段）
+     *
+     * @param superClass 实体对象的指定超类型
+     */
+    <T> void writeObject(@Nonnull T value, @Nonnull Class<? super T> superClass) throws Exception;
+
+    /**
+     * 写入一个需要延迟序列化的对象。
+     * 如果该参数不是bytes，则会先序列化为bytes，再以bytes写入输出流。
+     * 主要目的：期望减少额外的字节数组创建。
+     */
+    void writeLazySerializeObject(@Nullable Object value) throws Exception;
 
     /**
      * 如果存在缓冲区，则刷新缓冲区

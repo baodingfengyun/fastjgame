@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -144,11 +143,34 @@ public class ObjectWriterImpl implements ObjectWriter {
         outputStream.writeRawBytes(bytes, offset, length);
     }
 
+    @Override
+    public void writeMessage(@Nullable MessageLite messageLite) throws Exception {
+        if (messageLite == null) {
+            writeNull();
+            return;
+        }
+
+        final TypeId typeId = getCheckedTypeId(messageLite);
+        outputStream.writeType(BinaryValueType.MESSAGE);
+        // length (typeId + content)
+        outputStream.writeFixed32(5 + messageLite.getSerializedSize());
+        writeTypeId(typeId);
+        outputStream.writeMessageNoSize(messageLite);
+    }
+
+    private TypeId getCheckedTypeId(Object value) {
+        final TypeId typeId = getTypeIdMapper().ofType(value.getClass());
+        if (typeId == null) {
+            throw new IllegalStateException("typeModel expect not null, but null, type " + value.getClass().getName());
+        }
+        return typeId;
+    }
+
     private void writeNull() throws IOException {
         outputStream.writeType(BinaryValueType.NULL);
     }
 
-    // ------------------------------------------ 写自定义对象的真正实现 --------------------------------------
+    // ------------------------------------------------- 主要处理容器对象 ------------------------------------------------
 
     @Override
     public void writeObject(@Nullable Object value) throws Exception {
@@ -201,7 +223,7 @@ public class ObjectWriterImpl implements ObjectWriter {
         }
 
         // 第二梯队
-        // 1. protoBuf消息可以序列化
+        // 1. protoBuf消息
         // 2. 任意集合/Map/数组允许序列化，但不一定能精确反序列化
         if (value instanceof MessageLite) {
             writeMessage((MessageLite) value);
@@ -225,17 +247,14 @@ public class ObjectWriterImpl implements ObjectWriter {
             writeShort((Short) value);
             return;
         }
-
         if (type == Byte.class) {
             writeByte((Byte) value);
             return;
         }
-
         if (type == Character.class) {
             writeChar((Character) value);
             return;
         }
-
         if (value instanceof ProtocolMessageEnum) {
             writeProtocolEnum((ProtocolMessageEnum) value);
             return;
@@ -244,9 +263,7 @@ public class ObjectWriterImpl implements ObjectWriter {
         throw new IOException("Unsupported type " + type.getName());
     }
 
-    private <T> void writePojo(@Nonnull T value,
-                               @Nonnull Class<? super T> type,
-                               @Nonnull PojoCodec<? super T> pojoCodec) throws Exception {
+    private <T> void writePojo(@Nonnull T value, @Nonnull Class<? super T> type, @Nonnull PojoCodec<? super T> pojoCodec) throws Exception {
         final TypeId typeId = getTypeIdMapper().ofType(type);
         if (typeId == null) {
             throw new IllegalStateException("typeModel expect not null, but null, type " + type.getName());
@@ -318,8 +335,8 @@ public class ObjectWriterImpl implements ObjectWriter {
         writeBytes(bytes);
     }
 
-    // ---------------------------------------- 没有PojoCodec，但有typeId，可以序列化的对象类型 --------------------------------------
-    private <T> void writeAsPojo(@Nonnull T value, TypeId typeId, PojoWriter<? super T> writer) throws Exception {
+    // ---------------------------------------- 通用容器类型 --------------------------------------
+    private <T> void writeAsPojo(@Nonnull T value, TypeId typeId, ContainerWriter<? super T> writer) throws Exception {
         if (++recursionDepth > recursionLimit) {
             throw new IOException("Object had too many levels of nesting");
         }
@@ -330,9 +347,10 @@ public class ObjectWriterImpl implements ObjectWriter {
         final int preIndex = outputStream.getTotalBytesWritten();
         outputStream.writeFixed32(0);
 
-        // 写入默认类型信息
+        // 写入类型信息
         writeTypeId(typeId);
 
+        // 写入对象内容
         writer.accept(value);
 
         // 回写内容
@@ -342,32 +360,9 @@ public class ObjectWriterImpl implements ObjectWriter {
     }
 
     @FunctionalInterface
-    interface PojoWriter<T> {
+    interface ContainerWriter<T> {
 
         void accept(T value) throws Exception;
-    }
-
-    @Override
-    public void writeMessage(@Nullable MessageLite messageLite) throws Exception {
-        if (messageLite == null) {
-            writeNull();
-            return;
-        }
-        writeAsPojo(messageLite, getCheckedTypeId(messageLite), this::writeMessageImpl);
-    }
-
-    private TypeId getCheckedTypeId(Object value) {
-        final TypeId typeId = getTypeIdMapper().ofType(value.getClass());
-        if (typeId == null) {
-            throw new IllegalStateException("typeModel expect not null, but null, type " + value.getClass().getName());
-        }
-        return typeId;
-    }
-
-    private void writeMessageImpl(@Nonnull MessageLite messageLite) throws Exception {
-        // length(未来可能fix32方式写length) + size
-        outputStream.writeInt32(messageLite.getSerializedSize());
-        outputStream.writeMessageNoSize(messageLite);
     }
 
     @Override
@@ -413,10 +408,6 @@ public class ObjectWriterImpl implements ObjectWriter {
         if (typeId != null) {
             return typeId;
         }
-
-        if (collection instanceof List) {
-            return TypeId.DEFAULT_LIST;
-        }
         if (collection instanceof Set) {
             return TypeId.DEFAULT_SET;
         }
@@ -459,8 +450,9 @@ public class ObjectWriterImpl implements ObjectWriter {
         writeAsPojo(protocolMessageEnum, getCheckedTypeId(protocolMessageEnum), this::writeProtocolEnumImpl);
     }
 
-    private void writeProtocolEnumImpl(ProtocolMessageEnum protocolMessageEnum) throws IOException {
-        outputStream.writeInt32(protocolMessageEnum.getNumber());
+    private void writeProtocolEnumImpl(ProtocolMessageEnum protocolMessageEnum) throws Exception {
+        // 必须按照pojo的格式序列化，不能直接写入inputStream
+        writeInt(protocolMessageEnum.getNumber());
     }
 
     // -------------------------------------------- 其它 ---------------------------------------

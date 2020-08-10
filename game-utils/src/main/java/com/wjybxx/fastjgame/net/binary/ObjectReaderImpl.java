@@ -65,15 +65,6 @@ public class ObjectReaderImpl implements ObjectReader {
         return serializer.typeIdMapper;
     }
 
-    @Nullable
-    private <T> PojoCodec<T> getPojoCodec(TypeId typeId) {
-        final Class<?> type = serializer.typeIdMapper.ofId(typeId);
-        if (type == null) {
-            return null;
-        }
-        @SuppressWarnings("unchecked") final PojoCodec<T> pojoCodec = (PojoCodec<T>) codecRegistry.get(type);
-        return pojoCodec;
-    }
     // -------------------------------------------- 基本值 --------------------------------------
 
     private void readTypeAndCheck(BinaryValueType expected) throws IOException {
@@ -166,6 +157,37 @@ public class ObjectReaderImpl implements ObjectReader {
         return inputStream.readRawBytes(size);
     }
 
+    @Override
+    public <T extends MessageLite> T readMessage() throws Exception {
+        final BinaryValueType currentValueType = inputStream.readType();
+        if (currentValueType == BinaryValueType.NULL) {
+            return null;
+        }
+
+        checkValueType(BinaryValueType.MESSAGE, currentValueType);
+
+        return readMessageImpl();
+    }
+
+    private <T extends MessageLite> T readMessageImpl() throws Exception {
+        final int size = inputStream.readFixed32();
+
+        final TypeId typeId = readTypeId();
+        final Class<?> type = getTypeIdMapper().ofId(typeId);
+        if (type == null) {
+            throw new IOException("Unknown typeId " + typeId);
+        }
+
+        @SuppressWarnings("unchecked") final Parser<T> parser = (Parser<T>) serializer.parserMap.get(type);
+        if (parser == null) {
+            throw new IOException("parser is null, type " + type);
+        }
+
+        final int oldLimit = inputStream.pushLimit(size - 5);
+        final T result = inputStream.readMessageNoSize(parser);
+        inputStream.popLimit(oldLimit);
+        return result;
+    }
     // -----------------------------------------------  读取对象（核心） --------------------------------------
 
     @Override
@@ -204,6 +226,8 @@ public class ObjectReaderImpl implements ObjectReader {
                 return inputStream.readString();
             case BINARY:
                 return readBytesImpl();
+            case MESSAGE:
+                return readMessageImpl();
 
             case OBJECT:
                 return readPojo(this::readAnyPojo);
@@ -212,7 +236,7 @@ public class ObjectReaderImpl implements ObjectReader {
         }
     }
 
-    private <T> T readPojo(PojoReader<T> reader) throws Exception {
+    private <T> T readPojo(ContainerReader<T> reader) throws Exception {
         if (++recursionDepth > recursionLimit) {
             throw new IOException("Object had too many levels of nesting");
         }
@@ -235,7 +259,7 @@ public class ObjectReaderImpl implements ObjectReader {
     }
 
     @FunctionalInterface
-    interface PojoReader<T> {
+    interface ContainerReader<T> {
 
         T accept(TypeId typeId) throws Exception;
 
@@ -255,6 +279,15 @@ public class ObjectReaderImpl implements ObjectReader {
             result = readAnyPojoById(typeId);
         }
         return result;
+    }
+
+    @Nullable
+    private PojoCodec<?> getPojoCodec(TypeId typeId) {
+        final Class<?> type = serializer.typeIdMapper.ofId(typeId);
+        if (type == null) {
+            return null;
+        }
+        return codecRegistry.get(type);
     }
 
     private Object readAnyPojoByType(Class<?> type) throws Exception {
@@ -284,15 +317,6 @@ public class ObjectReaderImpl implements ObjectReader {
             return readArrayImpl(type.getComponentType());
         }
 
-        // protoBuf消息
-        if (MessageLite.class.isAssignableFrom(type)) {
-            final Parser<? extends MessageLite> parser = serializer.parserMap.get(type);
-            if (parser == null) {
-                throw new NullPointerException(type.getName() + " parser is null");
-            }
-            return readMessageImpl(parser);
-        }
-
         // protoBuf枚举
         if (ProtocolMessageEnum.class.isAssignableFrom(type)) {
             final Internal.EnumLiteMap<?> enumLiteMap = serializer.protocolEnumMap.get(type);
@@ -302,6 +326,7 @@ public class ObjectReaderImpl implements ObjectReader {
             return readProtoEnumImpl(enumLiteMap);
         }
 
+        // 其实可以读取到一个List，但暂时不这么做
         throw new IOException("Unknown type " + type);
     }
 
@@ -343,6 +368,7 @@ public class ObjectReaderImpl implements ObjectReader {
         if (typeId.getNamespace() == TypeId.NAMESPACE_ARRAY) {
             return readArrayImpl(Object.class);
         }
+        // 其实可以读取到一个List，但暂时不这么做
         throw new IOException("Unknown typeId " + typeId);
     }
 
@@ -358,17 +384,20 @@ public class ObjectReaderImpl implements ObjectReader {
     }
 
     private <E> E readToSubType(TypeId typeId, Supplier<E> factory) throws Exception {
-        final PojoCodec<E> pojoCodec = getPojoCodec(typeId);
+        final PojoCodec<?> pojoCodec = getPojoCodec(typeId);
         if (null == pojoCodec) {
             throw new IOException("Unsupported typeId " + typeId);
         }
+        // 先检查是否支持读取字段，可减少不必要的对象创建
+        ensureSupportReadFields(pojoCodec);
 
         final E result = factory.get();
 
+        // 确保是超类型的codec，再转型
         ensureSubType(result, pojoCodec);
-        ensureSupportReadFields(pojoCodec);
+        @SuppressWarnings("unchecked") final PojoCodec<? super E> castPojoCodec = (PojoCodec<? super E>) pojoCodec;
+        castPojoCodec.readFields(this, result, codecRegistry);
 
-        pojoCodec.readFields(this, result, codecRegistry);
         return result;
     }
 
@@ -386,51 +415,26 @@ public class ObjectReaderImpl implements ObjectReader {
         }
     }
 
-    // ------------------------------------------ protoBuf对象 ------------------------------------------
-
     @Override
-    public <T extends MessageLite> T readMessage() throws Exception {
-        final BinaryValueType currentValueType = inputStream.readType();
-        if (currentValueType == BinaryValueType.NULL) {
-            return null;
+    public <T> T readPreDeserializeObject() throws Exception {
+        final Object object = readObject();
+        if (object instanceof byte[]) {
+            @SuppressWarnings("unchecked") final T result = (T) serializer.fromBytes((byte[]) object);
+            return result;
+        } else {
+            @SuppressWarnings("unchecked") final T result = (T) object;
+            return result;
         }
-
-        checkValueType(BinaryValueType.OBJECT, currentValueType);
-
-        @SuppressWarnings("unchecked") final T result = (T) readPojo(typeId -> {
-            final Class<?> type = getTypeIdMapper().ofId(typeId);
-            if (type == null) {
-                throw new IOException("Unknown typeId " + typeId);
-            }
-
-            if (!MessageLite.class.isAssignableFrom(type)) {
-                throw new IOException("expected messageLite, but " + type);
-            }
-
-            final Parser<? extends MessageLite> parser = serializer.parserMap.get(type);
-            if (parser == null) {
-                throw new IOException("parser is null, type " + type);
-            }
-            return readMessageImpl(parser);
-        });
-        return result;
     }
 
-    private MessageLite readMessageImpl(Parser<? extends MessageLite> parser) throws IOException {
-        final int size = inputStream.readInt32();
-        final int oldLimit = inputStream.pushLimit(size);
-        final MessageLite result = inputStream.readMessageNoSize(parser);
-        inputStream.popLimit(oldLimit);
-        return result;
-    }
-
-    private Object readProtoEnumImpl(Internal.EnumLiteMap<?> enumLiteMap) throws IOException {
-        final int number = inputStream.readInt32();
+    private Object readProtoEnumImpl(Internal.EnumLiteMap<?> enumLiteMap) throws Exception {
+        // 需要按照POJO的方式，必须调用其它基本值方法
+        final int number = readInt();
         return enumLiteMap.findValueByNumber(number);
     }
     // ------------------------------------------ 数组/集合等多态处理 ------------------------------------------
 
-    private <T> T readNullablePojo(final BinaryValueType currentValueType, PojoReader<T> reader) throws Exception {
+    private <T> T readNullablePojo(final BinaryValueType currentValueType, ContainerReader<T> reader) throws Exception {
         if (currentValueType == BinaryValueType.NULL) {
             return null;
         }
@@ -520,18 +524,6 @@ public class ObjectReaderImpl implements ObjectReader {
     }
 
     // -------------------------------------------- 其它 ---------------------------------------
-
-    @Override
-    public <T> T readPreDeserializeObject() throws Exception {
-        final Object object = readObject();
-        if (object instanceof byte[]) {
-            @SuppressWarnings("unchecked") final T result = (T) serializer.fromBytes((byte[]) object);
-            return result;
-        } else {
-            @SuppressWarnings("unchecked") final T result = (T) object;
-            return result;
-        }
-    }
 
     public void close() throws Exception {
 

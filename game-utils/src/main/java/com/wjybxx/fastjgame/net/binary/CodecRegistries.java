@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -26,8 +27,21 @@ import java.util.Map;
  */
 public class CodecRegistries {
 
-    public static CodecRegistry fromAppPojoCodecs(Map<Class<?>, PojoCodec<?>> pojoCodecMap) {
-        return new DefaultCodecRegistry(new IdentityHashMap<>(pojoCodecMap));
+    public static CodecRegistry fromPojoCodecs(Map<Class<?>, PojoCodec<?>>... pojoCodecMaps) {
+        final int sum = Arrays.stream(pojoCodecMaps)
+                .mapToInt(Map::size)
+                .sum();
+
+        final IdentityHashMap<Class<?>, PojoCodec<?>> identityHashMap = new IdentityHashMap<>(sum);
+        for (Map<Class<?>, PojoCodec<?>> map : pojoCodecMaps) {
+            identityHashMap.putAll(map);
+        }
+
+        if (identityHashMap.size() != sum) {
+            throw new IllegalArgumentException("some type has more than one codec");
+        }
+
+        return new DefaultCodecRegistry(identityHashMap);
     }
 
     private static class DefaultCodecRegistry implements CodecRegistry {
@@ -45,5 +59,4 @@ public class CodecRegistries {
         }
 
     }
-
 }
