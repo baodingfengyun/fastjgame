@@ -21,6 +21,7 @@ import com.wjybxx.fastjgame.util.ClassScanner;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -45,7 +46,7 @@ public class CollectionScanner {
             addJdkCollections(collectionFactories, mapFactories);
             addFastutilColletions(collectionFactories, mapFactories);
             return new ScanResult(collectionFactories, mapFactories, arrayTypes);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return ExceptionUtils.rethrow(e);
         }
     }
@@ -96,7 +97,7 @@ public class CollectionScanner {
         mapFactories.add(IdentityHashMap::new);
     }
 
-    private static void addFastutilColletions(Collection<Supplier<? extends Collection<?>>> collectionFactories, Collection<Supplier<? extends Map<?, ?>>> mapFactories) throws Exception {
+    private static void addFastutilColletions(Collection<Supplier<? extends Collection<?>>> collectionFactories, Collection<Supplier<? extends Map<?, ?>>> mapFactories) throws Throwable {
         scanImpl("it.unimi.dsi.fastutil", CollectionScanner::fastutilNameFilter, collectionFactories, mapFactories);
     }
 
@@ -115,20 +116,23 @@ public class CollectionScanner {
 
     private static void scanImpl(final String packageName, final Predicate<String> namePredicate,
                                  final Collection<Supplier<? extends Collection<?>>> collectionFactories,
-                                 final Collection<Supplier<? extends Map<?, ?>>> mapFactories) throws Exception {
+                                 final Collection<Supplier<? extends Map<?, ?>>> mapFactories) throws Throwable {
 
         final Predicate<Class<?>> predicate = clazz -> isCollectionOrMap(clazz) && hasPublicNoArgsConstructor(clazz);
         final Set<Class<?>> classSet = ClassScanner.findClasses(packageName,
                 namePredicate,
                 predicate);
 
-        final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+        final MethodHandles.Lookup lookup = MethodHandles.lookup();
+        final MethodType collectionSupplierMethodType = MethodType.methodType(Collection.class);
+        final MethodType mapSupplierMethodType = MethodType.methodType(Map.class);
+
         for (Class<?> clazz : classSet) {
             final MethodHandle constructor = lookup.findConstructor(clazz, MethodType.methodType(void.class));
             if (Collection.class.isAssignableFrom(clazz)) {
-                collectionFactories.add(collectionSupplier(constructor));
+                collectionFactories.add(collectionSupplier(lookup, constructor, collectionSupplierMethodType));
             } else {
-                mapFactories.add(mapSupplier(constructor));
+                mapFactories.add(mapSupplier(lookup, constructor, mapSupplierMethodType));
             }
         }
     }
@@ -161,24 +165,22 @@ public class CollectionScanner {
         }
     }
 
-    private static Supplier<? extends Collection<?>> collectionSupplier(MethodHandle handle) {
-        return () -> {
-            try {
-                return (Collection<?>) handle.invoke();
-            } catch (Throwable e) {
-                return ExceptionUtils.rethrow(e);
-            }
-        };
+    @SuppressWarnings("unchecked")
+    private static Supplier<? extends Collection<?>> collectionSupplier(MethodHandles.Lookup lookup, MethodHandle handle, MethodType methodType) throws Throwable {
+        return (Supplier<? extends Collection<?>>) LambdaMetafactory.metafactory(lookup,
+                "get", MethodType.methodType(Supplier.class), methodType.generic(),
+                handle, methodType)
+                .getTarget()
+                .invokeExact();
     }
 
-    private static Supplier<? extends Map<?, ?>> mapSupplier(MethodHandle handle) {
-        return () -> {
-            try {
-                return (Map<?, ?>) handle.invoke();
-            } catch (Throwable e) {
-                return ExceptionUtils.rethrow(e);
-            }
-        };
+    @SuppressWarnings("unchecked")
+    private static Supplier<? extends Map<?, ?>> mapSupplier(MethodHandles.Lookup lookup, MethodHandle handle, MethodType methodType) throws Throwable {
+        return (Supplier<? extends Map<?, ?>>) LambdaMetafactory.metafactory(lookup,
+                "get", MethodType.methodType(Supplier.class), methodType.generic(),
+                handle, methodType)
+                .getTarget()
+                .invokeExact();
     }
 
     public static void main(String[] args) throws Exception {
