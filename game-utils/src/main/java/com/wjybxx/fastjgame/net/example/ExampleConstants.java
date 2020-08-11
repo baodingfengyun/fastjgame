@@ -16,8 +16,8 @@
 package com.wjybxx.fastjgame.net.example;
 
 import com.wjybxx.fastjgame.net.binary.BinarySerializer;
-import com.wjybxx.fastjgame.net.binary.CodecScanner;
 import com.wjybxx.fastjgame.net.binary.CollectionScanner;
+import com.wjybxx.fastjgame.net.binary.PojoCodecScanner;
 import com.wjybxx.fastjgame.net.binary.ProtoBufScanner;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroup;
 import com.wjybxx.fastjgame.net.eventloop.NetEventLoopGroupBuilder;
@@ -40,7 +40,7 @@ public final class ExampleConstants {
     public static TypeIdMappingStrategy typeIdMappingStrategy = new HashTypeIdMappingStrategy();
 
     private static TypeIdMapper typeIdMapper = DefaultTypeIdMapper.newInstance(
-            Stream.concat(CodecScanner.scan().keySet().stream(), ProtoBufScanner.scan().stream())
+            Stream.concat(PojoCodecScanner.scan().keySet().stream(), ProtoBufScanner.scan().stream())
                     .collect(Collectors.toMap(Function.identity(), typeIdMappingStrategy::mapping))
     );
 

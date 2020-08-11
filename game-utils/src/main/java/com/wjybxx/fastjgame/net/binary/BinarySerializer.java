@@ -273,7 +273,7 @@ public class BinarySerializer implements Serializer {
     }
 
     private static Map<Class<?>, PojoCodec<?>> indexPojoCodcMap() throws Exception {
-        final Map<Class<?>, Class<? extends PojoCodecImpl<?>>> scanResult = CodecScanner.scan();
+        final Map<Class<?>, Class<? extends PojoCodecImpl<?>>> scanResult = PojoCodecScanner.scan();
         final Map<Class<?>, PojoCodec<?>> pojoCodecMap = new IdentityHashMap<>(scanResult.size());
         for (Map.Entry<Class<?>, Class<? extends PojoCodecImpl<?>>> entry : scanResult.entrySet()) {
             final Class<?> type = entry.getKey();

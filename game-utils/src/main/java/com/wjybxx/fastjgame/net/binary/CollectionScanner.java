@@ -18,10 +18,10 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.wjybxx.fastjgame.net.serialization.HashTypeIdMappingStrategy;
 import com.wjybxx.fastjgame.util.ClassScanner;
+import com.wjybxx.fastjgame.util.MethodHandleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -37,24 +37,45 @@ import java.util.function.Supplier;
  */
 public class CollectionScanner {
 
+    private final Collection<Supplier<? extends Collection<?>>> collectionFactories = new ArrayList<>(256);
+    private final Collection<Supplier<? extends Map<?, ?>>> mapFactories = new ArrayList<>(256);
+    private final Collection<Class<?>> arrayTypes = new ArrayList<>(16);
+
+    private final MethodHandles.Lookup lookup = MethodHandles.lookup();
+
     public static ScanResult scan() {
-        final Collection<Supplier<? extends Collection<?>>> collectionFactories = new ArrayList<>(256);
-        final Collection<Supplier<? extends Map<?, ?>>> mapFactories = new ArrayList<>(256);
-        final Collection<Class<?>> arrayTypes = new ArrayList<>(16);
         try {
-            addArrayTypes(arrayTypes);
-            addJdkCollections(collectionFactories, mapFactories);
-            addFastutilColletions(collectionFactories, mapFactories);
-            return new ScanResult(collectionFactories, mapFactories, arrayTypes);
+            return new CollectionScanner().scanImpl();
         } catch (Throwable e) {
             return ExceptionUtils.rethrow(e);
         }
     }
 
+    public static class ScanResult {
+
+        final Collection<Supplier<? extends Collection<?>>> collectionFactories;
+        final Collection<Supplier<? extends Map<?, ?>>> mapFactories;
+        final Collection<Class<?>> arrayTypes;
+
+        ScanResult(Collection<Supplier<? extends Collection<?>>> collectionFactories,
+                   Collection<Supplier<? extends Map<?, ?>>> mapFactories, Collection<Class<?>> arrayTypes) {
+            this.collectionFactories = collectionFactories;
+            this.mapFactories = mapFactories;
+            this.arrayTypes = arrayTypes;
+        }
+    }
+
+    private ScanResult scanImpl() throws Throwable {
+        addArrayTypes();
+        addJdkCollections();
+        addFastutilColletions();
+        return new ScanResult(collectionFactories, mapFactories, arrayTypes);
+    }
+
     /**
      * 添加常用的数组类型
      */
-    private static void addArrayTypes(Collection<Class<?>> arrayTypes) {
+    private void addArrayTypes() {
         // 基本类型(不包含字节数组)
         arrayTypes.add(int[].class);
         arrayTypes.add(long[].class);
@@ -82,8 +103,7 @@ public class CollectionScanner {
      * 添加JDK的集合
      * 注意：需要特殊构造的集合，不可以添加，如{@link EnumSet} {@link TreeSet}
      */
-    private static void addJdkCollections(final Collection<Supplier<? extends Collection<?>>> collectionFactories,
-                                          final Collection<Supplier<? extends Map<?, ?>>> mapFactories) {
+    private void addJdkCollections() {
         // 其实常用的不多
         collectionFactories.add(ArrayList::new);
         collectionFactories.add(LinkedList::new);
@@ -97,8 +117,8 @@ public class CollectionScanner {
         mapFactories.add(IdentityHashMap::new);
     }
 
-    private static void addFastutilColletions(Collection<Supplier<? extends Collection<?>>> collectionFactories, Collection<Supplier<? extends Map<?, ?>>> mapFactories) throws Throwable {
-        scanImpl("it.unimi.dsi.fastutil", CollectionScanner::fastutilNameFilter, collectionFactories, mapFactories);
+    private void addFastutilColletions() throws Throwable {
+        scanPackage("it.unimi.dsi.fastutil", CollectionScanner::fastutilNameFilter);
     }
 
     private static boolean fastutilNameFilter(String name) {
@@ -114,27 +134,25 @@ public class CollectionScanner {
         return true;
     }
 
-    private static void scanImpl(final String packageName, final Predicate<String> namePredicate,
-                                 final Collection<Supplier<? extends Collection<?>>> collectionFactories,
-                                 final Collection<Supplier<? extends Map<?, ?>>> mapFactories) throws Throwable {
-
+    private void scanPackage(final String packageName, final Predicate<String> namePredicate) throws Throwable {
         final Predicate<Class<?>> predicate = clazz -> isCollectionOrMap(clazz) && hasPublicNoArgsConstructor(clazz);
         final Set<Class<?>> classSet = ClassScanner.findClasses(packageName,
                 namePredicate,
                 predicate);
 
-        final MethodHandles.Lookup lookup = MethodHandles.lookup();
-        final MethodType collectionSupplierMethodType = MethodType.methodType(Collection.class);
-        final MethodType mapSupplierMethodType = MethodType.methodType(Map.class);
-
         for (Class<?> clazz : classSet) {
             final MethodHandle constructor = lookup.findConstructor(clazz, MethodType.methodType(void.class));
             if (Collection.class.isAssignableFrom(clazz)) {
-                collectionFactories.add(collectionSupplier(lookup, constructor, collectionSupplierMethodType));
+                collectionFactories.add(collectionSupplier(constructor));
             } else {
-                mapFactories.add(mapSupplier(lookup, constructor, mapSupplierMethodType));
+                mapFactories.add(mapSupplier(constructor));
             }
         }
+    }
+
+    private static boolean isCollectionOrMap(Class<?> clazz) {
+        return Collection.class.isAssignableFrom(clazz)
+                || Map.class.isAssignableFrom(clazz);
     }
 
     private static boolean hasPublicNoArgsConstructor(Class<?> clazz) {
@@ -146,41 +164,14 @@ public class CollectionScanner {
                 .anyMatch(constructor -> constructor.getParameterCount() == 0);
     }
 
-    private static boolean isCollectionOrMap(Class<?> clazz) {
-        return Collection.class.isAssignableFrom(clazz)
-                || Map.class.isAssignableFrom(clazz);
-    }
-
-    public static class ScanResult {
-
-        final Collection<Supplier<? extends Collection<?>>> collectionFactories;
-        final Collection<Supplier<? extends Map<?, ?>>> mapFactories;
-        final Collection<Class<?>> arrayTypes;
-
-        ScanResult(Collection<Supplier<? extends Collection<?>>> collectionFactories,
-                   Collection<Supplier<? extends Map<?, ?>>> mapFactories, Collection<Class<?>> arrayTypes) {
-            this.collectionFactories = collectionFactories;
-            this.mapFactories = mapFactories;
-            this.arrayTypes = arrayTypes;
-        }
+    @SuppressWarnings("unchecked")
+    private Supplier<? extends Collection<?>> collectionSupplier(MethodHandle constructor) throws Throwable {
+        return (Supplier<? extends Collection<?>>) MethodHandleUtils.noArgsConstructorToSupplier(lookup, constructor, Collection.class);
     }
 
     @SuppressWarnings("unchecked")
-    private static Supplier<? extends Collection<?>> collectionSupplier(MethodHandles.Lookup lookup, MethodHandle handle, MethodType methodType) throws Throwable {
-        return (Supplier<? extends Collection<?>>) LambdaMetafactory.metafactory(lookup,
-                "get", MethodType.methodType(Supplier.class), methodType.generic(),
-                handle, methodType)
-                .getTarget()
-                .invokeExact();
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Supplier<? extends Map<?, ?>> mapSupplier(MethodHandles.Lookup lookup, MethodHandle handle, MethodType methodType) throws Throwable {
-        return (Supplier<? extends Map<?, ?>>) LambdaMetafactory.metafactory(lookup,
-                "get", MethodType.methodType(Supplier.class), methodType.generic(),
-                handle, methodType)
-                .getTarget()
-                .invokeExact();
+    private Supplier<? extends Map<?, ?>> mapSupplier(MethodHandle constructor) throws Throwable {
+        return (Supplier<? extends Map<?, ?>>) MethodHandleUtils.noArgsConstructorToSupplier(lookup, constructor, Map.class);
     }
 
     public static void main(String[] args) throws Exception {

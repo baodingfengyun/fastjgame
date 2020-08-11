@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * @version 1.0
  * date - 2020/2/20
  */
-public class CodecScanner {
+public class PojoCodecScanner {
 
     private static final Set<String> SCAN_PACKAGES = Set.of("com.wjybxx.fastjgame");
 
@@ -43,9 +43,9 @@ public class CodecScanner {
 
     public static Map<Class<?>, Class<? extends PojoCodecImpl<?>>> scan(Set<String> packages) {
         return packages.stream()
-                .map(scanPackage -> ClassScanner.findClasses(scanPackage, name -> true, CodecScanner::isPojoCodecImpl))
+                .map(scanPackage -> ClassScanner.findClasses(scanPackage, name -> true, PojoCodecScanner::isPojoCodecImpl))
                 .flatMap(Collection::stream)
-                .collect(Collectors.toMap(CodecScanner::findEncoderClass, CodecScanner::castCodecClass));
+                .collect(Collectors.toMap(PojoCodecScanner::findEncoderClass, PojoCodecScanner::castCodecClass));
     }
 
     private static boolean isPojoCodecImpl(Class<?> clazz) {
