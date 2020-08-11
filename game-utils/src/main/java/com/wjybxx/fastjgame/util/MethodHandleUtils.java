@@ -91,7 +91,7 @@ public class MethodHandleUtils {
                                             MethodType samMethodType,
                                             MethodHandle implMethod,
                                             MethodType instantiatedMethodType) throws Throwable {
-        // 注意：invoke会适配返回值类型，而invokeExact不会适配返回值类型，可能向下转型失败
+        // 注意：invoke会适配参数和返回值类型，而invokeExact不会适配参数和返回值类型，可能导致调用失败
         return LambdaMetafactory.metafactory(caller,
                 invokedName, invokedType, samMethodType,
                 implMethod, instantiatedMethodType)
