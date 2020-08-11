@@ -52,7 +52,7 @@ import java.util.function.Supplier;
 @ThreadSafe
 public class BinarySerializer implements Serializer {
 
-    private final CodecRegistry codecRegistry;
+    final CodecRegistry codecRegistry;
     final TypeIdMapper typeIdMapper;
     final Map<Class<?>, Supplier<? extends Collection<?>>> collectionFactoryMap;
     final Map<Class<?>, Supplier<? extends Map<?, ?>>> mapFactoryMap;
@@ -174,13 +174,13 @@ public class BinarySerializer implements Serializer {
     }
 
     private void encodeObject(CodedDataOutputStream outputStream, @Nullable Object value) throws Exception {
-        final ObjectWriter writer = new ObjectWriterImpl(this, codecRegistry, outputStream);
+        final ObjectWriter writer = new ObjectWriterImpl(this, outputStream);
         writer.writeObject(value);
         writer.flush();
     }
 
     private Object decodeObject(CodedDataInputStream inputStream) throws Exception {
-        final ObjectReader reader = new ObjectReaderImpl(this, codecRegistry, inputStream);
+        final ObjectReader reader = new ObjectReaderImpl(this, inputStream);
         return reader.readObject();
     }
 

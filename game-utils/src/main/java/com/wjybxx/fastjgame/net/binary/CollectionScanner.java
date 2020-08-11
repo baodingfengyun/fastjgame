@@ -37,8 +37,8 @@ import java.util.function.Supplier;
  */
 public class CollectionScanner {
 
-    private final Collection<Supplier<? extends Collection<?>>> collectionFactories = new ArrayList<>(256);
-    private final Collection<Supplier<? extends Map<?, ?>>> mapFactories = new ArrayList<>(256);
+    private final Collection<Supplier<? extends Collection<?>>> collectionFactories = new ArrayList<>(64);
+    private final Collection<Supplier<? extends Map<?, ?>>> mapFactories = new ArrayList<>(128);
     private final Collection<Class<?>> arrayTypes = new ArrayList<>(16);
 
     private final MethodHandles.Lookup lookup = MethodHandles.lookup();

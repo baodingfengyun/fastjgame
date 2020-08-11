@@ -95,16 +95,17 @@ public class ProtoBufSerializePerformanceTest {
         codedOutputStream.writeRawByte(BinaryValueType.OBJECT.getNumber());
         codedOutputStream.writeFixed32NoTag(0);
 
-        writeTypeId(msg, codedOutputStream);
+        final TypeId typeId = TYPE_ID_MAPPER.ofType(msg.getClass());
+        assert null != typeId;
+        writeTypeId(typeId, codedOutputStream);
+
         codedOutputStream.writeMessageNoTag(msg);
 
         codedOutputStream.flush();
         return codedOutputStream;
     }
 
-    private static void writeTypeId(Object msg, CodedOutputStream codedOutputStream) throws IOException {
-        final TypeId typeId = TYPE_ID_MAPPER.ofType(msg.getClass());
-        assert null != typeId;
+    private static void writeTypeId(TypeId typeId, CodedOutputStream codedOutputStream) throws IOException {
         codedOutputStream.writeRawByte(typeId.getNamespace());
         codedOutputStream.writeFixed32NoTag(typeId.getClassId());
     }
@@ -114,17 +115,17 @@ public class ProtoBufSerializePerformanceTest {
         final BinaryValueType valueType = BinaryValueType.forNumber(inputStream.readRawByte());
         final int length = inputStream.readFixed32();
 
-        final Class<?> messageClass = readType(inputStream);
-        final Parser<? extends Message> parser = parserMap.get(messageClass);
+        final TypeId typeId = readTypeId(inputStream);
+        final Class<?> type = TYPE_ID_MAPPER.ofId(typeId);
+
+        final Parser<? extends Message> parser = parserMap.get(type);
         return inputStream.readMessage(parser, emptyRegistry);
     }
 
-    private static Class<?> readType(CodedInputStream inputStream) throws IOException {
+    private static TypeId readTypeId(CodedInputStream inputStream) throws IOException {
         final byte nameSpace = inputStream.readRawByte();
         final int classId = inputStream.readFixed32();
-        final Class<?> type = TYPE_ID_MAPPER.ofId(new TypeId(nameSpace, classId));
-        assert null != type;
-        return type;
+        return new TypeId(nameSpace, classId);
     }
 
     private static void codecTest(Message msg, int loopTimes, Map<Class<?>, Parser<? extends Message>> parserMap) throws IOException {

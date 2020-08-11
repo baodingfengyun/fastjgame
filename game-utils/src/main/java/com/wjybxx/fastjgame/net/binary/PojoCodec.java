@@ -43,7 +43,7 @@ public final class PojoCodec<T> {
      * 从输入流中解析指定对象。
      * 它应该创建对象，并反序列化该类及其所有超类定义的所有要序列化的字段。
      */
-    public T readObject(ObjectReader reader, CodecRegistry codecRegistry) throws Exception {
+    public T readObject(ObjectReader reader) throws Exception {
         return codec.readObject(reader);
     }
 
@@ -51,7 +51,7 @@ public final class PojoCodec<T> {
      * 将对象写入输出流。
      * 将对象及其所有超类定义的所有要序列化的字段写入输出流。
      */
-    public void writeObject(ObjectWriter writer, T instance, CodecRegistry codecRegistry) throws Exception {
+    public void writeObject(ObjectWriter writer, T instance) throws Exception {
         codec.writeObject(instance, writer);
     }
 
@@ -62,7 +62,7 @@ public final class PojoCodec<T> {
         return codec instanceof AbstractPojoCodecImpl;
     }
 
-    public void readFields(ObjectReader reader, T instance, CodecRegistry codecRegistry) throws Exception {
+    public void readFields(ObjectReader reader, T instance) throws Exception {
         final AbstractPojoCodecImpl<T> abstractPojoCodec = (AbstractPojoCodecImpl<T>) codec;
         abstractPojoCodec.readFields(instance, reader);
     }

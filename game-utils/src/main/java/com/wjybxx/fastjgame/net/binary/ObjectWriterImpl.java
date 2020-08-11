@@ -39,15 +39,13 @@ public class ObjectWriterImpl implements ObjectWriter {
     static final int DEFAULT_RECURSION_LIMIT = 64;
 
     private final BinarySerializer serializer;
-    private final CodecRegistry codecRegistry;
     private final CodedDataOutputStream outputStream;
 
     private final int recursionLimit = DEFAULT_RECURSION_LIMIT;
     private int recursionDepth;
 
-    ObjectWriterImpl(BinarySerializer serializer, CodecRegistry codecRegistry, CodedDataOutputStream outputStream) {
+    ObjectWriterImpl(BinarySerializer serializer, CodedDataOutputStream outputStream) {
         this.serializer = serializer;
-        this.codecRegistry = codecRegistry;
         this.outputStream = outputStream;
     }
 
@@ -135,7 +133,7 @@ public class ObjectWriterImpl implements ObjectWriter {
             return;
         }
 
-        final TypeId typeId = getCheckedTypeId(messageLite);
+        final TypeId typeId = getCheckedTypeId(messageLite.getClass());
         outputStream.writeType(BinaryValueType.MESSAGE);
         // length (typeId + content)
         outputStream.writeFixed32(5 + messageLite.getSerializedSize());
@@ -143,10 +141,10 @@ public class ObjectWriterImpl implements ObjectWriter {
         outputStream.writeMessageNoSize(messageLite);
     }
 
-    private TypeId getCheckedTypeId(Object value) {
-        final TypeId typeId = getTypeIdMapper().ofType(value.getClass());
+    private TypeId getCheckedTypeId(Class<?> type) {
+        final TypeId typeId = getTypeIdMapper().ofType(type);
         if (typeId == null) {
-            throw new IllegalStateException("typeModel expect not null, but null, type " + value.getClass().getName());
+            throw new IllegalStateException("typeId expect not null, but null, type " + type.getName());
         }
         return typeId;
     }
@@ -175,7 +173,7 @@ public class ObjectWriterImpl implements ObjectWriter {
      */
     private <T> void writeObjectHelper(@Nonnull T value) throws Exception {
         @SuppressWarnings("unchecked") final Class<T> type = (Class<T>) value.getClass();
-        final PojoCodec<? super T> pojoCodec = codecRegistry.get(type);
+        final PojoCodec<? super T> pojoCodec = serializer.codecRegistry.get(type);
         if (pojoCodec != null) {
             writePojo(value, type, pojoCodec);
             return;
@@ -253,10 +251,7 @@ public class ObjectWriterImpl implements ObjectWriter {
     }
 
     private <T> void writePojo(@Nonnull T value, @Nonnull Class<? super T> type, @Nonnull PojoCodec<? super T> pojoCodec) throws Exception {
-        final TypeId typeId = getTypeIdMapper().ofType(type);
-        if (typeId == null) {
-            throw new IllegalStateException("typeId expect not null, but null, type " + type.getName());
-        }
+        final TypeId typeId = getCheckedTypeId(type);
 
         if (++recursionDepth > recursionLimit) {
             throw new IOException("Object had too many levels of nesting");
@@ -272,7 +267,7 @@ public class ObjectWriterImpl implements ObjectWriter {
         writeTypeId(typeId);
 
         // 对象内容
-        pojoCodec.writeObject(this, value, codecRegistry);
+        pojoCodec.writeObject(this, value);
 
         // 回写size
         backpatchSize(preIndex);
@@ -301,7 +296,7 @@ public class ObjectWriterImpl implements ObjectWriter {
             return;
         }
 
-        final PojoCodec<? super T> pojoCodec = codecRegistry.get(superClass);
+        final PojoCodec<? super T> pojoCodec = serializer.codecRegistry.get(superClass);
         if (pojoCodec == null) {
             throw new IOException("Unsupported type " + superClass.getName());
         }
@@ -443,7 +438,7 @@ public class ObjectWriterImpl implements ObjectWriter {
             writeNull();
             return;
         }
-        writeAsPojo(protocolMessageEnum, getCheckedTypeId(protocolMessageEnum), this::writeProtocolEnumImpl);
+        writeAsPojo(protocolMessageEnum, getCheckedTypeId(protocolMessageEnum.getClass()), this::writeProtocolEnumImpl);
     }
 
     private void writeProtocolEnumImpl(ProtocolMessageEnum protocolMessageEnum) throws Exception {
@@ -470,7 +465,7 @@ public class ObjectWriterImpl implements ObjectWriter {
 
     @Override
     public CodecRegistry codecRegistry() {
-        return codecRegistry;
+        return serializer.codecRegistry;
     }
 
     @Override

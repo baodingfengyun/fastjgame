@@ -129,9 +129,9 @@ public class DefaultRpcMethodSpec<V> implements RpcMethodSpec<V> {
         }
 
         private List<Object> doPreDeserialize(ObjectReader reader, int preIndexes) throws Exception {
-            // 方法参数超过6个话不能忍啊
             final ObjectReader.ReaderContext context = reader.readStartObject();
-            final List<Object> methodParams = new ArrayList<>(6);
+            // 方法参数一般小于等于4个，扩容一次6个也足够，超过6个参数的方法应该重构
+            final List<Object> methodParams = new ArrayList<>(4);
             for (int index = 0; !reader.isEndOfObject(); index++) {
                 final Object newParameter;
                 if (preIndexes > 0 && (preIndexes & (1L << index)) != 0) {

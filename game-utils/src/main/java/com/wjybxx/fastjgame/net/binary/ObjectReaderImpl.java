@@ -39,21 +39,19 @@ import java.util.function.Supplier;
 public class ObjectReaderImpl implements ObjectReader {
 
     private final BinarySerializer serializer;
-    private final CodecRegistry codecRegistry;
     private final CodedDataInputStream inputStream;
 
     private final int recursionLimit = ObjectWriterImpl.DEFAULT_RECURSION_LIMIT;
     private int recursionDepth;
 
-    ObjectReaderImpl(BinarySerializer serializer, CodecRegistry codecRegistry, CodedDataInputStream inputStream) {
+    ObjectReaderImpl(BinarySerializer serializer, CodedDataInputStream inputStream) {
         this.serializer = serializer;
-        this.codecRegistry = codecRegistry;
         this.inputStream = inputStream;
     }
 
     // -------------------------------------------- 基本值 --------------------------------------
 
-    private void readTypeAndCheck(BinaryValueType expected) throws IOException {
+    private void readAndCheckValueType(BinaryValueType expected) throws IOException {
         final BinaryValueType type = inputStream.readType();
         if (type != expected) {
             throw new IOException("expected type " + expected + ", but found " + type);
@@ -62,49 +60,49 @@ public class ObjectReaderImpl implements ObjectReader {
 
     @Override
     public int readInt() throws Exception {
-        readTypeAndCheck(BinaryValueType.INT);
+        readAndCheckValueType(BinaryValueType.INT);
         return inputStream.readInt32();
     }
 
     @Override
     public long readLong() throws Exception {
-        readTypeAndCheck(BinaryValueType.LONG);
+        readAndCheckValueType(BinaryValueType.LONG);
         return inputStream.readInt64();
     }
 
     @Override
     public float readFloat() throws Exception {
-        readTypeAndCheck(BinaryValueType.FLOAT);
+        readAndCheckValueType(BinaryValueType.FLOAT);
         return inputStream.readFloat();
     }
 
     @Override
     public double readDouble() throws Exception {
-        readTypeAndCheck(BinaryValueType.DOUBLE);
+        readAndCheckValueType(BinaryValueType.DOUBLE);
         return inputStream.readDouble();
     }
 
     @Override
     public short readShort() throws Exception {
-        readTypeAndCheck(BinaryValueType.SHORT);
+        readAndCheckValueType(BinaryValueType.SHORT);
         return (short) inputStream.readInt32();
     }
 
     @Override
     public boolean readBoolean() throws Exception {
-        readTypeAndCheck(BinaryValueType.BOOLEAN);
+        readAndCheckValueType(BinaryValueType.BOOLEAN);
         return inputStream.readBool();
     }
 
     @Override
     public byte readByte() throws Exception {
-        readTypeAndCheck(BinaryValueType.BYTE);
+        readAndCheckValueType(BinaryValueType.BYTE);
         return inputStream.readRawByte();
     }
 
     @Override
     public char readChar() throws Exception {
-        readTypeAndCheck(BinaryValueType.CHAR);
+        readAndCheckValueType(BinaryValueType.CHAR);
         return (char) inputStream.readInt32();
     }
 
@@ -159,7 +157,7 @@ public class ObjectReaderImpl implements ObjectReader {
         final int size = inputStream.readFixed32();
 
         final TypeId typeId = readTypeId();
-        final Class<?> type = getTypeIdMapper().ofId(typeId);
+        final Class<?> type = serializer.typeIdMapper.ofId(typeId);
         if (type == null) {
             throw new IOException("Unknown typeId " + typeId);
         }
@@ -175,9 +173,6 @@ public class ObjectReaderImpl implements ObjectReader {
         return result;
     }
 
-    private TypeIdMapper getTypeIdMapper() {
-        return serializer.typeIdMapper;
-    }
     // -----------------------------------------------  读取对象（核心） --------------------------------------
 
     @Override
@@ -256,28 +251,17 @@ public class ObjectReaderImpl implements ObjectReader {
     }
 
     private Object readAnyPojo(TypeId typeId) throws Exception {
-        final PojoCodec<?> pojoCodec = getPojoCodec(typeId);
-        if (pojoCodec != null) {
-            return pojoCodec.readObject(this, codecRegistry);
-        }
-
-        final Object result;
-        final Class<?> type = getTypeIdMapper().ofId(typeId);
-        if (type != null) {
-            result = readAnyPojoByType(type);
-        } else {
-            result = readAnyPojoById(typeId);
-        }
-        return result;
-    }
-
-    @Nullable
-    private PojoCodec<?> getPojoCodec(TypeId typeId) {
         final Class<?> type = serializer.typeIdMapper.ofId(typeId);
         if (type == null) {
-            return null;
+            return readAnyPojoById(typeId);
         }
-        return codecRegistry.get(type);
+
+        final PojoCodec<?> pojoCodec = serializer.codecRegistry.get(type);
+        if (pojoCodec != null) {
+            return pojoCodec.readObject(this);
+        } else {
+            return readAnyPojoByType(type);
+        }
     }
 
     private Object readAnyPojoByType(Class<?> type) throws Exception {
@@ -374,27 +358,32 @@ public class ObjectReaderImpl implements ObjectReader {
     }
 
     private <E> E readToSubType(TypeId typeId, Supplier<E> factory) throws Exception {
-        final PojoCodec<?> pojoCodec = getPojoCodec(typeId);
-        if (null == pojoCodec) {
+        final Class<?> type = serializer.typeIdMapper.ofId(typeId);
+        if (type == null) {
             throw new IOException("Unsupported typeId " + typeId);
         }
+
+        final PojoCodec<?> pojoCodec = serializer.codecRegistry.get(type);
+        if (null == pojoCodec) {
+            throw new IOException("pojoCodec expected not null, type " + type);
+        }
+
         // 先检查是否支持读取字段，可减少不必要的对象创建
         ensureSupportReadFields(pojoCodec);
 
         final E result = factory.get();
 
-        // 确保是超类型的codec，再转型
-        ensureSubType(result, pojoCodec);
+        // 类型检查
+        ensureSubType(result, type);
         @SuppressWarnings("unchecked") final PojoCodec<? super E> castPojoCodec = (PojoCodec<? super E>) pojoCodec;
-        castPojoCodec.readFields(this, result, codecRegistry);
-
+        castPojoCodec.readFields(this, result);
         return result;
     }
 
-    private static void ensureSubType(Object instance, PojoCodec<?> pojoCodec) throws IOException {
-        if (!pojoCodec.getEncoderClass().isAssignableFrom(instance.getClass())) {
-            final String msg = String.format("Incompatible class, expected: %s, but read %s ",
-                    instance.getClass().getName(), pojoCodec.getEncoderClass().getName());
+    private static void ensureSubType(Object instance, Class<?> type) throws IOException {
+        if (!type.isInstance(instance)) {
+            final String msg = String.format("%s is not a subtype of %s ",
+                    instance.getClass().getName(), type.getName());
             throw new IOException(msg);
         }
     }
@@ -529,7 +518,7 @@ public class ObjectReaderImpl implements ObjectReader {
 
     @Override
     public CodecRegistry codecRegistry() {
-        return codecRegistry;
+        return serializer.codecRegistry;
     }
 
     @Override
@@ -539,7 +528,7 @@ public class ObjectReaderImpl implements ObjectReader {
 
     @Override
     public ReaderContext readStartObject() throws Exception {
-        readTypeAndCheck(BinaryValueType.OBJECT);
+        readAndCheckValueType(BinaryValueType.OBJECT);
 
         if (++recursionDepth > recursionLimit) {
             throw new IOException("Object had too many levels of nesting");
