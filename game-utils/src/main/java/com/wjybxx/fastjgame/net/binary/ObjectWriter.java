@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.MessageLite;
 import com.wjybxx.fastjgame.net.serialization.TypeId;
+import com.wjybxx.fastjgame.net.serialization.TypeIdMapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -129,7 +130,12 @@ public interface ObjectWriter extends AutoCloseable {
     CodecRegistry codecRegistry();
 
     /**
-     * 开始写一个对象
+     * 获取关联的{@link TypeIdMapper}
+     */
+    TypeIdMapper typeIdMapper();
+
+    /**
+     * 开始写一个对象（内嵌对象）
      *
      * @param typeId 为你要写的对象指定唯一的标识，如果读取对象时并不需要该值的话，可以给定一个默认值。
      * @return 记录当前上下文的对象

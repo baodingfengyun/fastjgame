@@ -533,6 +533,11 @@ public class ObjectReaderImpl implements ObjectReader {
     }
 
     @Override
+    public TypeIdMapper typeIdMapper() {
+        return serializer.typeIdMapper;
+    }
+
+    @Override
     public ReaderContext readStartObject() throws Exception {
         readTypeAndCheck(BinaryValueType.OBJECT);
 

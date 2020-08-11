@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.MessageLite;
 import com.wjybxx.fastjgame.net.serialization.TypeId;
+import com.wjybxx.fastjgame.net.serialization.TypeIdMapper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -128,7 +129,12 @@ public interface ObjectReader {
     CodecRegistry codecRegistry();
 
     /**
-     * 开始读取一个对象
+     * 获取关联的{@link TypeIdMapper}
+     */
+    TypeIdMapper typeIdMapper();
+
+    /**
+     * 开始读取一个对象(内嵌对象)
      */
     ReaderContext readStartObject() throws Exception;
 

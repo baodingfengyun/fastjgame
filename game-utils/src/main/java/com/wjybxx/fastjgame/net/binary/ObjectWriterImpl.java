@@ -474,6 +474,11 @@ public class ObjectWriterImpl implements ObjectWriter {
     }
 
     @Override
+    public TypeIdMapper typeIdMapper() {
+        return serializer.typeIdMapper;
+    }
+
+    @Override
     public WriterContext writeStartObject(@Nonnull TypeId typeId) throws Exception {
         if (++recursionDepth > recursionLimit) {
             throw new IOException("Object had too many levels of nesting");
