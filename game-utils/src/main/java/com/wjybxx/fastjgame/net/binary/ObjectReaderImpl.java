@@ -153,7 +153,7 @@ public class ObjectReaderImpl implements ObjectReader {
     }
 
     private byte[] readBytesImpl() throws IOException {
-        final int size = inputStream.readInt32();
+        final int size = inputStream.readFixed32();
         return inputStream.readRawBytes(size);
     }
 
@@ -417,14 +417,17 @@ public class ObjectReaderImpl implements ObjectReader {
 
     @Override
     public <T> T readPreDeserializeObject() throws Exception {
-        final Object object = readObject();
-        if (object instanceof byte[]) {
-            @SuppressWarnings("unchecked") final T result = (T) serializer.fromBytes((byte[]) object);
-            return result;
-        } else {
-            @SuppressWarnings("unchecked") final T result = (T) object;
+        final BinaryValueType valueType = inputStream.readType();
+        if (valueType != BinaryValueType.BINARY) {
+            @SuppressWarnings("unchecked") final T result = (T) readObjectImpl(valueType);
             return result;
         }
+        // 解码字节数组的内容
+        final int size = inputStream.readFixed32();
+        int oldLimit = inputStream.pushLimit(size);
+        final T result = readObject();
+        inputStream.popLimit(oldLimit);
+        return result;
     }
 
     private Object readProtoEnumImpl(Internal.EnumLiteMap<?> enumLiteMap) throws Exception {

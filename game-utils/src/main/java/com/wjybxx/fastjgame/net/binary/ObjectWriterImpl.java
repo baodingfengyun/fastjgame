@@ -136,10 +136,9 @@ public class ObjectWriterImpl implements ObjectWriter {
 
     @Override
     public void writeBytes(@Nonnull byte[] bytes, int offset, int length) throws Exception {
-        // type + length + value
-        // 未来可能fix32方式写length
+        // type + length(fixed32) + value
         outputStream.writeType(BinaryValueType.BINARY);
-        outputStream.writeInt32(length);
+        outputStream.writeFixed32(length);
         outputStream.writeRawBytes(bytes, offset, length);
     }
 
@@ -266,19 +265,18 @@ public class ObjectWriterImpl implements ObjectWriter {
     private <T> void writePojo(@Nonnull T value, @Nonnull Class<? super T> type, @Nonnull PojoCodec<? super T> pojoCodec) throws Exception {
         final TypeId typeId = getTypeIdMapper().ofType(type);
         if (typeId == null) {
-            throw new IllegalStateException("typeModel expect not null, but null, type " + type.getName());
+            throw new IllegalStateException("typeId expect not null, but null, type " + type.getName());
         }
 
         if (++recursionDepth > recursionLimit) {
             throw new IOException("Object had too many levels of nesting");
         }
 
-        // 对象类型
-        outputStream.writeType(BinaryValueType.OBJECT);
-
         // 预留4字节表示对象的长度
-        final int preIndex = outputStream.getTotalBytesWritten();
+        outputStream.writeType(BinaryValueType.OBJECT);
         outputStream.writeFixed32(0);
+
+        final int preIndex = outputStream.getTotalBytesWritten();
 
         // 类型信息
         writeTypeId(typeId);
@@ -298,10 +296,12 @@ public class ObjectWriterImpl implements ObjectWriter {
         outputStream.writeFixed32(typeId.getClassId());
     }
 
+    /**
+     * @param preIndex 写完长度字段后的当前写索引（写正式内容之前的索引）
+     */
     private void backpatchSize(int preIndex) throws IOException {
-        // 需要去除size自身
-        final int size = outputStream.getTotalBytesWritten() - preIndex - 4;
-        outputStream.setFixedInt32(preIndex, size);
+        final int size = outputStream.getTotalBytesWritten() - preIndex;
+        outputStream.setFixedInt32(preIndex - 4, size);
     }
 
     @Override
@@ -331,8 +331,14 @@ public class ObjectWriterImpl implements ObjectWriter {
             return;
         }
 
-        final byte[] bytes = serializer.toBytes(value);
-        writeBytes(bytes);
+        // 字节数组前缀信息
+        outputStream.writeType(BinaryValueType.BINARY);
+        outputStream.writeFixed32(0);
+
+        // 写入的数据都会被当做字节数组的内容部分
+        final int preIndex = outputStream.getTotalBytesWritten();
+        writeObject(value);
+        backpatchSize(preIndex);
     }
 
     // ---------------------------------------- 通用容器类型 --------------------------------------
@@ -341,11 +347,11 @@ public class ObjectWriterImpl implements ObjectWriter {
             throw new IOException("Object had too many levels of nesting");
         }
 
-        outputStream.writeType(BinaryValueType.OBJECT);
-
         // 预留4字节表示对象的长度
-        final int preIndex = outputStream.getTotalBytesWritten();
+        outputStream.writeType(BinaryValueType.OBJECT);
         outputStream.writeFixed32(0);
+
+        final int preIndex = outputStream.getTotalBytesWritten();
 
         // 写入类型信息
         writeTypeId(typeId);
