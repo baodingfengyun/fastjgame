@@ -92,7 +92,11 @@ public enum BinaryValueType implements IndexableEnum {
     private static final IndexableEnumMapper<BinaryValueType> mapper = EnumUtils.mapping(values(), true);
 
     public static BinaryValueType forNumber(int number) {
-        return mapper.forNumber(number);
+        final BinaryValueType binaryValueType = mapper.forNumber(number);
+        if (null == binaryValueType) {
+            throw new IllegalArgumentException("invalid number " + number);
+        }
+        return binaryValueType;
     }
 
     @Override

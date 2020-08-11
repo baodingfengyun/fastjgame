@@ -51,20 +51,6 @@ public class ObjectWriterImpl implements ObjectWriter {
         this.outputStream = outputStream;
     }
 
-    @Override
-    public BinarySerializer serializer() {
-        return serializer;
-    }
-
-    @Override
-    public CodecRegistry codecRegistry() {
-        return codecRegistry;
-    }
-
-    private TypeIdMapper getTypeIdMapper() {
-        return serializer.typeIdMapper;
-    }
-
     // -------------------------------------------- 基本值 --------------------------------------
 
     @Override
@@ -163,6 +149,10 @@ public class ObjectWriterImpl implements ObjectWriter {
             throw new IllegalStateException("typeModel expect not null, but null, type " + value.getClass().getName());
         }
         return typeId;
+    }
+
+    private TypeIdMapper getTypeIdMapper() {
+        return serializer.typeIdMapper;
     }
 
     private void writeNull() throws IOException {
@@ -471,5 +461,60 @@ public class ObjectWriterImpl implements ObjectWriter {
     @Override
     public void close() throws Exception {
 
+    }
+
+    @Override
+    public BinarySerializer serializer() {
+        return serializer;
+    }
+
+    @Override
+    public CodecRegistry codecRegistry() {
+        return codecRegistry;
+    }
+
+    @Override
+    public WriterContext writeStartObject(@Nonnull TypeId typeId) throws Exception {
+        if (++recursionDepth > recursionLimit) {
+            throw new IOException("Object had too many levels of nesting");
+        }
+
+        // 预留4字节表示对象的长度
+        outputStream.writeType(BinaryValueType.OBJECT);
+        outputStream.writeFixed32(0);
+
+        final int preIndex = outputStream.getTotalBytesWritten();
+
+        writeTypeId(typeId);
+
+        return new DefaultWriterContext(recursionDepth, preIndex);
+    }
+
+    @Override
+    public void writeEndObject(WriterContext context) throws Exception {
+        if (!(context instanceof DefaultWriterContext)) {
+            throw new IllegalArgumentException("Invalid context type");
+        }
+
+        final DefaultWriterContext defaultWriterContext = (DefaultWriterContext) context;
+
+        if (recursionDepth != defaultWriterContext.recursionDepth) {
+            throw new IllegalArgumentException("Bad context");
+        }
+
+        backpatchSize(defaultWriterContext.preIndex);
+
+        recursionDepth--;
+    }
+
+    static class DefaultWriterContext implements WriterContext {
+
+        final int recursionDepth;
+        final int preIndex;
+
+        DefaultWriterContext(int recursionDepth, int preIndex) {
+            this.recursionDepth = recursionDepth;
+            this.preIndex = preIndex;
+        }
     }
 }

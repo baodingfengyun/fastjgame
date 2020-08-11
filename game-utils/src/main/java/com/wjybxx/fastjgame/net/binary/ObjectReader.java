@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.MessageLite;
+import com.wjybxx.fastjgame.net.serialization.TypeId;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,15 +35,6 @@ import java.util.function.Supplier;
  * github - https://github.com/hl845740757
  */
 public interface ObjectReader {
-    /**
-     * 获取关联的{@link BinarySerializer}
-     */
-    BinarySerializer serializer();
-
-    /**
-     * 获取关联的{@link CodecRegistry}
-     */
-    CodecRegistry codecRegistry();
 
     int readInt() throws Exception;
 
@@ -122,4 +114,42 @@ public interface ObjectReader {
     @Nullable
     <E> E readObject(Supplier<E> factory) throws Exception;
 
+    // ----------------------------------------- 底层API ----------------------------------
+    // 用户一般不该使用以下接口，要正确的使用它们并不容易
+
+    /**
+     * 获取关联的{@link BinarySerializer}
+     */
+    BinarySerializer serializer();
+
+    /**
+     * 获取关联的{@link CodecRegistry}
+     */
+    CodecRegistry codecRegistry();
+
+    /**
+     * 开始读取一个对象
+     */
+    ReaderContext readStartObject() throws Exception;
+
+    /**
+     * 是否读取到对象的尾部
+     */
+    boolean isEndOfObject() throws Exception;
+
+    /**
+     * 读取一个对象结束
+     *
+     * @param context {@link #readStartObject()}返回的上下文信息
+     */
+    void readEndObject(ReaderContext context) throws Exception;
+
+    /**
+     * 读对象过程的一些上下文信息
+     */
+    interface ReaderContext {
+
+        TypeId typeId();
+
+    }
 }

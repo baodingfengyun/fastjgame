@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.net.binary;
 
 import com.google.protobuf.MessageLite;
+import com.wjybxx.fastjgame.net.serialization.TypeId;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,16 +34,6 @@ import java.util.Map;
  * github - https://github.com/hl845740757
  */
 public interface ObjectWriter extends AutoCloseable {
-
-    /**
-     * 获取关联的{@link BinarySerializer}
-     */
-    BinarySerializer serializer();
-
-    /**
-     * 获取关联的{@link CodecRegistry}
-     */
-    CodecRegistry codecRegistry();
 
     // ---------------------------------------------- 基本值 ------------------------------------------
 
@@ -124,4 +115,38 @@ public interface ObjectWriter extends AutoCloseable {
      */
     void flush() throws Exception;
 
+    // ----------------------------------------- 底层API ----------------------------------
+    // 用户一般不该使用以下接口，要正确的使用它们并不容易
+
+    /**
+     * 获取关联的{@link BinarySerializer}
+     */
+    BinarySerializer serializer();
+
+    /**
+     * 获取关联的{@link CodecRegistry}
+     */
+    CodecRegistry codecRegistry();
+
+    /**
+     * 开始写一个对象
+     *
+     * @param typeId 为你要写的对象指定唯一的标识，如果读取对象时并不需要该值的话，可以给定一个默认值。
+     * @return 记录当前上下文的对象
+     */
+    WriterContext writeStartObject(@Nonnull TypeId typeId) throws Exception;
+
+    /**
+     * 写对象结束
+     *
+     * @param context {@link #writeStartObject(TypeId)}返回的对象
+     */
+    void writeEndObject(WriterContext context) throws Exception;
+
+    /**
+     * 写对象过程中的上下文信息
+     */
+    interface WriterContext {
+
+    }
 }

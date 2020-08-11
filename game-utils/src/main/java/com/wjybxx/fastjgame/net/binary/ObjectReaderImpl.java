@@ -51,20 +51,6 @@ public class ObjectReaderImpl implements ObjectReader {
         this.inputStream = inputStream;
     }
 
-    @Override
-    public BinarySerializer serializer() {
-        return serializer;
-    }
-
-    @Override
-    public CodecRegistry codecRegistry() {
-        return codecRegistry;
-    }
-
-    private TypeIdMapper getTypeIdMapper() {
-        return serializer.typeIdMapper;
-    }
-
     // -------------------------------------------- 基本值 --------------------------------------
 
     private void readTypeAndCheck(BinaryValueType expected) throws IOException {
@@ -187,6 +173,10 @@ public class ObjectReaderImpl implements ObjectReader {
         final T result = inputStream.readMessageNoSize(parser);
         inputStream.popLimit(oldLimit);
         return result;
+    }
+
+    private TypeIdMapper getTypeIdMapper() {
+        return serializer.typeIdMapper;
     }
     // -----------------------------------------------  读取对象（核心） --------------------------------------
 
@@ -531,4 +521,74 @@ public class ObjectReaderImpl implements ObjectReader {
     public void close() throws Exception {
 
     }
+
+    @Override
+    public BinarySerializer serializer() {
+        return serializer;
+    }
+
+    @Override
+    public CodecRegistry codecRegistry() {
+        return codecRegistry;
+    }
+
+    @Override
+    public ReaderContext readStartObject() throws Exception {
+        readTypeAndCheck(BinaryValueType.OBJECT);
+
+        if (++recursionDepth > recursionLimit) {
+            throw new IOException("Object had too many levels of nesting");
+        }
+
+        final int size = inputStream.readFixed32();
+        final int oldLimit = inputStream.pushLimit(size);
+        final TypeId typeId = readTypeId();
+
+        return new DefaultReaderContext(recursionDepth, oldLimit, typeId);
+    }
+
+    @Override
+    public boolean isEndOfObject() throws Exception {
+        return inputStream.isAtEnd();
+    }
+
+    @Override
+    public void readEndObject(ReaderContext context) throws Exception {
+        if (!(context instanceof DefaultReaderContext)) {
+            throw new IllegalArgumentException("Invalid context type");
+        }
+
+        if (!inputStream.isAtEnd()) {
+            throw new IllegalStateException("Not reach the end of the object");
+        }
+
+        final DefaultReaderContext defaultReaderContext = (DefaultReaderContext) context;
+
+        if (defaultReaderContext.oldRecursionDepth != recursionDepth) {
+            throw new IllegalArgumentException("Bad context");
+        }
+
+        inputStream.popLimit(defaultReaderContext.oldLimit);
+
+        recursionDepth--;
+    }
+
+    static class DefaultReaderContext implements ReaderContext {
+
+        final int oldRecursionDepth;
+        final int oldLimit;
+        final TypeId typeId;
+
+        DefaultReaderContext(int oldRecursionDepth, int oldLimit, TypeId typeId) {
+            this.oldRecursionDepth = oldRecursionDepth;
+            this.oldLimit = oldLimit;
+            this.typeId = typeId;
+        }
+
+        @Override
+        public TypeId typeId() {
+            return typeId;
+        }
+    }
+
 }

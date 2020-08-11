@@ -20,6 +20,7 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.net.binary.ObjectReader;
 import com.wjybxx.fastjgame.net.binary.ObjectWriter;
 import com.wjybxx.fastjgame.net.binary.PojoCodecImpl;
+import com.wjybxx.fastjgame.net.serialization.TypeId;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
@@ -127,19 +128,20 @@ public class DefaultRpcMethodSpec<V> implements RpcMethodSpec<V> {
             return new DefaultRpcMethodSpec<>(serviceId, methodId, methodParams, 0, 0);
         }
 
-        private List<Object> doPreDeserialize(ObjectReader inputStream, int preIndexes) throws Exception {
-            final int size = inputStream.readInt();
-            final ArrayList<Object> methodParams = new ArrayList<>(size);
-
-            for (int index = 0; index < size; index++) {
+        private List<Object> doPreDeserialize(ObjectReader reader, int preIndexes) throws Exception {
+            // 方法参数超过6个话不能忍啊
+            final ObjectReader.ReaderContext context = reader.readStartObject();
+            final List<Object> methodParams = new ArrayList<>(6);
+            for (int index = 0; !reader.isEndOfObject(); index++) {
                 final Object newParameter;
                 if (preIndexes > 0 && (preIndexes & (1L << index)) != 0) {
-                    newParameter = inputStream.readPreDeserializeObject();
+                    newParameter = reader.readPreDeserializeObject();
                 } else {
-                    newParameter = inputStream.readObject();
+                    newParameter = reader.readObject();
                 }
                 methodParams.add(newParameter);
             }
+            reader.readEndObject(context);
             return methodParams;
         }
 
@@ -152,18 +154,17 @@ public class DefaultRpcMethodSpec<V> implements RpcMethodSpec<V> {
             doLazySerialize(writer, instance.getMethodParams(), instance.getLazyIndexes());
         }
 
-        private void doLazySerialize(ObjectWriter outputStream, final List<Object> methodParams, final int lazyIndexes) throws Exception {
-            final int size = methodParams.size();
-            outputStream.writeInt(size);
-
-            for (int index = 0; index < size; index++) {
+        private void doLazySerialize(ObjectWriter writer, final List<Object> methodParams, final int lazyIndexes) throws Exception {
+            final ObjectWriter.WriterContext context = writer.writeStartObject(TypeId.DEFAULT_LIST);
+            for (int index = 0, size = methodParams.size(); index < size; index++) {
                 final Object parameter = methodParams.get(index);
                 if (lazyIndexes > 0 && (lazyIndexes & (1L << index)) != 0) {
-                    outputStream.writeLazySerializeObject(parameter);
+                    writer.writeLazySerializeObject(parameter);
                 } else {
-                    outputStream.writeObject(parameter);
+                    writer.writeObject(parameter);
                 }
             }
+            writer.writeEndObject(context);
         }
     }
 }
