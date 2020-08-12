@@ -270,7 +270,7 @@ public abstract class CodedDataOutputStream {
 
         @Override
         public void writeRawByte(byte value) throws IOException {
-            int preWriterIndex = getTotalBytesWritten();
+            final int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     codedOutputStream.writeRawByte(value);
@@ -278,13 +278,12 @@ public abstract class CodedDataOutputStream {
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 
         @Override
         public void writeInt32(int value) throws IOException {
-            int preWriterIndex = getTotalBytesWritten();
+            final int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     codedOutputStream.writeInt32NoTag(value);
@@ -292,13 +291,12 @@ public abstract class CodedDataOutputStream {
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 
         @Override
         public void writeFixed32(int value) throws IOException {
-            int preWriterIndex = getTotalBytesWritten();
+            final int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     codedOutputStream.writeFixed32NoTag(value);
@@ -306,13 +304,12 @@ public abstract class CodedDataOutputStream {
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 
         @Override
         public void writeInt64(long value) throws IOException {
-            int preWriterIndex = getTotalBytesWritten();
+            final int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     codedOutputStream.writeInt64NoTag(value);
@@ -320,13 +317,12 @@ public abstract class CodedDataOutputStream {
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 
         @Override
         public void writeFixed64(long value) throws IOException {
-            int preWriterIndex = getTotalBytesWritten();
+            final int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     codedOutputStream.writeFixed64NoTag(value);
@@ -334,13 +330,12 @@ public abstract class CodedDataOutputStream {
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 
         @Override
         public void writeFloat(float value) throws IOException {
-            int preWriterIndex = getTotalBytesWritten();
+            final int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     codedOutputStream.writeFloatNoTag(value);
@@ -348,13 +343,12 @@ public abstract class CodedDataOutputStream {
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 
         @Override
         public void writeDouble(double value) throws IOException {
-            int preWriterIndex = getTotalBytesWritten();
+            final int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     codedOutputStream.writeDoubleNoTag(value);
@@ -362,13 +356,12 @@ public abstract class CodedDataOutputStream {
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 
         @Override
         public void writeBool(boolean value) throws IOException {
-            int preWriterIndex = getTotalBytesWritten();
+            final int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     codedOutputStream.writeBoolNoTag(value);
@@ -376,13 +369,12 @@ public abstract class CodedDataOutputStream {
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 
         @Override
         public void writeString(@Nonnull String value) throws IOException {
-            int preWriterIndex = getTotalBytesWritten();
+            final int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     codedOutputStream.writeStringNoTag(value);
@@ -390,13 +382,12 @@ public abstract class CodedDataOutputStream {
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 
         @Override
         public void writeRawBytes(byte[] bytes, int off, int len) throws IOException {
-            int preWriterIndex = getTotalBytesWritten();
+            final int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     codedOutputStream.writeRawBytes(bytes, off, len);
@@ -404,13 +395,12 @@ public abstract class CodedDataOutputStream {
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 
         @Override
         public void writeMessageNoSize(@Nonnull MessageLite message) throws IOException {
-            int preWriterIndex = getTotalBytesWritten();
+            final int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     message.writeTo(codedOutputStream);
@@ -418,7 +408,6 @@ public abstract class CodedDataOutputStream {
                 } catch (CodedOutputStream.OutOfSpaceException | IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 
@@ -441,8 +430,8 @@ public abstract class CodedDataOutputStream {
         @Override
         public void setFixedInt32(int index, int value) throws IOException {
             final int byteBufWriterIndex = byteBufWriterIndex(index);
+            final int preWriterIndex = getTotalBytesWritten();
 
-            int preWriterIndex = getTotalBytesWritten();
             while (true) {
                 try {
                     byteBuf.setIntLE(byteBufWriterIndex, value);
@@ -450,7 +439,6 @@ public abstract class CodedDataOutputStream {
                 } catch (IndexOutOfBoundsException exception) {
                     ensureCapacity(preWriterIndex, exception);
                 }
-                preWriterIndex = getTotalBytesWritten();
             }
         }
 

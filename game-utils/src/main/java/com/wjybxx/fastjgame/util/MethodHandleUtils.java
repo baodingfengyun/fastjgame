@@ -16,10 +16,7 @@
 
 package com.wjybxx.fastjgame.util;
 
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
+import java.lang.invoke.*;
 import java.util.function.Supplier;
 
 /**
@@ -46,16 +43,24 @@ public class MethodHandleUtils {
      *                          因为无法从{@code noArgsConstructor}获得返回类型
      * @return Supplier
      */
-    @SuppressWarnings("unchecked")
     public static <T> Supplier<? extends T> noArgsConstructorToSupplier(MethodHandles.Lookup lookup, MethodHandle noArgsConstructor, Class<T> returnType) throws Throwable {
         if (noArgsConstructor.type().parameterCount() != 0) {
             throw new IllegalArgumentException("supplier methodHandle parameterCount expected 0");
         }
-        return (Supplier<? extends T>) toMethodReference(lookup,
+
+        final CallSite callSite = metafactory(lookup,
                 "get", SUPPLIER_INVOKE_TYPE, SUPPLIER_GET_METHOD_TYPE,
                 noArgsConstructor, MethodType.methodType(returnType));
-    }
 
+        // 可以将CallSite视为功能对象的工厂，target用于创建合适的函数对象
+        final MethodHandle delegateMethodHandle = callSite.getTarget();
+
+        // delegateMethodHandle可能具有指定接口方法之外的其它参数，这些被称为捕获参数。
+        // 在这里的话，无参构造方法转supplier是不需要参数的。
+        // 注意：invoke会适配参数和返回值类型，而invokeExact不会适配参数和返回值类型，可能导致调用失败
+        @SuppressWarnings("unchecked") final Supplier<? extends T> functionObject = (Supplier<? extends T>) delegateMethodHandle.invoke();
+        return functionObject;
+    }
 
     /**
      * 将一个{@link MethodHandle}转换为lambda的方法引用。
@@ -83,20 +88,18 @@ public class MethodHandleUtils {
      * @param implMethod             一个直接的方法句柄，描述了在调用时应调用的实现方法（对参数类型，返回类型进行适当的调整，并在调用参数之前添加捕获的参数）。
      *                               通常我们使用的是方法的{@link MethodHandle}，而不是lambda生成的{@link MethodHandle}
      * @param instantiatedMethodType 函数式接口实例化对象的方法签名信息，一般和samMethodType相同，如果函数式接口中方法是泛型的，则可能不一样。
-     * @return 实现的函数式接口对象
+     * @return callsite
      */
-    private static Object toMethodReference(MethodHandles.Lookup caller,
-                                            String invokedName,
-                                            MethodType invokedType,
-                                            MethodType samMethodType,
-                                            MethodHandle implMethod,
-                                            MethodType instantiatedMethodType) throws Throwable {
-        // 注意：invoke会适配参数和返回值类型，而invokeExact不会适配参数和返回值类型，可能导致调用失败
+    private static CallSite metafactory(MethodHandles.Lookup caller,
+                                        String invokedName,
+                                        MethodType invokedType,
+                                        MethodType samMethodType,
+                                        MethodHandle implMethod,
+                                        MethodType instantiatedMethodType) throws Throwable {
         return LambdaMetafactory.metafactory(caller,
                 invokedName, invokedType, samMethodType,
-                implMethod, instantiatedMethodType)
-                .getTarget()
-                .invoke();
+                implMethod, instantiatedMethodType);
+
     }
 
 }

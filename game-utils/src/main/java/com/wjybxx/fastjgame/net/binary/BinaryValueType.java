@@ -28,7 +28,7 @@ import com.wjybxx.fastjgame.util.dsl.IndexableEnumMapper;
  * 2. 容器值：{@link #OBJECT}
  * <p>
  * Q: 如何解决常用数组和集合的解析？
- * A: 为其分配{@link TypeId}。简单稳定的方式：扫描指定包。可以使用{@link CollectionScanner}
+ * A: 为其分配{@link TypeId}和工厂。简单稳定的方式：扫描指定包。可以使用{@link CollectionScanner}
  * <p>
  * Q: 为什么只有{@link #OBJECT}类型的容器？
  * A: 分析之后，在不写fieldNumber(ProtoBuf)或fieldName(Bson)之后，一般对象和数组以及各种集合的结构就是相同的了，就只是值的集合。
