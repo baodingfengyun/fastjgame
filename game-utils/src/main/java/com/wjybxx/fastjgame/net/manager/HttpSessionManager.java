@@ -67,7 +67,7 @@ public class HttpSessionManager {
     private void checkSessionTimeout(TimerHandle handle) {
         // 如果用户持有了httpSession的引用，长时间没有完成响应的话，这里关闭可能导致一些错误
         CollectionUtils.removeIfAndThen(sessionWrapperMap,
-                (channel, sessionWrapper) -> netTimeManager.curTimeSeconds() >= sessionWrapper.getSessionTimeout(),
+                (channel, sessionWrapper) -> netTimeManager.curTimeMillis() >= sessionWrapper.getSessionTimeout(),
                 this::afterRemoved);
     }
 
@@ -120,7 +120,7 @@ public class HttpSessionManager {
                 k -> new SessionWrapper(new HttpSessionImp(portExtraInfo.getNetContext(), netEventLoopManager.getEventLoop(), this, channel)));
 
         // 保持一段时间的活性
-        sessionWrapper.setSessionTimeout(portExtraInfo.getHttpSessionTimeout() + netTimeManager.curTimeSeconds());
+        sessionWrapper.setSessionTimeout(portExtraInfo.getHttpSessionTimeout() + netTimeManager.curTimeMillis());
 
         final HttpSessionImp httpSession = sessionWrapper.session;
 
@@ -136,7 +136,7 @@ public class HttpSessionManager {
         /**
          * 会话超时时间 - 避免对外，线程安全问题
          */
-        private int sessionTimeout;
+        private long sessionTimeout;
 
         private SessionWrapper(HttpSessionImp session) {
             this.session = session;
@@ -146,11 +146,11 @@ public class HttpSessionManager {
             return session;
         }
 
-        int getSessionTimeout() {
+        long getSessionTimeout() {
             return sessionTimeout;
         }
 
-        void setSessionTimeout(int sessionTimeout) {
+        void setSessionTimeout(long sessionTimeout) {
             this.sessionTimeout = sessionTimeout;
         }
     }

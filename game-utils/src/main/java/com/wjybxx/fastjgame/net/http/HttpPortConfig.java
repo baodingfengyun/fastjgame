@@ -33,7 +33,7 @@ public class HttpPortConfig {
 
     private final int sndBuffer;
     private final int rcvBuffer;
-    private final int httpSessionTimeout;
+    private final long httpSessionTimeout;
     private final HttpRequestDispatcher dispatcher;
 
     private HttpPortConfig(Builder builder) {
@@ -52,9 +52,9 @@ public class HttpPortConfig {
     }
 
     /**
-     * @return httpSession超时时间 - 秒
+     * @return httpSession超时时间
      */
-    public int getHttpSessionTimeout() {
+    public long getHttpSessionTimeout() {
         return httpSessionTimeout;
     }
 
@@ -70,7 +70,7 @@ public class HttpPortConfig {
 
         private int sndBuffer = 8192;
         private int rcvBuffer = 8192;
-        private int httpSessionTimeout = 15;
+        private long httpSessionTimeout = 10 * 1000;
         private HttpRequestDispatcher dispatcher;
 
         public Builder setSndBuffer(int sndBuffer) {
@@ -83,7 +83,7 @@ public class HttpPortConfig {
             return this;
         }
 
-        public Builder setHttpSessionTimeout(int httpSessionTimeout) {
+        public Builder setHttpSessionTimeout(long httpSessionTimeout) {
             this.httpSessionTimeout = CheckUtils.requirePositive(httpSessionTimeout, "httpSessionTimeout");
             return this;
         }

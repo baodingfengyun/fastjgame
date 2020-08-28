@@ -52,7 +52,7 @@ public class HttpPortContext {
     /**
      * @return session超时时间
      */
-    public int getHttpSessionTimeout() {
+    public long getHttpSessionTimeout() {
         return config.getHttpSessionTimeout();
     }
 

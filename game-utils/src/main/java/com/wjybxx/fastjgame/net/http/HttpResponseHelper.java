@@ -146,7 +146,7 @@ public final class HttpResponseHelper {
      * @param status 错误码
      * @return HttpResponse
      */
-    private static DefaultFullHttpResponse newErrorResponse(HttpResponseStatus status) {
+    public static DefaultFullHttpResponse newErrorResponse(HttpResponseStatus status) {
         DefaultFullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status);
         HttpHeaders headers = httpResponse.headers();
         headers.set(HttpHeaderNames.CONTENT_TYPE, TEXT_PLAIN);
