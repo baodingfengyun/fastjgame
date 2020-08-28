@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.util.function.FunctionUtils;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CompletionException;
-import java.util.function.Function;
 
 /**
  * redisService的默认实现，它是一个本地service，其回调默认环境为用户所在线程{@link #appEventLoop}
@@ -43,7 +42,7 @@ public class DefaultRedisClient implements RedisClient {
     }
 
     @Override
-    public <V> void execute(@Nonnull PipelineCommand<V> command) {
+    public void execute(@Nonnull PipelineCommand<?> command) {
         redisEventLoop.execute(command, false);
     }
 
@@ -53,20 +52,24 @@ public class DefaultRedisClient implements RedisClient {
     }
 
     @Override
-    public <T, U> FluentFuture<U> call(@Nonnull PipelineCommand<T> command, Function<T, U> decoder) {
-        return redisEventLoop.call(command, decoder, false)
+    public <T> FluentFuture<T> call(@Nonnull PipelineCommand<T> command) {
+        return redisEventLoop.call(command, false)
                 .whenCompleteAsync(FunctionUtils.emptyBiConsumer(), appEventLoop);
     }
 
     @Override
-    public <T, U> FluentFuture<U> callAndFlush(@Nonnull PipelineCommand<T> command, Function<T, U> decoder) {
-        return redisEventLoop.call(command, decoder, true)
+    public <T> FluentFuture<T> callAndFlush(@Nonnull PipelineCommand<T> command) {
+        return redisEventLoop.call(command, true)
                 .whenCompleteAsync(FunctionUtils.emptyBiConsumer(), appEventLoop);
     }
 
     @Override
-    public <T, U> U syncCall(@Nonnull RedisCommand<T> command, Function<T, U> decoder) throws CompletionException {
-        return redisEventLoop.syncCall(command, decoder);
+    public <T> T syncCall(@Nonnull RedisCommand<T> command) throws CompletionException {
+        return redisEventLoop.syncCall(command);
     }
 
+    @Override
+    public void close() throws Exception {
+        redisEventLoop.shutdown();
+    }
 }

@@ -33,9 +33,9 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ThreadFactory;
-import java.util.function.Function;
 
 import static com.wjybxx.fastjgame.util.CloseableUtils.closeQuietly;
 import static com.wjybxx.fastjgame.util.ThreadUtils.sleepQuietly;
@@ -74,7 +74,7 @@ public class RedisEventLoop extends TemplateEventLoop {
      * 不宜太小，太小时，无法充分利用网络。
      */
     private static final int MAX_WAIT_RESPONSE_TASK = 512;
-    private final ArrayDeque<PipelineTask<?, ?>> waitResponseTasks = new ArrayDeque<>(MAX_WAIT_RESPONSE_TASK);
+    private final Deque<PipelineTask<?>> waitResponseTasks = new ArrayDeque<>(MAX_WAIT_RESPONSE_TASK);
 
     private final JedisPoolAbstract jedisPool;
     /**
@@ -196,7 +196,7 @@ public class RedisEventLoop extends TemplateEventLoop {
      * 为未获得结果的redis请求生成结果
      */
     private void generateResponses() {
-        PipelineTask<?, ?> task;
+        PipelineTask<?> task;
         while ((task = waitResponseTasks.pollFirst()) != null) {
             setData(task);
         }
@@ -205,7 +205,7 @@ public class RedisEventLoop extends TemplateEventLoop {
     /**
      * 为任务赋值结果
      */
-    private static <T, U> void setData(PipelineTask<T, U> task) {
+    private static <T> void setData(PipelineTask<T> task) {
         if (task.promise == null) {
             return;
         }
@@ -216,8 +216,7 @@ public class RedisEventLoop extends TemplateEventLoop {
         }
 
         try {
-            final T origin = task.dependency.get();
-            final U result = task.decoder.apply(origin);
+            final T result = task.dependency.get();
             task.promise.trySuccess(result);
         } catch (Throwable t) {
             task.promise.tryFailure(t);
@@ -230,8 +229,8 @@ public class RedisEventLoop extends TemplateEventLoop {
      * @param command 待执行的命令
      * @param flush   是否刷新管道
      */
-    void execute(PipelineCommand<?> command, boolean flush) {
-        execute(new PipelineTask<>(command, null, flush, null));
+    public void execute(PipelineCommand<?> command, boolean flush) {
+        execute(new PipelineTask<>(command, flush, null));
     }
 
     /**
@@ -240,9 +239,9 @@ public class RedisEventLoop extends TemplateEventLoop {
      * @param command 待执行的命令
      * @param flush   是否刷新管道
      */
-    <T, U> FluentFuture<U> call(PipelineCommand<T> command, Function<T, U> decoder, boolean flush) {
-        final Promise<U> promise = FutureUtils.newPromise();
-        execute(new PipelineTask<>(command, decoder, flush, promise));
+    public <T> FluentFuture<T> call(PipelineCommand<T> command, boolean flush) {
+        final Promise<T> promise = FutureUtils.newPromise();
+        execute(new PipelineTask<>(command, flush, promise));
         // 回调到用户线程
         return promise;
     }
@@ -253,9 +252,9 @@ public class RedisEventLoop extends TemplateEventLoop {
      *
      * @param command 待执行的命令
      */
-    <T, U> U syncCall(RedisCommand<T> command, Function<T, U> decoder) throws CompletionException {
-        final Promise<U> promise = FutureUtils.newPromise();
-        execute(new RedisTask<>(command, decoder, promise));
+    public <T> T syncCall(RedisCommand<T> command) throws CompletionException {
+        final Promise<T> promise = FutureUtils.newPromise();
+        execute(new RedisTask<>(command, promise));
         return promise.join();
     }
 
@@ -264,19 +263,17 @@ public class RedisEventLoop extends TemplateEventLoop {
      *
      * @param <T>
      */
-    private class PipelineTask<T, U> implements Runnable {
+    private class PipelineTask<T> implements Runnable {
 
         private final PipelineCommand<T> pipelineCmd;
-        private final Function<T, U> decoder;
         private final boolean flush;
-        private final Promise<U> promise;
+        private final Promise<T> promise;
 
         private Response<T> dependency;
         private Throwable cause;
 
-        PipelineTask(PipelineCommand<T> pipelineCmd, Function<T, U> decoder, boolean flush, Promise<U> promise) {
+        PipelineTask(PipelineCommand<T> pipelineCmd, boolean flush, Promise<T> promise) {
             this.pipelineCmd = pipelineCmd;
-            this.decoder = decoder;
             this.flush = flush;
             this.promise = promise;
         }
@@ -334,15 +331,13 @@ public class RedisEventLoop extends TemplateEventLoop {
         }
     }
 
-    private class RedisTask<T, U> implements Runnable {
+    private class RedisTask<T> implements Runnable {
 
         final RedisCommand<T> command;
-        final Function<T, U> decoder;
-        final Promise<U> promise;
+        final Promise<T> promise;
 
-        RedisTask(RedisCommand<T> command, Function<T, U> decoder, Promise<U> promise) {
+        RedisTask(RedisCommand<T> command, Promise<T> promise) {
             this.command = command;
-            this.decoder = decoder;
             this.promise = promise;
         }
 
@@ -358,8 +353,7 @@ public class RedisEventLoop extends TemplateEventLoop {
             pipelineSync();
 
             try {
-                final T origin = command.execute(jedis);
-                final U result = decoder.apply(origin);
+                final T result = command.execute(jedis);
                 promise.trySuccess(result);
             } catch (Throwable e) {
                 promise.tryFailure(e);

@@ -26,7 +26,6 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 
 /**
  * redis事件循环示例
@@ -98,7 +97,7 @@ public class RedisEventLoopTest {
             }
 
             // 监听前面的redis命令完成
-            redisClient.call(pipeline -> pipeline.hset("test-monitor", "monitor", "1"), Function.identity())
+            redisClient.call(pipeline -> pipeline.hset("test-monitor", "monitor", "1"))
                     .addListener(future -> onAllCommandsFinish(startTimeMS));
         }
 
@@ -108,10 +107,10 @@ public class RedisEventLoopTest {
         }
 
         private void sendRedisCommands(int loop) {
-            redisClient.call(pipeline -> pipeline.hset("test-name", String.valueOf(loop), String.valueOf(loop)), Function.identity())
+            redisClient.call(pipeline -> pipeline.hset("test-name", String.valueOf(loop), String.valueOf(loop)))
                     .addListener(f -> System.out.println(f.getNow()));
 
-            redisClient.call(pipeline -> pipeline.hget("test-name", String.valueOf(loop)), Function.identity())
+            redisClient.call(pipeline -> pipeline.hget("test-name", String.valueOf(loop)))
                     .addListener(f -> System.out.println(f.getNow()));
         }
 

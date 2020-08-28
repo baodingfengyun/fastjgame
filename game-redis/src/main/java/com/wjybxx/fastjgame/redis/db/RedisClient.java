@@ -20,7 +20,6 @@ import com.wjybxx.fastjgame.util.concurrent.FluentFuture;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.CompletionException;
-import java.util.function.Function;
 
 /**
  * redis客户端。
@@ -36,14 +35,14 @@ import java.util.function.Function;
  * date - 2020/1/9
  * github - https://github.com/hl845740757
  */
-public interface RedisClient {
+public interface RedisClient extends AutoCloseable {
 
     /**
      * 异步执行一个命令，并不监听结果
      *
      * @param command 待执行的命令
      */
-    <V> void execute(@Nonnull PipelineCommand<V> command);
+    void execute(@Nonnull PipelineCommand<?> command);
 
     /**
      * 异步执行一个命令，同时刷新命令队列，并不监听结果。
@@ -56,27 +55,24 @@ public interface RedisClient {
      * 异步执行一个redis命令，并在完成时通知指定的监听器。
      *
      * @param command 待执行的命令
-     * @param decoder 解码器，不建议直接使用redis的存储结构作为返回值。如果需要，请使用{@link Function#identity()}函数。
      * @return future
      */
-    <T, U> FluentFuture<U> call(@Nonnull PipelineCommand<T> command, Function<T, U> decoder);
+    <T> FluentFuture<T> call(@Nonnull PipelineCommand<T> command);
 
     /**
      * 异步执行一个redis命令，同时刷新命令队列，并在完成时通知指定的监听器。
      *
      * @param command 待执行的命令
-     * @param decoder 解码器
      * @return future
      */
-    <T, U> FluentFuture<U> callAndFlush(@Nonnull PipelineCommand<T> command, Function<T, U> decoder);
+    <T> FluentFuture<T> callAndFlush(@Nonnull PipelineCommand<T> command);
 
     /**
      * 执行一个redis命令，并阻塞到命令完成。
      *
      * @param command 待执行的命令
-     * @param decoder 解码器
      * @return 解码后的结果
      */
-    <T, U> U syncCall(@Nonnull RedisCommand<T> command, Function<T, U> decoder) throws CompletionException;
+    <T> T syncCall(@Nonnull RedisCommand<T> command) throws CompletionException;
 
 }
