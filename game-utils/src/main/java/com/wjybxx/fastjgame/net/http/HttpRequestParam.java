@@ -17,9 +17,10 @@
 package com.wjybxx.fastjgame.net.http;
 
 import com.wjybxx.fastjgame.util.config.Params;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpVersion;
 
-import javax.annotation.concurrent.Immutable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -33,9 +34,16 @@ import java.util.Set;
  * date - 2019/8/27
  * github - https://github.com/hl845740757
  */
-@Immutable
 public class HttpRequestParam extends Params {
 
+    /**
+     * 协议版本
+     */
+    private final HttpVersion version;
+    /**
+     * 请求头信息
+     */
+    private final HttpHeaders headers;
     /**
      * 请求类型
      */
@@ -47,7 +55,9 @@ public class HttpRequestParam extends Params {
      */
     private final Map<String, String> params;
 
-    public HttpRequestParam(HttpMethod method, Map<String, String> params) {
+    public HttpRequestParam(HttpVersion version, HttpHeaders headers, HttpMethod method, Map<String, String> params) {
+        this.version = version;
+        this.headers = headers;
         this.method = method;
         this.params = Collections.unmodifiableMap(params);
     }
@@ -62,6 +72,14 @@ public class HttpRequestParam extends Params {
         return params.get(key);
     }
 
+    public HttpVersion getVersion() {
+        return version;
+    }
+
+    public HttpHeaders getHeaders() {
+        return headers;
+    }
+
     public HttpMethod getMethod() {
         return method;
     }
@@ -73,8 +91,10 @@ public class HttpRequestParam extends Params {
     @Override
     public String toString() {
         return "HttpRequestParam{" +
-                "method=" + method +
+                "version=" + version +
+                ", headers=" + headers +
+                ", method=" + method +
                 ", params=" + params +
-                '}';
+                "} " + super.toString();
     }
 }

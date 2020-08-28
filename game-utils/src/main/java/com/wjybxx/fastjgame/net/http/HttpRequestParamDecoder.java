@@ -92,7 +92,7 @@ public class HttpRequestParamDecoder extends SimpleChannelInboundHandler<FullHtt
                 postRequestDecoder.destroy();
             }
         }
-        final HttpRequestParam httpRequestParam = new HttpRequestParam(method, paramsMap);
+        final HttpRequestParam httpRequestParam = new HttpRequestParam(msg.protocolVersion(), msg.headers(), method, paramsMap);
         publish(new HttpRequestEvent(ctx.channel(), path, httpRequestParam, portExtraInfo));
     }
 
