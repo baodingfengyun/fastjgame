@@ -220,13 +220,13 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public Promise<V> addListener(FutureListener<? super V> listener) {
-        return addListener0(null, listener);
+    public Promise<V> addListener(@Nonnull FutureListener<? super V> listener) {
+        return addListener0(null, Objects.requireNonNull(listener, "listener"));
     }
 
     @Override
-    public Promise<V> addListener(FutureListener<? super V> listener, Executor executor) {
-        return addListener0(Objects.requireNonNull(executor, "executor"), listener);
+    public Promise<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor) {
+        return addListener0(Objects.requireNonNull(executor, "executor"), Objects.requireNonNull(listener, "listener"));
     }
 
     private Promise<V> addListener0(Executor executor, FutureListener<? super V> listener) {
@@ -235,46 +235,6 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
             pushCompletion((Completion) listener);
         } else {
             pushCompletion(new ListenWhenComplete<>(executor, this, listener));
-        }
-        return this;
-    }
-
-    @Override
-    public Promise<V> addListener(BiConsumer<? super V, ? super Throwable> action) {
-        return addListener0(null, action);
-    }
-
-    @Override
-    public Promise<V> addListener(BiConsumer<? super V, ? super Throwable> action, Executor executor) {
-        return addListener0(Objects.requireNonNull(executor, "executor"), action);
-    }
-
-    private Promise<V> addListener0(Executor executor, BiConsumer<? super V, ? super Throwable> action) {
-        if (action instanceof Completion) {
-            assert executor == null;
-            pushCompletion((Completion) action);
-        } else {
-            pushCompletion(new ListenWhenComplete2<>(executor, this, action));
-        }
-        return this;
-    }
-
-    @Override
-    public Promise<V> addFailedListener(Consumer<? super Throwable> action) {
-        return addFailedListener0(null, action);
-    }
-
-    @Override
-    public Promise<V> addFailedListener(Consumer<? super Throwable> action, Executor executor) {
-        return addFailedListener0(Objects.requireNonNull(executor, "executor"), action);
-    }
-
-    private Promise<V> addFailedListener0(Executor executor, Consumer<? super Throwable> action) {
-        if (action instanceof Completion) {
-            assert executor == null;
-            pushCompletion((Completion) action);
-        } else {
-            pushCompletion(new ListenWhenExceptionally<>(executor, this, action));
         }
         return this;
     }
@@ -313,6 +273,8 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
          * {@link #ASYNC}模式表示已抢得执行权限，但是不能在当前线程执行。
          * <p>
          * 这个名字很难搞....
+         * <p>
+         * 注意：这里之所以和{@link CompletableFuture}不同，是因为在目前的设计中，{@link Completion#tryFire(int)}不会被并发调用。
          *
          * @return 如果成功抢占权限且可以立即执行则返回true，否则返回false
          */
@@ -322,11 +284,11 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
                 executor = null;
                 return true;
             }
+            // help gc
+            executor = null;
 
             e.execute(this);
 
-            // help gc
-            executor = null;
             return false;
         }
     }
@@ -954,80 +916,4 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
         }
     }
 
-    static class ListenWhenComplete2<V> extends ListenCompletion<V> {
-
-        BiConsumer<? super V, ? super Throwable> action;
-
-        ListenWhenComplete2(Executor executor, AbstractPromise<V> input,
-                            BiConsumer<? super V, ? super Throwable> action) {
-            super(executor, input);
-            this.action = action;
-        }
-
-        @Override
-        AbstractPromise<?> tryFire(int mode) {
-            try {
-                if (isSyncOrNestedMode(mode) && !claim()) {
-                    return null;
-                }
-
-                AbstractPromise<V> in = input;
-                Object inResult = in.result;
-                Throwable cause;
-                V value;
-
-                if (inResult instanceof AltResult) {
-                    value = null;
-                    cause = ((AltResult) inResult).cause;
-                } else {
-                    value = in.decodeValue(inResult);
-                    cause = null;
-                }
-
-                action.accept(value, cause);
-            } catch (Throwable ex) {
-                logger.warn("ListenWhenComplete2.action.accept caught exception", ex);
-            }
-
-            input = null;
-            action = null;
-
-            return null;
-        }
-    }
-
-
-    static class ListenWhenExceptionally<V> extends ListenCompletion<V> {
-
-        Consumer<? super Throwable> action;
-
-        ListenWhenExceptionally(Executor executor, AbstractPromise<V> input,
-                                Consumer<? super Throwable> action) {
-            super(executor, input);
-            this.action = action;
-        }
-
-        @Override
-        AbstractPromise<?> tryFire(int mode) {
-            Object inResult = input.result;
-
-            if (inResult instanceof AltResult) {
-                try {
-                    if (isSyncOrNestedMode(mode) && !claim()) {
-                        return null;
-                    }
-
-                    Throwable cause = ((AltResult) inResult).cause;
-                    action.accept(cause);
-                } catch (Throwable ex) {
-                    logger.warn("ListenWhenExceptionally.action.accept caught exception", ex);
-                }
-            }
-
-            input = null;
-            action = null;
-
-            return null;
-        }
-    }
 }

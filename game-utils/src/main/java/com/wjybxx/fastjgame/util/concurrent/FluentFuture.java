@@ -198,20 +198,9 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
     FluentFuture<V> awaitUninterruptibly();
 
     @Override
-    FluentFuture<V> addListener(FutureListener<? super V> listener);
+    FluentFuture<V> addListener(@Nonnull FutureListener<? super V> listener);
 
     @Override
-    FluentFuture<V> addListener(FutureListener<? super V> listener, Executor executor);
+    FluentFuture<V> addListener(@Nonnull FutureListener<? super V> listener, @Nonnull Executor executor);
 
-    @Override
-    FluentFuture<V> addListener(BiConsumer<? super V, ? super Throwable> action);
-
-    @Override
-    FluentFuture<V> addListener(BiConsumer<? super V, ? super Throwable> action, Executor executor);
-
-    @Override
-    FluentFuture<V> addFailedListener(Consumer<? super Throwable> action);
-
-    @Override
-    FluentFuture<V> addFailedListener(Consumer<? super Throwable> action, Executor executor);
 }

@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.util.concurrent;
 import javax.annotation.Nonnull;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * 基于性能方面的考虑，Listener之间不再提供时序保证。
@@ -157,35 +156,17 @@ public interface ListenableFuture<V> extends Future<V> {
     /**
      * 添加一个监听器，一旦{@code Future}进入完成状态，无论正常完成还是异常完成，给定的操作就将被执行。
      * 如果{@code Future}当前已完成，则立即执行给定的动作。
-     * <p>
-     * Q: 这个方法有什么用？
-     * A: 传递{@code Future}，这样用户可以在不想处理异常时，直接调用{@link #getNow()}方法，可以重新抛出异常。
-     * 从而避免异常被隐藏。
      *
      * @return this
      */
     ListenableFuture<V> addListener(FutureListener<? super V> listener);
 
-    ListenableFuture<V> addListener(FutureListener<? super V> listener, Executor executor);
-
     /**
      * 添加一个监听器，一旦{@code Future}进入完成状态，无论正常完成还是异常完成，给定的操作就将被执行。
-     * 如果{@code Future}当前已完成，则立即执行给定的动作。
+     * 如果{@code Future}当前已完成，则立即提交到给定d的{@link Executor}。
      *
      * @return this
      */
-    ListenableFuture<V> addListener(BiConsumer<? super V, ? super Throwable> action);
-
-    ListenableFuture<V> addListener(BiConsumer<? super V, ? super Throwable> action, Executor executor);
-
-    /**
-     * 添加一个监听器，如果当前{@code Future}由于异常完成，则执行给定的操作。
-     * 如果{@code Future}当前已失败，则立即执行给定的动作。
-     *
-     * @return this
-     */
-    ListenableFuture<V> addFailedListener(Consumer<? super Throwable> action);
-
-    ListenableFuture<V> addFailedListener(Consumer<? super Throwable> action, Executor executor);
+    ListenableFuture<V> addListener(FutureListener<? super V> listener, Executor executor);
 
 }
