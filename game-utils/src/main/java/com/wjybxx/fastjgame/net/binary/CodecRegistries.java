@@ -27,6 +27,7 @@ import java.util.Map;
  */
 public class CodecRegistries {
 
+    @SafeVarargs
     public static CodecRegistry fromPojoCodecs(Map<Class<?>, PojoCodec<?>>... pojoCodecMaps) {
         final int sum = Arrays.stream(pojoCodecMaps)
                 .mapToInt(Map::size)
