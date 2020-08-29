@@ -250,7 +250,6 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
 
     /**
      * {@link UniCompletion}表示联合两个{@code Future}，因此它持有一个输入，一个动作，和一个输出。
-     * 实现{@link Runnable}接口是为了避免创建不必要的对象，如果需要在另一个线程执行的时候。
      *
      * @param <V> 输入值类型
      * @param <U> 输入值类型
@@ -284,11 +283,9 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
                 executor = null;
                 return true;
             }
-            // help gc
+            // disable and help gc
             executor = null;
-
             e.execute(this);
-
             return false;
         }
     }
@@ -877,10 +874,9 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
                 executor = null;
                 return true;
             }
-
-            e.execute(this);
-            // help gc
+            // disable and help gc
             executor = null;
+            e.execute(this);
             return false;
         }
 

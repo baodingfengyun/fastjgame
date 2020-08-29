@@ -594,6 +594,9 @@ abstract class AbstractPromise<V> implements Promise<V> {
         return mode < 0;
     }
 
+    /**
+     * 实现{@link Runnable}接口是因为可能需要在另一个线程执行。
+     */
     static abstract class Completion implements Runnable {
 
         static final Completion TOMBSTONE = new Completion() {

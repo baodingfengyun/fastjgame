@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter;
 import static com.wjybxx.fastjgame.util.time.TimeUtils.DAY;
 
 /**
- * 绑定特定时序的时间辅助类
+ * 绑定特定时区的时间辅助类
  *
  * @author wjybxx
  * @version 1.0

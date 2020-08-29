@@ -29,6 +29,9 @@ public class FutureUtils {
     private FutureUtils() {
 
     }
+
+    private static final FluentFuture<?> EMPTY_FUTURE = newSucceedFuture(null);
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -59,6 +62,13 @@ public class FutureUtils {
         return new DefaultPromise<>(cause);
     }
 
+    /**
+     * 返回结果为空的future，该future表示它关联的任务早已正常完成，但结果为null。
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> FluentFuture<V> emptyFuture() {
+        return (FluentFuture<V>) EMPTY_FUTURE;
+    }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
