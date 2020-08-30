@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.http;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +75,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestHandlerRegistry,
             httpRequestHandler.onHttpRequest(httpSession, path, params);
         } catch (Exception e) {
             logger.warn("handle path {} caught exception.", path, e);
+            httpSession.writeAndFlush(HttpResponseHelper.newErrorResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR));
         }
     }
 }

@@ -101,6 +101,6 @@ public final class DefaultRpcInvoker implements RpcInvoker {
     }
 
     private static <V> FluentFuture<V> newSessionNotFoundFuture() {
-        return newFailedFuture(new RpcSessionNotFoundException());
+        return newFailedFuture(RpcSessionNotFoundException.INSTANCE);
     }
 }

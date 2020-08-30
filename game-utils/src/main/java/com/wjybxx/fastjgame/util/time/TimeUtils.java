@@ -41,6 +41,11 @@ public class TimeUtils {
     public static final ZoneOffset CST = ZoneOffset.ofHours(8);
 
     /**
+     * UTC时间
+     */
+    public static final ZoneOffset UTC = ZoneOffset.UTC;
+
+    /**
      * 系统时区
      */
     public static final ZoneOffset SYSTEM_ZONE_OFFSET = ZoneOffset.systemDefault().getRules().getOffset(LocalDateTime.now());

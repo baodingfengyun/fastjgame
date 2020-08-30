@@ -28,11 +28,11 @@ import com.wjybxx.fastjgame.net.rpc.RpcErrorCode;
  */
 public class RpcSessionNotFoundException extends RpcLocalException {
 
-    public RpcSessionNotFoundException() {
-    }
+    public static final RpcSessionNotFoundException INSTANCE = new RpcSessionNotFoundException();
 
-    public RpcSessionNotFoundException(String message) {
-        super(message);
+    private RpcSessionNotFoundException() {
+        // 不填充堆栈
+        super(null, null, false, false);
     }
 
     @Override
