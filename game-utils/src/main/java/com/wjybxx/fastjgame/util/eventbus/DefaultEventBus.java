@@ -27,10 +27,16 @@ import java.util.function.Predicate;
 
 /**
  * EventBus的一个简单实现，它默认支持所有的普通事件和所有的泛型事件，并不对事件做任何要求。
- * <p>
+ * <h3>NOTES</h3>
  * 1. 它并不是一个线程安全的对象。
  * 2. 它也不是一个标准的EventBus实现，比如就没有取消注册的接口，也没有单独的dispatcher、Registry
  * 3. 它也没有对继承体系进行完整的支持（监听接口或抽象类），主要考虑到性能可能不好。
+ * <h3>如何分发</h3>
+ * 如果{@link #post(Object)}抛出的事件为 {@link GenericEvent}，先以{@link GenericEvent}的类型分发一次，再<b>联合</b>{@link GenericEvent#child()}的类型分发一次。
+ * 如果{@link #post(Object)}抛出的事件非 {@link GenericEvent}，则以{@code event}的类型进行分发。
+ * <p>
+ * Q: 为何要以{@link GenericEvent}的类型分发一次?
+ * A: 这允许监听者监听某一类事件，而不是某一个具体事件。
  *
  * @author wjybxx
  * @version 1.0
@@ -64,10 +70,10 @@ public class DefaultEventBus implements EventBus {
 
     @Override
     public final void post(@Nonnull Object event) {
+        postEventImp(event, event.getClass());
+
         if (event instanceof GenericEvent) {
             postEventImp(event, newGenericEventKey((GenericEvent) event));
-        } else {
-            postEventImp(event, event.getClass());
         }
     }
 

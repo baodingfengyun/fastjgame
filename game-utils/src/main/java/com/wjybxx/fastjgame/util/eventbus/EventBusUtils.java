@@ -54,7 +54,6 @@ class EventBusUtils {
     static <K, T> void postEventImp(Map<K, EventHandler<?>> handlerMap, @Nonnull T event, @Nonnull K eventKey) {
         @SuppressWarnings("unchecked") final EventHandler<? super T> handler = (EventHandler<? super T>) handlerMap.get(eventKey);
         if (null == handler) {
-            // 对应的事件处理器可能忘记了注册，不打印日志，避免过多无用的日志
             return;
         }
 

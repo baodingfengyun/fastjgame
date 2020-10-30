@@ -27,10 +27,11 @@ import java.lang.annotation.Target;
  * 表示订阅一个事件。
  * 注意：
  * 1. 使用该注解的方法必须有且仅有一个参数。
- * 2. <b>如果参数是{@link GenericEvent}的实现类，则其泛型参数为订阅的事件类型， 否则该参数表示订阅的事件类型。</b>
- * 3. 事件类型不可以是基本类型，因为发布事件的时候会封装为Object，基本类型会被装箱，会导致问题。
- * 4. 如果期望订阅多个事件，请使用{@link #subEvents()}声明关注的其它事件。
- * 5. 方法不能是private - 至少是包级访问权限。
+ * 2. <b>如果参数是{@link GenericEvent}的实现类，则其泛型参数为订阅的事件类型，否则该参数表示订阅的事件类型。</b>
+ * 3.< b>如果期望监听某一类事件，请将{@link GenericEvent}的反省参数声明为通配符'?'</b>
+ * 4. 事件类型不可以是基本类型，因为发布事件的时候会封装为Object，基本类型会被装箱，会导致问题。
+ * 5. 如果期望订阅多个事件，请使用{@link #subEvents()}声明关注的其它事件。
+ * 6. 方法不能是private - 至少是包级访问权限。
  * <p>
  * eg: {@link SubscriberExample#genericEventInt(SubscriberExample.TestGenericEvent)} {@link SubscriberExample#onEvent(String)}
  * <p>

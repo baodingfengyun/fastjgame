@@ -90,7 +90,15 @@ public class SubscriberExample {
             String.class
     })
     public void genericEventObject(TestGenericEvent<Object> event) {
-        System.out.println("genericEventObject: " + event);
+        System.out.println("object, genericEventObject: " + event);
+    }
+
+    /**
+     * 监听所有的{@link TestGenericEvent}事件，必须使用通配符类型
+     */
+    @Subscribe
+    public void genericEventAll(TestGenericEvent<?> event) {
+        System.out.println("wildcard, genericEventAll: " + event);
     }
 
     public static void main(String[] args) {
@@ -114,6 +122,9 @@ public class SubscriberExample {
         System.out.println("-----------------------------------------");
 
         bus.post(new TestGenericEvent<>(123456));
+        System.out.println("-----------------------------------------");
+
+        bus.post(new TestGenericEvent<>(364165432156132L));
     }
 
     public static class InternalThreadFactory implements ThreadFactory {

@@ -30,6 +30,7 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.SimpleTypeVisitor8;
 import javax.tools.Diagnostic;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -175,13 +176,21 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
     private void registerGenericHandlers(MethodSpec.Builder builder, ExecutableElement method) {
         final VariableElement eventParameter = method.getParameters().get(0);
         final TypeName parentEventRawTypeName = TypeName.get(erasure(eventParameter.asType()));
-        final Set<TypeMirror> eventTypes = collectEventTypes(method, getGenericEventTypeArgument(eventParameter));
 
-        for (TypeMirror typeMirror : eventTypes) {
-            builder.addStatement("registry.register($T.class, $T.class, event -> instance.$L(event))",
+        if (isTypeParameterWildCard(eventParameter)) {
+            // 泛型参数为通配符，当作普通事件注册
+            builder.addStatement("registry.register($T.class, event -> instance.$L(event))",
                     parentEventRawTypeName,
-                    TypeName.get(erasure(typeMirror)),
                     method.getSimpleName().toString());
+        } else {
+            // 泛型参数不是通配符，搜集具体类型注册
+            final Set<TypeMirror> eventTypes = collectEventTypes(method, getGenericEventTypeArgument(eventParameter));
+            for (TypeMirror typeMirror : eventTypes) {
+                builder.addStatement("registry.register($T.class, $T.class, event -> instance.$L(event))",
+                        parentEventRawTypeName,
+                        TypeName.get(erasure(typeMirror)),
+                        method.getSimpleName().toString());
+            }
         }
     }
 
@@ -273,6 +282,30 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
 
     private boolean isSameTypeIgnoreTypeParameter(TypeMirror a, TypeMirror b) {
         return AutoUtils.isSameTypeIgnoreTypeParameter(typeUtils, a, b);
+    }
+
+    /**
+     * 判断泛型参数是否是通配符
+     */
+    private boolean isTypeParameterWildCard(final VariableElement genericEventVariableElement) {
+        return genericEventVariableElement.asType().accept(new SimpleTypeVisitor8<Boolean, Void>() {
+
+            @Override
+            protected Boolean defaultAction(TypeMirror e, Void aVoid) {
+                return false;
+            }
+
+            @Override
+            public Boolean visitDeclared(DeclaredType t, Void aVoid) {
+                final List<? extends TypeMirror> typeArguments = t.getTypeArguments();
+                if (typeArguments.isEmpty()) {
+                    return false;
+                }
+
+                final TypeMirror typeMirror = typeArguments.get(0);
+                return typeMirror.getKind() == TypeKind.WILDCARD;
+            }
+        }, null);
     }
 
     /**

@@ -24,11 +24,13 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 /**
- * 一个特殊的EventBus实现，它适用于这样的场合：
+ * 一个特殊的EventBus实现，它适用于这样的场景：
  * 如果确保出现在某个泛型事件中的child不会在其它任何事件中出现，也就是说泛型事件自身的类型在分发过程是可以忽略的情况下，可以使用该实现。
- * <p>
- * 如果{@link #post(Object)}抛出的事件为 {@link GenericEvent}，则以{@link GenericEvent#child()}的类型进行分发。
+ * <h3>如何分发</h3>
+ * 如果{@link #post(Object)}抛出的事件为 {@link GenericEvent}，先以{@link GenericEvent}的类型分发一次，再以{@link GenericEvent#child()}的类型分发一次。
  * 如果{@link #post(Object)}抛出的事件非 {@link GenericEvent}，则以{@code event}的类型进行分发。
+ * <h3>NOTES</h3>
+ * 其它信息请参考{@link DefaultEventBus}
  *
  * @author wjybxx
  * @version 1.0
@@ -61,11 +63,11 @@ public class IdentityEventBus implements EventBus {
 
     @Override
     public final void post(@Nonnull Object event) {
+        postImp(event, event.getClass());
+
         if (event instanceof GenericEvent) {
             final GenericEvent<?> g = (GenericEvent<?>) event;
             postImp(event, g.child().getClass());
-        } else {
-            postImp(event, event.getClass());
         }
     }
 

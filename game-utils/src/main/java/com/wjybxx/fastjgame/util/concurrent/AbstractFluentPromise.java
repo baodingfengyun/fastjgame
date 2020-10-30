@@ -249,7 +249,7 @@ abstract class AbstractFluentPromise<V> extends AbstractPromise<V> {
     // -------------------------------------------------- UniCompletion ---------------------------------------------------------------
 
     /**
-     * {@link UniCompletion}表示联合两个{@code Future}，因此它持有一个输入，一个动作，和一个输出。
+     * {@link UniCompletion}表示一元函数计算，因此它持有一个输入，一个动作，和一个输出。
      *
      * @param <V> 输入值类型
      * @param <U> 输入值类型
