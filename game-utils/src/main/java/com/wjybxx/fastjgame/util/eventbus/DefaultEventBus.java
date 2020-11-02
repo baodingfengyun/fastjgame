@@ -82,35 +82,31 @@ public class DefaultEventBus implements EventBus {
     }
 
     @Override
+    public boolean hasHandler(@Nonnull Object event) {
+        if (handlerMap.containsKey(event.getClass())) {
+            return true;
+        }
+
+        if (event instanceof GenericEvent) {
+            final Object eventKey = newGenericEventKey((GenericEvent<?>) event);
+            return handlerMap.containsKey(eventKey);
+        }
+
+        return false;
+    }
+
+    @Override
     public final <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
-        if (accept(eventType)) {
+        if (filter.test(eventType)) {
             addHandlerImp(eventType, handler);
         }
     }
 
-    /**
-     * 是否支持该类型的普通事件
-     *
-     * @return 如果返回false，则会忽略该对应的handler注册
-     */
-    private boolean accept(@Nonnull Class<?> eventType) {
-        return filter.test(eventType);
-    }
-
     @Override
     public final <T extends GenericEvent<?>> void register(@Nonnull Class<T> genericType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
-        if (acceptGeneric(genericType)) {
+        if (genericFilter.test(genericType)) {
             addHandlerImp(newGenericEventKey(genericType, childType), handler);
         }
-    }
-
-    /**
-     * 是否支持该类型的泛型事件
-     *
-     * @return 如果返回false，则会忽略该对应的handler注册
-     */
-    private boolean acceptGeneric(Class<? extends GenericEvent<?>> genericType) {
-        return genericFilter.test(genericType);
     }
 
     private <T> void addHandlerImp(@Nonnull Object eventKey, @Nonnull EventHandler<? super T> handler) {

@@ -25,7 +25,7 @@ import java.util.function.Predicate;
 
 /**
  * 一个特殊的EventBus实现，它适用于这样的场景：
- * 如果确保出现在某个泛型事件中的child不会在其它任何事件中出现，也就是说泛型事件自身的类型在分发过程是可以忽略的情况下，可以使用该实现。
+ * 如果确保出现在某个泛型事件中的child不会在其它任何事件中出现，也就是说{@link GenericEvent}的类型在<b>联合分发</b>时是可以忽略的情况下，可以使用该实现。
  * <h3>如何分发</h3>
  * 如果{@link #post(Object)}抛出的事件为 {@link GenericEvent}，先以{@link GenericEvent}的类型分发一次，再以{@link GenericEvent#child()}的类型分发一次。
  * 如果{@link #post(Object)}抛出的事件非 {@link GenericEvent}，则以{@code event}的类型进行分发。
@@ -76,35 +76,31 @@ public class IdentityEventBus implements EventBus {
     }
 
     @Override
+    public boolean hasHandler(@Nonnull Object event) {
+        if (handlerMap.containsKey(event.getClass())) {
+            return true;
+        }
+
+        if (event instanceof GenericEvent) {
+            final Object child = ((GenericEvent<?>) event).child();
+            return handlerMap.containsKey(child.getClass());
+        }
+
+        return false;
+    }
+
+    @Override
     public final <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
-        if (accept(eventType)) {
+        if (filter.test(eventType)) {
             addHandlerImp(eventType, handler);
         }
     }
 
-    /**
-     * 是否支持该类型的普通事件
-     *
-     * @return 如果返回false，则会忽略该对应的handler注册
-     */
-    private boolean accept(@Nonnull Class<?> eventType) {
-        return filter.test(eventType);
-    }
-
     @Override
     public final <T extends GenericEvent<?>> void register(@Nonnull Class<T> genericType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
-        if (acceptGeneric(genericType)) {
+        if (genericFilter.test(genericType)) {
             addHandlerImp(childType, handler);
         }
-    }
-
-    /**
-     * 是否支持该类型的泛型事件
-     *
-     * @return 如果返回false，则会忽略该对应的handler注册
-     */
-    private boolean acceptGeneric(Class<? extends GenericEvent<?>> genericType) {
-        return genericFilter.test(genericType);
     }
 
     private void addHandlerImp(Class<?> keyClass, EventHandler<?> handler) {
@@ -115,4 +111,5 @@ public class IdentityEventBus implements EventBus {
     public final void release() {
         handlerMap.clear();
     }
+
 }

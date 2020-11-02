@@ -50,6 +50,14 @@ public interface EventHandlerRegistry {
     <T extends GenericEvent<?>> void register(@Nonnull Class<T> genericType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler);
 
     /**
+     * 判断是否存在对应的事件处理器。
+     * 对于{@link GenericEvent}，建议只在必要的时候测试，因为可能会产生额外的对象。
+     *
+     * @return 如果存在对应的事件处理器，则返回true，否则返回false
+     */
+    boolean hasHandler(@Nonnull Object event);
+
+    /**
      * 释放所有的资源，因为{@link #register(Class, EventHandler)} 会捕获太多对象，当不再使用{@link EventHandlerRegistry}时，
      * 手动的释放，避免因为registry对象存在导致内存泄漏。
      */

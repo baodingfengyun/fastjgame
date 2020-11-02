@@ -59,6 +59,12 @@ public class NetEventBusManager implements EventBus {
         eventBus.register(genericType, childType, handler);
     }
 
+
+    @Override
+    public boolean hasHandler(@Nonnull Object event) {
+        return eventBus.hasHandler(event);
+    }
+
     @Override
     public void release() {
         eventBus.release();
