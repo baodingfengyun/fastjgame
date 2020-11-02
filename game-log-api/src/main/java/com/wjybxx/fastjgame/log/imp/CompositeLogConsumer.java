@@ -54,6 +54,7 @@ public final class CompositeLogConsumer<T extends GameLog> implements LogConsume
     }
 
     public void addChild(@Nonnull LogConsumer<T> child) {
+        assert child.subscribedTopics().contains(topic);
         children.add(child);
     }
 

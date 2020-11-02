@@ -31,9 +31,8 @@ public class BufferPool {
 
     /**
      * 缓冲区大小
-     * 64K应该足够游戏内的任何内容了。
      */
-    private static final int BUFFER_SIZE = 64 * 1024;
+    private static final int BUFFER_SIZE = 512 * 1024;
     /**
      * 缓存数量
      */

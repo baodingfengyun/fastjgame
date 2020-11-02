@@ -55,26 +55,8 @@ public class NetTimerManager implements TimerSystem {
 
     @Override
     @Nonnull
-    public FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask task) {
-        return timerSystem.newFixedDelay(delay, task);
-    }
-
-    @Override
-    @Nonnull
     public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task) {
         return timerSystem.newFixedDelay(initialDelay, delay, task);
-    }
-
-    @Override
-    @Nonnull
-    public FixedDelayHandle newHeartbeatTimer(long delay, @Nonnull TimerTask task) {
-        return timerSystem.newHeartbeatTimer(delay, task);
-    }
-
-    @Override
-    @Nonnull
-    public FixedRateHandle newFixRate(long period, @Nonnull TimerTask task) {
-        return timerSystem.newFixRate(period, task);
     }
 
     @Override

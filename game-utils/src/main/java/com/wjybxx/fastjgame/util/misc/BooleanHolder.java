@@ -79,7 +79,7 @@ public class BooleanHolder {
 
         @Override
         public BooleanHolder readObject(ObjectReader reader) throws Exception {
-            return new BooleanHolder(reader.readObject());
+            return new BooleanHolder(reader.readBoolean());
         }
 
         @Override

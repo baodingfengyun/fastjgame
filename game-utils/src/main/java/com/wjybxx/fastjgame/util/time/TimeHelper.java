@@ -95,7 +95,11 @@ public final class TimeHelper {
      * @return 格式化后的字符串表示
      */
     public String formatTime(long timeMs, String pattern) {
-        return formatTime(timeMs, DateTimeFormatter.ofPattern(pattern));
+        if (pattern.equals(TimeUtils.DEFAULT_PATTERN)) {
+            return formatTime(timeMs, TimeUtils.DEFAULT_FORMATTER);
+        } else {
+            return formatTime(timeMs, DateTimeFormatter.ofPattern(pattern));
+        }
     }
 
     /**
@@ -174,7 +178,13 @@ public final class TimeHelper {
         return toEpochDay(time1) - toEpochDay(time2) == 0;
     }
 
-    private int toEpochDay(long millis) {
+    /**
+     * 计算时间戳对应的纪元天数
+     *
+     * @param millis 毫秒时间
+     * @return 基于纪元的天数
+     */
+    public int toEpochDay(long millis) {
         return (int) LocalDate.ofInstant(Instant.ofEpochMilli(millis), zoneOffset).toEpochDay();
     }
 

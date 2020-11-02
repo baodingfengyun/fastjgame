@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -90,7 +91,7 @@ public class ClassScanner {
                 String protocol = url.getProtocol();
                 if ("file".equals(protocol)) {
                     // 如果是普通文件 file:
-                    String filePath = URLDecoder.decode(url.getFile(), "UTF-8");
+                    String filePath = URLDecoder.decode(url.getFile(), StandardCharsets.UTF_8);
                     findClassesByFile(classLoader, pkgName, filePath, classes, classNameFilter, classFilter);
                 } else if ("jar".equals(protocol)) {
                     // 如果是jar包文件 jar:
@@ -164,7 +165,7 @@ public class ClassScanner {
 
     /**
      * 是否是隐藏文件夹
-     * 一般情况下，"."开头的文件被认为是隐藏文件夹
+     * 一般情况下，"."开头的文件被认为是隐藏文件夹，如：.svn, .git
      */
     private static boolean isHiddenFolder(String folderName) {
         return folderName.charAt(0) == '.';

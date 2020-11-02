@@ -33,7 +33,6 @@ public class MethodHandleUtils {
         throw new AssertionError();
     }
 
-
     /**
      * 将无参构造方法转换为{@link Supplier}的方法引用
      *
