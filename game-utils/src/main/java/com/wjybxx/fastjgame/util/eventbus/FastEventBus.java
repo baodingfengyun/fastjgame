@@ -49,7 +49,7 @@ public class FastEventBus implements EventBus {
 
     /**
      * 计算一个类型的hash值，要求hash必须保持稳定，当类型相同时，在任意JVM上得到相同的hash值。
-     * 我们希望hash冲突尽早暴露，且能解决，而不是某些机器上不冲突，某些机器上冲突。
+     * 缘由：我们希望hash冲突尽早暴露，且能解决，而不是某些机器上不冲突，某些机器上冲突。
      */
     private final ToIntFunction<Class<?>> hashFunc;
     /**
@@ -82,6 +82,9 @@ public class FastEventBus implements EventBus {
         if (event instanceof GenericEvent) {
             final GenericEvent<?> genericEvent = (GenericEvent<?>) event;
             final int subKey = cachedHashcode(genericEvent.child().getClass());
+            if (subKey == 0) {
+                return;
+            }
             final long key = MathUtils.composeIntToLong(parentKey, subKey);
             postImp(event, key);
         }
@@ -112,12 +115,19 @@ public class FastEventBus implements EventBus {
     }
 
     private int putHashcode(final Class<?> type) {
+        final int cachedHashcode = cachedHashcode(type);
+        if (cachedHashcode != 0) {
+            return cachedHashcode;
+        }
+
         final int hashcode = hashFunc.applyAsInt(type);
         if (hashcode == 0) {
             throw new IllegalArgumentException("hashcode cannot be zero");
         }
 
-        if (!typeToHashcodeMap.containsKey(type) && typeToHashcodeMap.containsValue(hashcode)) {
+        // TODO containsValue开销是否会较高，是否值得双向映射？
+        // 现在这样可以减少固定内存占用。
+        if (typeToHashcodeMap.containsValue(hashcode)) {
             final Class<?> existType = findExistType(hashcode);
             final String msg = String.format("conflict type! existType: %s, newType: %s", existType.getName(), type.getName());
             throw new IllegalArgumentException(msg);
@@ -127,9 +137,9 @@ public class FastEventBus implements EventBus {
         return hashcode;
     }
 
-    private Class<?> findExistType(int hash) {
+    private Class<?> findExistType(final int hashcode) {
         return typeToHashcodeMap.object2IntEntrySet().stream()
-                .filter(classEntry -> classEntry.getIntValue() == hash)
+                .filter(entry -> entry.getIntValue() == hashcode)
                 .findFirst()
                 .map(Map.Entry::getKey)
                 .orElseThrow();
