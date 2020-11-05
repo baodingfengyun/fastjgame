@@ -33,8 +33,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * <p>
  * 注意：子类实现必须在保证时序的条件下解决可能的死循环问题。
  * Q: 死循环是如何产生的？
- * A: 如果用户基于{@link #newTimeout(long, TimerTask)}实现循环，则可能添加一个立即执行的timer，而{@link TimerSystem}的没有独立线程的，因此循环创建立即执行的timer，
- * 则可能陷入死循环。这种情况一般不是有意为之，而是某些特殊情况下产生的，比如：下次执行的延迟是计算出来的，而算出来的延迟总是为0或负数（线程缓存了时间戳，导致计算结果同一帧不会变化）。
+ * A: 对于周期性任务，我们严格要求了周期间隔大于0，因此周期性的timer不会引发无限循环问题。
+ * 但如果用户基于{@link #newTimeout(long, TimerTask)}实现循环，则在执行回调时可能添加一个立即执行的timer（超时时间小于等于0），则可能陷入死循环。
+ * 这种情况一般不是有意为之，而是某些特殊情况下产生的，比如：下次执行的延迟是计算出来的，而算出来的延迟总是为0或负数（线程缓存了时间戳，导致计算结果同一帧不会变化）。
  *
  * @author wjybxx
  * @version 1.1
@@ -67,11 +68,6 @@ public interface TimerSystem extends TimeProvider {
     @Nonnull
     TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task);
 
-    @Nonnull
-    default FixedDelayHandle newFixedDelay(long delay, @Nonnull TimerTask task) {
-        return newFixedDelay(delay, delay, task);
-    }
-
     /**
      * 以固定的延迟执行任务。
      * 它保证的是：任务的执行间隔大于等于指定延迟时间。
@@ -86,6 +82,19 @@ public interface TimerSystem extends TimeProvider {
     FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task);
 
     /**
+     * 以固定的频率执行指定任务。
+     * 它保证的是：任务的执行次数尽量达到目标。一般情况下不需要使用该类型，一般任务建议使用{@link #newFixedDelay(long, long, TimerTask)}。
+     * (注意：任何周期性的任务与其它任务之间都不具备时序保证)
+     *
+     * @param initialDelay 首次执行延迟，毫秒。
+     * @param period       执行周期，毫秒，必须大于0
+     * @param task         定时执行的任务
+     * @return Timer对应的句柄
+     */
+    @Nonnull
+    FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask task);
+
+    /**
      * 创建一个用于心跳的定时器，它在出现异常时不自动关闭
      *
      * @param delay 执行间隔，毫秒，必须大于0
@@ -98,24 +107,6 @@ public interface TimerSystem extends TimeProvider {
         fixedDelay.setAutoCloseOnExceptionCaught(false);
         return fixedDelay;
     }
-
-    @Nonnull
-    default FixedRateHandle newFixRate(long period, @Nonnull TimerTask task) {
-        return newFixRate(period, period, task);
-    }
-
-    /**
-     * 以固定的频率执行指定任务。
-     * 它保证的是：任务的执行次数尽量达到目标。一般情况下不需要使用该类型，一般任务建议使用{@link #newFixedDelay(long, long, TimerTask)}。
-     * (注意：任何周期性的任务与其它任务之间都不具备时序保证)
-     *
-     * @param initialDelay 首次执行延迟，毫秒。
-     * @param period       执行周期，毫秒，必须大于0
-     * @param task         定时执行的任务
-     * @return Timer对应的句柄
-     */
-    @Nonnull
-    FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask task);
 
     // ------------------------------------------- 生命周期相关 -----------------------------------
 

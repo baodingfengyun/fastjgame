@@ -16,7 +16,7 @@
 
 package com.wjybxx.fastjgame.misc;
 
-import com.wjybxx.fastjgame.util.exception.InfiniteLoopException;
+import com.wjybxx.fastjgame.util.misc.InfiniteLoopException;
 import com.wjybxx.fastjgame.util.misc.InfiniteLoopDefender;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

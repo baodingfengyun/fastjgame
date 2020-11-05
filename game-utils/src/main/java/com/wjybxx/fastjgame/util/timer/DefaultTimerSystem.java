@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.util.timer;
 
 import com.wjybxx.fastjgame.util.ThreadUtils;
-import com.wjybxx.fastjgame.util.exception.InfiniteLoopException;
+import com.wjybxx.fastjgame.util.misc.InfiniteLoopException;
 import com.wjybxx.fastjgame.util.time.TimeProvider;
 import com.wjybxx.fastjgame.util.time.TimeProviders;
 import org.slf4j.Logger;
@@ -80,28 +80,28 @@ public class DefaultTimerSystem implements TimerSystem {
     private int curTickFrame = 0;
 
     public DefaultTimerSystem() {
-        this(DEFAULT_TIME_PROVIDER, DEFAULT_INITIAL_CAPACITY);
+        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_TIME_PROVIDER);
     }
 
     /**
-     * @see DefaultTimerSystem#DefaultTimerSystem(TimeProvider, int)
+     * @see DefaultTimerSystem#DefaultTimerSystem(int, TimeProvider)
      */
     public DefaultTimerSystem(int initCapacity) {
-        this(DEFAULT_TIME_PROVIDER, initCapacity);
+        this(initCapacity, DEFAULT_TIME_PROVIDER);
     }
 
     /**
-     * @see DefaultTimerSystem#DefaultTimerSystem(TimeProvider, int)
+     * @see DefaultTimerSystem#DefaultTimerSystem(int, TimeProvider)
      */
     public DefaultTimerSystem(TimeProvider timeProvider) {
-        this(timeProvider, DEFAULT_INITIAL_CAPACITY);
+        this(DEFAULT_INITIAL_CAPACITY, timeProvider);
     }
 
     /**
-     * @param timeProvider 时间提供函数
      * @param initCapacity 初始timer空间，当你能预见timer的空间大小时，指定空间大小能提高性能和空间利用率
+     * @param timeProvider 时间提供函数
      */
-    public DefaultTimerSystem(TimeProvider timeProvider, int initCapacity) {
+    public DefaultTimerSystem(int initCapacity, TimeProvider timeProvider) {
         this.timeProvider = Objects.requireNonNull(timeProvider, "timeProvider");
         timerQueue = new PriorityQueue<>(initCapacity, AbstractTimerHandle.timerComparator);
     }

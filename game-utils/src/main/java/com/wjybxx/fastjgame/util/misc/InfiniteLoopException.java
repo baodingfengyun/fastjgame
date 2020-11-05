@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.wjybxx.fastjgame.util.exception;
+package com.wjybxx.fastjgame.util.misc;
 
 /**
  * 如果抛出该类型异常，则表示可能产生无限循环（死循环）风险

@@ -16,8 +16,6 @@
 
 package com.wjybxx.fastjgame.util.misc;
 
-import com.wjybxx.fastjgame.util.exception.InfiniteLoopException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
