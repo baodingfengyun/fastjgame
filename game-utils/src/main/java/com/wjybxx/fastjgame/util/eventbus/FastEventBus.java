@@ -18,12 +18,13 @@ package com.wjybxx.fastjgame.util.eventbus;
 
 import com.wjybxx.fastjgame.util.MathUtils;
 import com.wjybxx.fastjgame.util.function.FunctionUtils;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 
@@ -52,9 +53,9 @@ public class FastEventBus implements EventBus {
      */
     private final ToIntFunction<Class<?>> hashFunc;
     /**
-     * hash值到类型的映射，用于判断冲突。
+     * 类型到hash值的映射
      */
-    private final Int2ObjectMap<Class<?>> hashToTypeMap;
+    private final Object2IntMap<Class<?>> typeToHashcodeMap;
 
     private FastEventBus(int expectedSize,
                          Predicate<Class<?>> filter,
@@ -64,20 +65,33 @@ public class FastEventBus implements EventBus {
         this.hashFunc = hashFunc;
         this.filter = filter;
         this.genericFilter = genericFilter;
-        this.hashToTypeMap = new Int2ObjectOpenHashMap<>(expectedSize);
+        this.typeToHashcodeMap = new Object2IntOpenHashMap<>(expectedSize);
     }
 
     @Override
     public final void post(@Nonnull Object event) {
-        final int parentKey = hash(event.getClass());
+        // Q: 为什么必须从缓存的hash值里取？
+        // A: 因为可能抛出未监听的事件，如果计算的话，未监听的事件可能和监听的事件具有相同的hash值，从而导致类型转换异常。
+        final int parentKey = cachedHashcode(event.getClass());
+        if (parentKey == 0) {
+            return;
+        }
+
         postImp(event, parentKey);
 
         if (event instanceof GenericEvent) {
             final GenericEvent<?> genericEvent = (GenericEvent<?>) event;
-            final int subKey = hash(genericEvent.child().getClass());
+            final int subKey = cachedHashcode(genericEvent.child().getClass());
             final long key = MathUtils.composeIntToLong(parentKey, subKey);
             postImp(event, key);
         }
+    }
+
+    /**
+     * @return 0表示该类型未注册
+     */
+    private int cachedHashcode(final Class<?> type) {
+        return typeToHashcodeMap.getInt(type);
     }
 
     private <T> void postImp(final @Nonnull T event, final long eventKey) {
@@ -92,35 +106,33 @@ public class FastEventBus implements EventBus {
     @Override
     public final <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
         if (filter.test(eventType)) {
-            checkConflict(eventType);
-
-            final int key = hash(eventType);
+            final int key = putHashcode(eventType);
             addHandlerImp(key, handler);
         }
     }
 
-    private int hash(final Class<?> type) {
-        return hashFunc.applyAsInt(type);
-    }
+    private int putHashcode(final Class<?> type) {
+        final int hashcode = hashFunc.applyAsInt(type);
+        if (hashcode == 0) {
+            throw new IllegalArgumentException("hashcode cannot be zero");
+        }
 
-    private void checkConflict(final Class<?> type) {
-        final int hash = hash(type);
-        final Class<?> existType = hashToTypeMap.put(hash, type);
-        if (existType != null && existType != type) {
+        if (!typeToHashcodeMap.containsKey(type) && typeToHashcodeMap.containsValue(hashcode)) {
+            final Class<?> existType = findExistType(hashcode);
             final String msg = String.format("conflict type! existType: %s, newType: %s", existType.getName(), type.getName());
             throw new IllegalArgumentException(msg);
         }
+
+        typeToHashcodeMap.put(type, hashcode);
+        return hashcode;
     }
 
-    @Override
-    public final <T extends GenericEvent<?>> void register(@Nonnull Class<T> genericType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
-        if (genericFilter.test(genericType)) {
-            checkConflict(genericType);
-            checkConflict(childType);
-
-            final long key = MathUtils.composeIntToLong(hash(genericType), hash(childType));
-            addHandlerImp(key, handler);
-        }
+    private Class<?> findExistType(int hash) {
+        return typeToHashcodeMap.object2IntEntrySet().stream()
+                .filter(classEntry -> classEntry.getIntValue() == hash)
+                .findFirst()
+                .map(Map.Entry::getKey)
+                .orElseThrow();
     }
 
     private void addHandlerImp(long key, EventHandler<?> handler) {
@@ -129,9 +141,19 @@ public class FastEventBus implements EventBus {
     }
 
     @Override
+    public final <T extends GenericEvent<?>> void register(@Nonnull Class<T> genericType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
+        if (genericFilter.test(genericType)) {
+            final int parentKey = putHashcode(genericType);
+            final int subKey = putHashcode(childType);
+            final long key = MathUtils.composeIntToLong(parentKey, subKey);
+            addHandlerImp(key, handler);
+        }
+    }
+
+    @Override
     public final void release() {
         handlerMap.clear();
-        hashToTypeMap.clear();
+        typeToHashcodeMap.clear();
     }
 
     public static Builder newBuilder() {
