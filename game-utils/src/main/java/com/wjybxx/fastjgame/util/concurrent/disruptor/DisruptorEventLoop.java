@@ -170,7 +170,6 @@ public class DisruptorEventLoop extends AbstractEventLoop {
                               @Nonnull RejectedExecutionHandler rejectedExecutionHandler,
                               @Nonnull WaitStrategyFactory waitStrategyFactory,
                               int ringBufferSize, int taskBatchSize) {
-
         super(parent);
 
         if (taskBatchSize <= 0) {

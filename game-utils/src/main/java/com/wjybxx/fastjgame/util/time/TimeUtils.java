@@ -38,17 +38,17 @@ public class TimeUtils {
     /**
      * 中国时区
      */
-    public static final ZoneOffset CST = ZoneOffset.ofHours(8);
+    public static final ZoneOffset ZONE_OFFSET_CST = ZoneOffset.ofHours(8);
 
     /**
      * UTC时间
      */
-    public static final ZoneOffset UTC = ZoneOffset.UTC;
+    public static final ZoneOffset ZONE_OFFSET_UTC = ZoneOffset.UTC;
 
     /**
      * 系统时区
      */
-    public static final ZoneOffset SYSTEM_ZONE_OFFSET = ZoneOffset.systemDefault().getRules().getOffset(LocalDateTime.now());
+    public static final ZoneOffset ZONE_OFFSET_SYSTEM = ZoneOffset.systemDefault().getRules().getOffset(LocalDateTime.now());
 
     /**
      * 一秒的毫秒数

@@ -17,10 +17,7 @@
 package com.wjybxx.fastjgame.util.example;
 
 import com.wjybxx.fastjgame.util.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.util.eventbus.DefaultEventBus;
-import com.wjybxx.fastjgame.util.eventbus.EventBus;
-import com.wjybxx.fastjgame.util.eventbus.GenericEvent;
-import com.wjybxx.fastjgame.util.eventbus.Subscribe;
+import com.wjybxx.fastjgame.util.eventbus.*;
 
 import javax.annotation.Nonnull;
 import java.util.HashSet;
@@ -102,7 +99,7 @@ public class SubscriberExample {
     }
 
     public static void main(String[] args) {
-        final EventBus bus = new DefaultEventBus();
+        final EventBus bus = FastEventBus.newBuilder().build();
         SubscriberExampleBusRegister.register(bus, new SubscriberExample());
         SubscribeInnerExampleBusRegister.register(bus, new SubscribeInnerExample());
 

@@ -16,6 +16,8 @@
 
 package com.wjybxx.fastjgame.util.time;
 
+import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 
@@ -28,17 +30,24 @@ import static com.wjybxx.fastjgame.util.time.TimeUtils.DAY;
  * @version 1.0
  * date - 2020/8/28
  */
+@Immutable
+@ThreadSafe
 public final class TimeHelper {
 
     /**
      * 中国时区对应的辅助类实例
      */
-    public static final TimeHelper CST = new TimeHelper(TimeUtils.CST);
+    public static final TimeHelper CST = new TimeHelper(TimeUtils.ZONE_OFFSET_CST);
+
+    /**
+     * UTC时区对于的辅助类实例
+     */
+    public static final TimeHelper UTC = new TimeHelper(TimeUtils.ZONE_OFFSET_UTC);
 
     /**
      * 系统时区对应的辅助类实例
      */
-    public static final TimeHelper SYSTEM = new TimeHelper(TimeUtils.SYSTEM_ZONE_OFFSET);
+    public static final TimeHelper SYSTEM = new TimeHelper(TimeUtils.ZONE_OFFSET_SYSTEM);
 
     private final ZoneOffset zoneOffset;
 
@@ -52,6 +61,9 @@ public final class TimeHelper {
         }
         if (zoneOffset.equals(SYSTEM.zoneOffset)) {
             return SYSTEM;
+        }
+        if (zoneOffset.equals(UTC.zoneOffset)) {
+            return UTC;
         }
         return new TimeHelper(zoneOffset);
     }

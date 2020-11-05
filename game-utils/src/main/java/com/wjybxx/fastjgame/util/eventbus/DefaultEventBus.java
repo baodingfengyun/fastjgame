@@ -73,26 +73,12 @@ public class DefaultEventBus implements EventBus {
         postEventImp(event, event.getClass());
 
         if (event instanceof GenericEvent) {
-            postEventImp(event, newGenericEventKey((GenericEvent) event));
+            postEventImp(event, newGenericEventKey((GenericEvent<?>) event));
         }
     }
 
     private void postEventImp(final @Nonnull Object event, final @Nonnull Object eventKey) {
         EventBusUtils.postEventImp(handlerMap, event, eventKey);
-    }
-
-    @Override
-    public boolean hasHandler(@Nonnull Object event) {
-        if (handlerMap.containsKey(event.getClass())) {
-            return true;
-        }
-
-        if (event instanceof GenericEvent) {
-            final Object eventKey = newGenericEventKey((GenericEvent<?>) event);
-            return handlerMap.containsKey(eventKey);
-        }
-
-        return false;
     }
 
     @Override

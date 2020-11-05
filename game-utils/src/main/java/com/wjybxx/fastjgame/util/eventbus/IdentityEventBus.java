@@ -24,13 +24,15 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 /**
- * 一个特殊的EventBus实现，它适用于这样的场景：
+ * 一个特殊的EventBus实现，用于特定场景下的性能优化。
+ * <h3>适用场景</h3>
+ * 它仅适用于这样的场景：
  * 如果确保出现在某个泛型事件中的child不会在其它任何事件中出现，也就是说{@link GenericEvent}的类型在<b>联合分发</b>时是可以忽略的情况下，可以使用该实现。
  * <h3>如何分发</h3>
  * 如果{@link #post(Object)}抛出的事件为 {@link GenericEvent}，先以{@link GenericEvent}的类型分发一次，再以{@link GenericEvent#child()}的类型分发一次。
  * 如果{@link #post(Object)}抛出的事件非 {@link GenericEvent}，则以{@code event}的类型进行分发。
  * <h3>NOTES</h3>
- * 其它信息请参考{@link DefaultEventBus}
+ * 使用该实现务必慎重，其它信息请参考{@link DefaultEventBus}
  *
  * @author wjybxx
  * @version 1.0
@@ -66,27 +68,13 @@ public class IdentityEventBus implements EventBus {
         postImp(event, event.getClass());
 
         if (event instanceof GenericEvent) {
-            final GenericEvent<?> g = (GenericEvent<?>) event;
-            postImp(event, g.child().getClass());
+            final GenericEvent<?> genericEvent = (GenericEvent<?>) event;
+            postImp(event, genericEvent.child().getClass());
         }
     }
 
     private void postImp(final @Nonnull Object event, final Class<?> eventKey) {
         EventBusUtils.postEventImp(handlerMap, event, eventKey);
-    }
-
-    @Override
-    public boolean hasHandler(@Nonnull Object event) {
-        if (handlerMap.containsKey(event.getClass())) {
-            return true;
-        }
-
-        if (event instanceof GenericEvent) {
-            final Object child = ((GenericEvent<?>) event).child();
-            return handlerMap.containsKey(child.getClass());
-        }
-
-        return false;
     }
 
     @Override
