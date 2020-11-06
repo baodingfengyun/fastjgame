@@ -17,27 +17,23 @@
 package com.wjybxx.fastjgame.util.timer;
 
 /**
- * 定时器任务。
- * <p>
- * Q: 为什么{@link #run(TimerHandle)}不再是泛型参数？
- * A: 解除耦合，{@link TimerHandle}属于控制单元，而{@link TimerTask}仅仅是执行单元。执行单元不应该过多的了解控制单元的属性。
- * <p>
- * 对上下文信息的处理请阅读{@link TimerSystem}的类文档。
+ * 执行固定次数的timer的句柄
  *
  * @author wjybxx
- * @version 1.0
- * date - 2019/8/7
+ * date - 2020/11/6
  * github - https://github.com/hl845740757
  */
-@FunctionalInterface
-public interface TimerTask {
+public interface FixedTimesHandle extends FixedDelayHandle {
 
     /**
-     * 执行需要的任务
-     *
-     * @param handle 该任务绑定的句柄，可以获取一些附加属性。
-     * @apiNote 如果运行时抛出异常，则会取消执行
+     * @return 剩余可执行次数，大于等于0。等于0表示已结束，大于0也可能已关闭，请注意{@link #isClosed()}方法。
      */
-    void run(TimerHandle handle) throws Exception;
+    int remainTimes();
+
+    /**
+     * @param remainTimes 期望的剩余执行次数，必须大于0。如果期望关闭timer，请调用{@link #close()}方法。
+     * @return 如果设置成功，则返回true。
+     */
+    boolean setRemainTimes(int remainTimes);
 
 }

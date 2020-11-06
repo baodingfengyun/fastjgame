@@ -1,17 +1,17 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.wjybxx.fastjgame.util.timer;
@@ -19,7 +19,6 @@ package com.wjybxx.fastjgame.util.timer;
 import com.wjybxx.fastjgame.util.ThreadUtils;
 import com.wjybxx.fastjgame.util.misc.InfiniteLoopException;
 import com.wjybxx.fastjgame.util.time.TimeProvider;
-import com.wjybxx.fastjgame.util.time.TimeProviders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +45,6 @@ public class DefaultTimerSystem implements TimerSystem {
      * 默认空间大小，使用JDK默认大小
      */
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
-    /**
-     * 默认的时间提供器（它是线程安全的，不可以使用非线程安全的作为静态变量）
-     */
-    private static final TimeProvider DEFAULT_TIME_PROVIDER = TimeProviders.realtimeProvider();
 
     /**
      * 用于获取当前时间
@@ -79,17 +74,6 @@ public class DefaultTimerSystem implements TimerSystem {
      */
     private int curTickFrame = 0;
 
-    public DefaultTimerSystem() {
-        this(DEFAULT_INITIAL_CAPACITY, DEFAULT_TIME_PROVIDER);
-    }
-
-    /**
-     * @see DefaultTimerSystem#DefaultTimerSystem(int, TimeProvider)
-     */
-    public DefaultTimerSystem(int initCapacity) {
-        this(initCapacity, DEFAULT_TIME_PROVIDER);
-    }
-
     /**
      * @see DefaultTimerSystem#DefaultTimerSystem(int, TimeProvider)
      */
@@ -109,24 +93,32 @@ public class DefaultTimerSystem implements TimerSystem {
     @Nonnull
     @Override
     public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task) {
-        TimeoutHandleImp timeoutHandleImp = new TimeoutHandleImp(this, task, timeout);
+        final TimeoutHandleImp timeoutHandleImp = new TimeoutHandleImp(this, task, timeout);
         return tryAddTimerAndInit(timeoutHandleImp);
     }
 
     @Nonnull
     @Override
     public FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task) {
-        FixedDelayHandleImp.ensureDelay(delay);
-        FixedDelayHandleImp fixedDelayHandleImp = new FixedDelayHandleImp(this, task, initialDelay, delay);
+        AbstractPeriodicTimerHandle.ensurePeriodGreaterThanZero(delay);
+        final FixedDelayHandleImp fixedDelayHandleImp = new FixedDelayHandleImp(this, task, initialDelay, delay);
         return tryAddTimerAndInit(fixedDelayHandleImp);
     }
 
     @Nonnull
     @Override
-    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask task) {
-        FixedRateHandleImp.ensurePeriod(period);
-        FixedRateHandleImp fixedRateHandleImp = new FixedRateHandleImp(this, task, initialDelay, period);
+    public FixedRateHandle newFixedRate(long initialDelay, long period, @Nonnull TimerTask task) {
+        AbstractPeriodicTimerHandle.ensurePeriodGreaterThanZero(period);
+        final FixedRateHandleImp fixedRateHandleImp = new FixedRateHandleImp(this, task, initialDelay, period);
         return tryAddTimerAndInit(fixedRateHandleImp);
+    }
+
+    @Nonnull
+    @Override
+    public FixedTimesHandle newFixedTimes(long initialDelay, long period, int times, @Nonnull TimerTask task) {
+        FixedTimesHandleImpl.ensureRemainTimesGreaterThanZero(times);
+        final FixedTimesHandleImpl fixedTimesHandle = new FixedTimesHandleImpl(this, task, initialDelay, period, times);
+        return tryAddTimerAndInit(fixedTimesHandle);
     }
 
     /**
@@ -234,6 +226,7 @@ public class DefaultTimerSystem implements TimerSystem {
      * @param curTimeMillis 当前时间戳
      */
     private static void callbackSafely(AbstractTimerHandle timerHandle, long curTimeMillis) {
+        timerHandle.beforeExecuteOnce();
         try {
             timerHandle.run();
         } catch (final Throwable cause) {
@@ -322,4 +315,5 @@ public class DefaultTimerSystem implements TimerSystem {
     public int curTimeSeconds() {
         return timeProvider.curTimeSeconds();
     }
+
 }

@@ -1,21 +1,24 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.wjybxx.fastjgame.util.timer;
 
+
+import com.wjybxx.fastjgame.util.misc.Tuple2;
+import com.wjybxx.fastjgame.util.misc.Tuple3;
 import com.wjybxx.fastjgame.util.time.TimeProvider;
 
 import javax.annotation.Nonnull;
@@ -25,11 +28,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 定时器系统，非线程安全。
  *
  * <h3>时序保证</h3>
- * 1. {@link #newTimeout(long, TimerTask)}和{@link #nextTick(TimerTask)}类型的任务之间，有严格的时序保证，当过期时间(超时时间)相同时，先提交的一定先执行。
- * 2. {@link #newFixedDelay(long, long, TimerTask)} {@link #newFixRate(long, long, TimerTask)}类型的任务，与其它任何一个任务都不具备时序保证。
- * <p>
- * Q: 为什么继承{@link TimeProvider}？
- * A: timer的运行一定依赖于一个时钟，可以把该时钟告诉给用户。
+ * 1. 单次执行的任务，如{@link #newTimeout(long, TimerTask)}，有严格的时序保证，当过期时间(超时时间)相同时，先提交的一定先执行。
+ * 2. 周期性执行的的任务，如{@link #newFixedDelay(long, long, TimerTask)}，当进入周期运行时，与其它任务之间便不具备时序保证。
+ * <h3>上下文信息</h3>
+ * 建议将任务依赖的上下文信息使用{@link TimerHandle#attach(Object)}绑定到{@link TimerHandle}，以方便使用方法引用创建timer，不建议使用lambda捕获参数。
+ * 参数较少时可以使用{@link Tuple2}或{@link Tuple3}，参数较多时建议定义具体的类型。
  * <p>
  * 注意：子类实现必须在保证时序的条件下解决可能的死循环问题。
  * Q: 死循环是如何产生的？
@@ -46,7 +49,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public interface TimerSystem extends TimeProvider {
 
     // ------------------------------------------ 添加定时器的方法 -----------------------------------
-
     /**
      * 下一次{@link #tick()}的时候执行。
      *
@@ -58,10 +60,10 @@ public interface TimerSystem extends TimeProvider {
     }
 
     /**
-     * 在指定延迟之后执行一次指定任务。
+     * 创建一个在指定延迟之后执行一次的任务。
      * 该类型的任务有严格的时序保证！你认为先执行的一定先执行。
      *
-     * @param timeout 过期时间，毫秒，如果参数等于0，等效于调用{@link #nextTick(TimerTask)}。
+     * @param timeout 过期时间，毫秒。允许小于0，但如果小于0，可能会影响当前帧的部分timer。
      * @param task    需要执行的任务
      * @return Timer对应的句柄
      */
@@ -69,11 +71,11 @@ public interface TimerSystem extends TimeProvider {
     TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task);
 
     /**
-     * 以固定的延迟执行任务。
+     * 创建一个以固定延迟执行的任务。
      * 它保证的是：任务的执行间隔大于等于指定延迟时间。
      * (注意：任何周期性的任务与其它任务之间都不具备时序保证)
      *
-     * @param initialDelay 首次执行延迟，毫秒。
+     * @param initialDelay 首次执行延迟，毫秒。允许小于0，但如果小于0，可能会影响当前帧的部分timer。
      * @param delay        执行间隔，毫秒，必须大于0
      * @param task         定时执行的任务
      * @return Timer对应的句柄
@@ -82,30 +84,41 @@ public interface TimerSystem extends TimeProvider {
     FixedDelayHandle newFixedDelay(long initialDelay, long delay, @Nonnull TimerTask task);
 
     /**
-     * 以固定的频率执行指定任务。
-     * 它保证的是：任务的执行次数尽量达到目标。一般情况下不需要使用该类型，一般任务建议使用{@link #newFixedDelay(long, long, TimerTask)}。
+     * 创建一个以固定频率执行的任务。
+     * 它保证的是：指定时间内执行次数尽量满足需求。
      * (注意：任何周期性的任务与其它任务之间都不具备时序保证)
      *
-     * @param initialDelay 首次执行延迟，毫秒。
-     * @param period       执行周期，毫秒，必须大于0
+     * @param initialDelay 首次执行延迟，毫秒。允许小于0，但如果小于0，可能会影响当前帧的部分timer。
+     * @param period       执行间隔，毫秒，必须大于0
      * @param task         定时执行的任务
      * @return Timer对应的句柄
      */
     @Nonnull
-    FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask task);
+    FixedRateHandle newFixedRate(long initialDelay, long period, @Nonnull TimerTask task);
 
     /**
-     * 创建一个用于心跳的定时器，它在出现异常时不自动关闭
+     * 创建一个以固定延迟执行，并执行指定次数的任务。
+     * 目前设计中，delay的设计与{@link FixedDelayHandle}相同。
+     * (注意：任何周期性的任务与其它任务之间都不具备时序保证)
      *
-     * @param delay 执行间隔，毫秒，必须大于0
-     * @param task  定时执行的任务
+     * @param initialDelay 首次执行延迟，毫秒。允许小于0，但如果小于0，可能会影响当前帧的部分timer。
+     * @param period       执行间隔，毫秒，必须大于0。
+     * @param times        期望的执行次数，必须大于0。
+     * @param task         定时执行的任务
      * @return Timer对应的句柄
      */
     @Nonnull
-    default FixedDelayHandle newHeartbeatTimer(long delay, @Nonnull TimerTask task) {
-        final FixedDelayHandle fixedDelay = newFixedDelay(delay, delay, task);
-        fixedDelay.setAutoCloseOnExceptionCaught(false);
-        return fixedDelay;
+    FixedTimesHandle newFixedTimes(long initialDelay, long period, int times, @Nonnull TimerTask task);
+
+    /**
+     * @param period 执行间隔，毫秒，必须大于0。
+     * @param task   定时执行的任务
+     * @return Timer对应的句柄
+     */
+    default FixedDelayHandle newHeartbeatTimer(long period, TimerTask task) {
+        final FixedDelayHandle fixedDelayHandle = newFixedDelay(period, period, task);
+        fixedDelayHandle.setAutoCloseOnExceptionCaught(false);
+        return fixedDelayHandle;
     }
 
     // ------------------------------------------- 生命周期相关 -----------------------------------
@@ -132,11 +145,4 @@ public interface TimerSystem extends TimeProvider {
      */
     void close();
 
-    // ------------------------------------------- 系统时钟 --------------------------------------------
-
-    @Override
-    long curTimeMillis();
-
-    @Override
-    int curTimeSeconds();
 }

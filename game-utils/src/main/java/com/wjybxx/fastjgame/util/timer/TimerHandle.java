@@ -1,26 +1,30 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.wjybxx.fastjgame.util.timer;
+
+
+import com.wjybxx.fastjgame.util.misc.Tuple2;
+import com.wjybxx.fastjgame.util.misc.Tuple3;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * 定时器(timer)句柄，提供取消等操作。
+ * timer句柄，提供取消等操作。
  *
  * @author wjybxx
  * @version 1.0
@@ -36,7 +40,17 @@ public interface TimerHandle {
     TimerSystem timerSystem();
 
     /**
+     * 返回当前的附加属性。
+     *
+     * @param <T> 结果类型，方便强制类型转换
+     * @return nullable，如果未调用过attach，一定为null
+     */
+    @Nullable
+    <T> T attachment();
+
+    /**
      * 设置附加属性(使得task在运行的时候可以获取该值)。
+     * 参数较少时可以使用{@link Tuple2}或{@link Tuple3}，参数较多时建议定义具体的类型。
      * 注意：attachment在timer关闭或取消时不会自动删除，当你不需要使用时，可以尽早的释放它(设置为null)。
      *
      * @param newData 新值
@@ -46,23 +60,26 @@ public interface TimerHandle {
     <T> T attach(@Nullable Object newData);
 
     /**
-     * 返回当前的附加属性（上一次attach的值）。
+     * 删除并返回当前的附加属性。等同于{@code attach(null)}
      *
      * @param <T> 结果类型，方便强制类型转换
      * @return nullable，如果未调用过attach，一定为null
      */
     @Nullable
-    <T> T attachment();
+    default <T> T detach() {
+        return attach(null);
+    }
 
     /**
      * 查询距离下次执行的延迟时间
      *
-     * @return -1 表示已停止，否则返回大于等于0的值。
+     * @return 大于等于0的值。
+     * 注意：等于0不代表会立即执行。
      */
     long nextDelay();
 
     /**
-     * 尝试关闭该handle关联的TimerTask，如果handle关联的timer早已关闭，则该方法什么也不会做。
+     * 关闭该timer，如果timer早已关闭，则该方法什么也不会做。
      */
     void close();
 

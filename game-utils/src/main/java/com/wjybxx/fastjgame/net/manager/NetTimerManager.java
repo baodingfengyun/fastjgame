@@ -43,11 +43,6 @@ public class NetTimerManager implements TimerSystem {
     }
 
     @Override
-    public TimeoutHandle nextTick(@Nonnull TimerTask task) {
-        return timerSystem.nextTick(task);
-    }
-
-    @Override
     @Nonnull
     public TimeoutHandle newTimeout(long timeout, @Nonnull TimerTask task) {
         return timerSystem.newTimeout(timeout, task);
@@ -61,8 +56,14 @@ public class NetTimerManager implements TimerSystem {
 
     @Override
     @Nonnull
-    public FixedRateHandle newFixRate(long initialDelay, long period, @Nonnull TimerTask task) {
-        return timerSystem.newFixRate(initialDelay, period, task);
+    public FixedRateHandle newFixedRate(long initialDelay, long period, @Nonnull TimerTask task) {
+        return timerSystem.newFixedRate(initialDelay, period, task);
+    }
+
+    @Override
+    @Nonnull
+    public FixedTimesHandle newFixedTimes(long initialDelay, long period, int times, @Nonnull TimerTask task) {
+        return timerSystem.newFixedTimes(initialDelay, period, times, task);
     }
 
     @Override

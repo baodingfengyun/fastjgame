@@ -18,10 +18,11 @@
 
 package com.wjybxx.fastjgame.test;
 
-import com.wjybxx.fastjgame.util.time.TimeUtils;
 import com.wjybxx.fastjgame.util.time.CachedTimeProvider;
 import com.wjybxx.fastjgame.util.time.TimeProviders;
+import com.wjybxx.fastjgame.util.time.TimeUtils;
 import com.wjybxx.fastjgame.util.timer.DefaultTimerSystem;
+import com.wjybxx.fastjgame.util.timer.FixedTimesHandle;
 import com.wjybxx.fastjgame.util.timer.TimerHandle;
 import com.wjybxx.fastjgame.util.timer.TimerSystem;
 
@@ -60,26 +61,28 @@ public class TimerSystemTest {
         final TimerSystem timerSystem = new DefaultTimerSystem(timeProvider);
 
         // 局部变量是为了调试(debug能获取到引用)
-
-        final TimerHandle handle0 = timerSystem.newTimeout(2 * TimeUtils.SEC, TimerSystemTest::nextTick);
+        final TimerHandle handle00 = timerSystem.newTimeout(TimeUtils.SEC, timerHandle -> {
+            System.out.println("one second " + System.currentTimeMillis());
+        });
 
         final TimerHandle handle1 = timerSystem.newTimeout(2 * TimeUtils.SEC, handle -> {
             System.out.println("two second " + System.currentTimeMillis());
-            timerSystem.newTimeout(-1, handle01 -> System.out.println("newTimeout - handle01"));
         });
 
-        final TimerHandle handle2 = timerSystem.newTimeout(2 * TimeUtils.SEC, TimerSystemTest::handle02);
-
-        final TimerHandle handle3 = timerSystem.newTimeout(TimeUtils.SEC, timerHandle -> {
-            System.out.println("one second " + System.currentTimeMillis());
-        });
+        final TimerHandle handle2 = timerSystem.newTimeout(2 * TimeUtils.SEC, TimerSystemTest::callNextTick);
+        final TimerHandle handle3 = timerSystem.newTimeout(2 * TimeUtils.SEC, TimerSystemTest::callNewTimeout);
 
         final TimerHandle handle4 = timerSystem.newFixedDelay(0, 3 * TimeUtils.SEC, handle -> {
             System.out.println("fixDelayTask " + System.currentTimeMillis());
         });
 
-        final TimerHandle handle5 = timerSystem.newFixRate(0, 3 * TimeUtils.SEC, handle -> {
+        final TimerHandle handle5 = timerSystem.newFixedRate(0, 3 * TimeUtils.SEC, handle -> {
             System.out.println("fixRateTask " + System.currentTimeMillis());
+        });
+
+        final TimerHandle handle6 = timerSystem.newFixedTimes(0, 3 * TimeUtils.SEC, 3, handle -> {
+            final FixedTimesHandle h = (FixedTimesHandle) handle;
+            System.out.println(String.format("fixedTimes, executedTimes: %s, remianTimes: %s", h.executedTimes(), h.remainTimes()));
         });
 
         IntStream.rangeClosed(1, 10).forEach(index -> {
@@ -95,14 +98,14 @@ public class TimerSystemTest {
         timerSystem.close();
     }
 
-    private static void nextTick(TimerHandle handle) {
-        System.out.println("two second2 " + System.currentTimeMillis());
-        handle.timerSystem().nextTick(handle0 -> System.out.println("nextTick - handle0"));
+    private static void callNextTick(TimerHandle handle) {
+        System.out.println("callNextTick");
+        handle.timerSystem().nextTick(handle0 -> System.out.println("callNextTick callback"));
     }
 
-    private static void handle02(TimerHandle handle) {
-        System.out.println("two second2 " + System.currentTimeMillis());
-        handle.timerSystem().newTimeout(-2, handle02 -> System.out.println("newTimeout - handle02"));
+    private static void callNewTimeout(TimerHandle handle) {
+        System.out.println("callNewTimeout");
+        handle.timerSystem().newTimeout(-2, handle02 -> System.out.println("callNewTimeout callback"));
     }
 
 }
