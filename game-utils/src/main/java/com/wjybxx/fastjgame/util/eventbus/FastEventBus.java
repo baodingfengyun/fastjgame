@@ -18,24 +18,26 @@ package com.wjybxx.fastjgame.util.eventbus;
 
 import com.wjybxx.fastjgame.util.MathUtils;
 import com.wjybxx.fastjgame.util.function.FunctionUtils;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 
 /**
- * 高性能的EventBus。
- * <p>
- * Q: 它是如何提速的？
- * A: 在{@link DefaultEventBus}中，泛型事件的key是一个对象，这在大量泛型事件的时候会产生大量的小对象。
- * 我们通过一个基本类型的long值代替生成的对象，从而提高效率。
- * <p>
- * <b>NOTES</b>: 必须为每一个事件类型提供一个唯一的hash值，且保证该值在任意JVM上是相同的。
+ * 一个特殊的EventBus实现，它适用于这样的情景:
+ * 应用程序能为每一个事件类型提供唯一的hash值，且保证在任意JVM上是相同的，也就是说我们通过hash值进行分发，而不是创建特定的Key类型（如{@link DefaultEventBus}中的实现）。
+ * <h3>优势</h3>
+ * 相对于{@link IdentityEventBus}适用面更广，相对于{@link DefaultEventBus}可以避免大量的小对象创建。
+ * <h3>如何分发</h3>
+ * 先以{@code event}的hash值分发一次，如果事件为{@link GenericEvent}的子类型，再以{@link GenericEvent#child()}的类型的hash值分发一次。
+ * <h3>NOTES</h3>
+ * 其它信息请参考{@link DefaultEventBus}
  *
  * @author wjybxx
  * date - 2020/11/5
@@ -52,10 +54,8 @@ public class FastEventBus implements EventBus {
      * 缘由：我们希望hash冲突尽早暴露，且能解决，而不是某些机器上不冲突，某些机器上冲突。
      */
     private final ToIntFunction<Class<?>> hashFunc;
-    /**
-     * 类型到hash值的映射
-     */
     private final Object2IntMap<Class<?>> typeToHashcodeMap;
+    private final Int2ObjectMap<Class<?>> hashcodeToTypeMap;
 
     private FastEventBus(int expectedSize,
                          Predicate<Class<?>> filter,
@@ -65,13 +65,18 @@ public class FastEventBus implements EventBus {
         this.hashFunc = hashFunc;
         this.filter = filter;
         this.genericFilter = genericFilter;
+
         this.typeToHashcodeMap = new Object2IntOpenHashMap<>(expectedSize);
+        this.hashcodeToTypeMap = new Int2ObjectOpenHashMap<>(expectedSize);
+
+        assert typeToHashcodeMap.defaultReturnValue() == 0;
+        assert hashcodeToTypeMap.defaultReturnValue() == null;
     }
 
     @Override
     public final void post(@Nonnull Object event) {
         // Q: 为什么必须从缓存的hash值里取？
-        // A: 因为可能抛出未监听的事件，如果计算的话，未监听的事件可能和监听的事件具有相同的hash值，从而导致类型转换异常。
+        // A: 因为可能抛出未监听的事件，如果计算的话，未监听的事件可能和监听的事件具有相同的hashcode，从而导致类型转换异常。
         final int parentKey = cachedHashcode(event.getClass());
         if (parentKey == 0) {
             return;
@@ -117,32 +122,27 @@ public class FastEventBus implements EventBus {
     private int putHashcode(final Class<?> type) {
         final int cachedHashcode = cachedHashcode(type);
         if (cachedHashcode != 0) {
+            // 类型已注册
             return cachedHashcode;
         }
 
         final int hashcode = hashFunc.applyAsInt(type);
         if (hashcode == 0) {
+            // hashcode不可以为0，与默认值冲突
             throw new IllegalArgumentException("hashcode cannot be zero");
         }
 
-        // TODO containsValue开销是否会较高，是否值得双向映射？
-        // 现在这样可以减少固定内存占用。
-        if (typeToHashcodeMap.containsValue(hashcode)) {
-            final Class<?> existType = findExistType(hashcode);
-            final String msg = String.format("conflict type! existType: %s, newType: %s", existType.getName(), type.getName());
+        final Class<?> existType = hashcodeToTypeMap.get(hashcode);
+        if (existType != null) {
+            // 与其它类型的hash值相同
+            final String msg = String.format("hashcode conflict! existType: %s, newType: %s", existType.getName(), type.getName());
             throw new IllegalArgumentException(msg);
         }
 
         typeToHashcodeMap.put(type, hashcode);
-        return hashcode;
-    }
+        hashcodeToTypeMap.put(hashcode, type);
 
-    private Class<?> findExistType(final int hashcode) {
-        return typeToHashcodeMap.object2IntEntrySet().stream()
-                .filter(entry -> entry.getIntValue() == hashcode)
-                .findFirst()
-                .map(Map.Entry::getKey)
-                .orElseThrow();
+        return hashcode;
     }
 
     private void addHandlerImp(long key, EventHandler<?> handler) {
@@ -151,9 +151,9 @@ public class FastEventBus implements EventBus {
     }
 
     @Override
-    public final <T extends GenericEvent<?>> void register(@Nonnull Class<T> genericType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
-        if (genericFilter.test(genericType)) {
-            final int parentKey = putHashcode(genericType);
+    public final <T extends GenericEvent<?>> void register(@Nonnull Class<T> parentType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
+        if (genericFilter.test(parentType)) {
+            final int parentKey = putHashcode(parentType);
             final int subKey = putHashcode(childType);
             final long key = MathUtils.composeIntToLong(parentKey, subKey);
             addHandlerImp(key, handler);
@@ -164,6 +164,7 @@ public class FastEventBus implements EventBus {
     public final void release() {
         handlerMap.clear();
         typeToHashcodeMap.clear();
+        hashcodeToTypeMap.clear();
     }
 
     public static Builder newBuilder() {
@@ -222,6 +223,10 @@ public class FastEventBus implements EventBus {
         }
     }
 
+    public static ToIntFunction<Class<?>> defaultHashFunc() {
+        return DefaultHashFunc.INSTANCE;
+    }
+
     private static class DefaultHashFunc implements ToIntFunction<Class<?>> {
 
         private static final DefaultHashFunc INSTANCE = new DefaultHashFunc();
@@ -229,7 +234,7 @@ public class FastEventBus implements EventBus {
         @Override
         public int applyAsInt(Class<?> value) {
             // Q: 为什么不使用simpleName的hashcode？
-            // A: 因为getSimpleName开销更大。
+            // A: 一是因为getSimpleName开销更大，二是因为simpleName可能重复
             return value.getName().hashCode();
         }
     }

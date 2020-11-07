@@ -54,9 +54,9 @@ public class NetEventBusManager implements EventBus {
     }
 
     @Override
-    public <T extends GenericEvent<?>> void register(@Nonnull Class<T> genericType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
+    public <T extends GenericEvent<?>> void register(@Nonnull Class<T> parentType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
         EventLoopUtils.ensureInEventLoop(eventLoopManager.getEventLoop());
-        eventBus.register(genericType, childType, handler);
+        eventBus.register(parentType, childType, handler);
     }
 
     @Override

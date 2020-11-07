@@ -28,8 +28,8 @@ import java.lang.annotation.Target;
  * 注意：
  * 1. 使用该注解的方法必须有且仅有一个参数。
  * 2. <b>如果参数是{@link GenericEvent}的实现类，则其泛型参数为订阅的事件类型，否则该参数表示订阅的事件类型。</b>
- * 3.< b>如果期望监听某一类事件，请将{@link GenericEvent}的反省参数声明为通配符'?'</b>
- * 4. 事件类型不可以是基本类型，因为发布事件的时候会封装为Object，基本类型会被装箱，会导致问题。
+ * 3.< b>如果期望监听某一类事件，请将{@link GenericEvent}的泛型参数声明为通配符'?'</b>
+ * 4. 方法参数不可以是基本类型，因为发布事件的时候会封装为Object，基本类型会被装箱，会导致问题。
  * 5. 如果期望订阅多个事件，请使用{@link #subEvents()}声明关注的其它事件。
  * 6. 方法不能是private - 至少是包级访问权限。
  * <p>
@@ -37,6 +37,11 @@ import java.lang.annotation.Target;
  * <p>
  * 注解处理器会为拥有{@link Subscribe}方法的类生成一个代理文件，需要手动调用生成的register方法注册到{@link EventHandlerRegistry}。
  * 生成的代理类为 XXXBusRegister 。
+ * <p>
+ * Q: 如果想使用多个EventBus，如果避免订阅方法注册到不该注册的地方？
+ * A: 有两种选择，一：使用带过滤器的EventBus，这样可以筛选掉不期望的事件类型。
+ * 二：使用多个类进行订阅（内部类也可以），内部类A订阅X类型的事件，内部类B订阅Y类型的事件，内部类C订阅Z类型的事件。
+ * 推荐使用第二种方式，尤其是使用内部类的方式，不过需要内部类和它的方法的访问权限至少为包级。
  *
  * @author wjybxx
  * @version 1.0

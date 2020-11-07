@@ -26,6 +26,8 @@ package com.wjybxx.fastjgame.util.timer;
 public interface FixedTimesHandle extends FixedDelayHandle {
 
     /**
+     * 注意：同{@link #executedTimes()}一样，该值在每次执行回调之后才会更新。
+     *
      * @return 剩余可执行次数，大于等于0。等于0表示已结束，大于0也可能已关闭，请注意{@link #isClosed()}方法。
      */
     int remainTimes();

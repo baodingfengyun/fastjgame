@@ -30,14 +30,14 @@ import java.util.Map;
  * date - 2020/1/20
  * github - https://github.com/hl845740757
  */
-class EventBusUtils {
+public class EventBusUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(EventBusUtils.class);
 
     /**
      * 默认事件数大小
      */
-    static final int DEFAULT_EXPECTED_SIZE = 64;
+    public static final int DEFAULT_EXPECTED_SIZE = 64;
 
     private EventBusUtils() {
 
@@ -51,16 +51,15 @@ class EventBusUtils {
      * @param eventKey   事件对应的key
      * @param <T>        事件的类型
      */
-    static <K, T> void postEventImp(Map<K, EventHandler<?>> handlerMap, @Nonnull T event, @Nonnull K eventKey) {
+    public static <K, T> void postEventImp(Map<K, EventHandler<?>> handlerMap, @Nonnull T event, @Nonnull K eventKey) {
         @SuppressWarnings("unchecked") final EventHandler<? super T> handler = (EventHandler<? super T>) handlerMap.get(eventKey);
         if (null == handler) {
             return;
         }
-
         invokeHandlerSafely(event, handler);
     }
 
-    static <T> void invokeHandlerSafely(@Nonnull T event, @Nonnull EventHandler<? super T> handler) {
+    public static <T> void invokeHandlerSafely(@Nonnull T event, @Nonnull EventHandler<? super T> handler) {
         try {
             handler.onEvent(event);
         } catch (Throwable e) {
@@ -78,7 +77,7 @@ class EventBusUtils {
      * @param handler    事件处理器
      * @param <T>        事件的类型
      */
-    static <K, T> void addHandlerImp(Map<K, EventHandler<?>> handlerMap, @Nonnull K eventKey, @Nonnull EventHandler<? super T> handler) {
+    public static <K, T> void addHandlerImp(Map<K, EventHandler<?>> handlerMap, @Nonnull K eventKey, @Nonnull EventHandler<? super T> handler) {
         @SuppressWarnings("unchecked") final EventHandler<? super T> existHandler = (EventHandler<? super T>) handlerMap.get(eventKey);
         if (null == existHandler) {
             handlerMap.put(eventKey, handler);

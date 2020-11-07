@@ -42,12 +42,11 @@ public interface EventHandlerRegistry {
      * 注册一个泛型事件的观察者。
      * 正常情况下，该方法由生成的代码调用。当然也可以手动注册一些事件，即不使用注解处理器。
      *
-     * @param genericType 泛型事件类型
-     * @param childType   泛型事件的子事件类型
-     * @param handler     事件处理器
-     * @param <T>         泛型事件类型
+     * @param parentType 父事件类型
+     * @param childType  子事件类型
+     * @param handler    事件处理器
      */
-    <T extends GenericEvent<?>> void register(@Nonnull Class<T> genericType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler);
+    <T extends GenericEvent<?>> void register(@Nonnull Class<T> parentType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler);
 
     /**
      * 释放所有的资源，因为{@link #register(Class, EventHandler)} 会捕获太多对象，当不再使用{@link EventHandlerRegistry}时，

@@ -32,10 +32,9 @@ import java.util.function.Predicate;
  * 2. 它也不是一个标准的EventBus实现，比如就没有取消注册的接口，也没有单独的dispatcher、Registry
  * 3. 它也没有对继承体系进行完整的支持（监听接口或抽象类），主要考虑到性能可能不好。
  * <h3>如何分发</h3>
- * 如果{@link #post(Object)}抛出的事件为 {@link GenericEvent}，先以{@link GenericEvent}的类型分发一次，再<b>联合</b>{@link GenericEvent#child()}的类型分发一次。
- * 如果{@link #post(Object)}抛出的事件非 {@link GenericEvent}，则以{@code event}的类型进行分发。
+ * 先以{@code event}的类型直接分发一次，如果事件为{@link GenericEvent}的子类型，再<b>联合</b>{@link GenericEvent#child()}的类型分发一次。
  * <p>
- * Q: 为何要以{@link GenericEvent}的类型分发一次?
+ * Q: 为何{@link GenericEvent}也以它的类型直接分发一次？
  * A: 这允许监听者监听某一类事件，而不是某一个具体事件。
  *
  * @author wjybxx
@@ -89,9 +88,9 @@ public class DefaultEventBus implements EventBus {
     }
 
     @Override
-    public final <T extends GenericEvent<?>> void register(@Nonnull Class<T> genericType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
-        if (genericFilter.test(genericType)) {
-            addHandlerImp(newGenericEventKey(genericType, childType), handler);
+    public final <T extends GenericEvent<?>> void register(@Nonnull Class<T> parentType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
+        if (genericFilter.test(parentType)) {
+            addHandlerImp(newGenericEventKey(parentType, childType), handler);
         }
     }
 
@@ -118,12 +117,12 @@ public class DefaultEventBus implements EventBus {
     /**
      * 为泛型事件创建一个key
      *
-     * @param genericType 泛型类型
-     * @param childType   泛型事件的子类型
+     * @param parentType 父事件类型
+     * @param childType  子事件类型
      * @return 用于定位handler的key
      */
-    private static Object newGenericEventKey(Class<? extends GenericEvent<?>> genericType, Class<?> childType) {
-        return new GenericEventKey(genericType, childType);
+    private static Object newGenericEventKey(Class<? extends GenericEvent<?>> parentType, Class<?> childType) {
+        return new GenericEventKey(parentType, childType);
     }
 
     /**
