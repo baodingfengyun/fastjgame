@@ -1,17 +1,17 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.wjybxx.fastjgame.util;
@@ -38,19 +38,6 @@ import java.nio.charset.StandardCharsets;
  * date - 2019/8/16
  */
 public final class CodecUtils {
-
-    /**
-     * 默认字符集
-     */
-    public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-    /**
-     * 默认字符集对应的名字
-     */
-    public static final String DEFAULT_CHARSET_NAME = "UTF-8";
-    /**
-     * 是否对MD5结果小写
-     */
-    private static final boolean MD5_TO_LOWERCASE = false;
 
     private CodecUtils() {
 
@@ -116,8 +103,8 @@ public final class CodecUtils {
      * @param data 需要以URL格式编码的数据
      * @return URL编码后的字符串
      */
-    public static String urlEncode(String data) {
-        return URLEncoder.encode(data, DEFAULT_CHARSET);
+    public static String urlEncode(String data, Charset charset) {
+        return URLEncoder.encode(data, charset);
     }
 
     /**
@@ -126,10 +113,20 @@ public final class CodecUtils {
      * @param urlData 被URL格式编码的数据
      * @return 解码后的字符串
      */
-    public static String urlDecode(String urlData) {
-        return URLDecoder.decode(urlData, DEFAULT_CHARSET);
+    public static String urlDecode(String urlData, Charset charset) {
+        return URLDecoder.decode(urlData, charset);
     }
     // ---------------------------------  MD5 编码 ------------------------------------------
+
+    public enum Md5Mode {
+
+        UPPER_CASE,
+        LOWER_CASE;
+
+        public boolean isLowerCase() {
+            return this == LOWER_CASE;
+        }
+    }
 
     /**
      * 计算字节数组的MD5，并返回一个32个字符的十六进制字符串
@@ -137,8 +134,8 @@ public final class CodecUtils {
      * @param data 待计算的字节数组
      * @return 32个字符的十六进制字符串
      */
-    public static String md5Hex(@Nonnull byte[] data) {
-        return new String(Hex.encodeHex(DigestUtils.md5(data), MD5_TO_LOWERCASE));
+    public static String md5Hex(@Nonnull byte[] data, Md5Mode mode) {
+        return new String(Hex.encodeHex(DigestUtils.md5(data), mode.isLowerCase()));
     }
 
     /**
@@ -147,8 +144,8 @@ public final class CodecUtils {
      * @param data 待计算的字符串
      * @return 32个字符的十六进制字符串
      */
-    public static String md5Hex(@Nonnull String data) {
-        return new String(Hex.encodeHex(DigestUtils.md5(data), MD5_TO_LOWERCASE));
+    public static String md5Hex(@Nonnull String data, Md5Mode mode) {
+        return new String(Hex.encodeHex(DigestUtils.md5(data), mode.isLowerCase()));
     }
 
     /**
@@ -157,9 +154,9 @@ public final class CodecUtils {
      * @param file 要计算md5的文件
      * @return 32个字符的十六进制字符串
      */
-    public static String md5Hex(@Nonnull File file) throws IOException {
+    public static String md5Hex(@Nonnull File file, Md5Mode mode) throws IOException {
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
-            return md5Hex(fileInputStream);
+            return md5Hex(fileInputStream, mode);
         }
     }
 
@@ -169,14 +166,14 @@ public final class CodecUtils {
      * @param data 待计算的输入流，注意：该输入流并不会自动关闭！
      * @return 32个字符的十六进制字符串
      */
-    public static String md5Hex(@Nonnull InputStream data) throws IOException {
-        return new String(Hex.encodeHex(DigestUtils.md5(data), MD5_TO_LOWERCASE));
+    public static String md5Hex(@Nonnull InputStream data, Md5Mode mode) throws IOException {
+        return new String(Hex.encodeHex(DigestUtils.md5(data), mode.isLowerCase()));
     }
 
     // -----------------------------------  测试 --------------------------------------------
 
     public static void main(String[] args) throws IOException {
-        String md5 = md5Hex(CodecUtils.class.getCanonicalName());
+        String md5 = md5Hex(CodecUtils.class.getCanonicalName(), Md5Mode.UPPER_CASE);
         System.out.println(md5);
     }
 }
