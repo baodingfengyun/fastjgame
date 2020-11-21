@@ -1,24 +1,25 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 package com.wjybxx.fastjgame.util.excel;
 
 import com.monitorjbl.xlsx.StreamingReader;
-import com.wjybxx.fastjgame.util.CloseableUtils;
+import com.wjybxx.util.common.CloseableUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.File;
@@ -33,22 +34,45 @@ import java.util.Iterator;
  * date - 2019/5/11 16:18
  * github - https://github.com/hl845740757
  */
-class ExcelReader extends TableReader<Row> {
+class ExcelReader extends SheetReader<Row> {
 
-    /**
-     * 读取表格时产生的缓存
-     */
+    private final String sheetName;
+    private final int bufferSize;
+
     private Workbook workbook = null;
+    private int sheetIndex;
+    private Sheet sheet;
+
+    ExcelReader(String sheetName, int bufferSize) {
+        this.sheetName = sheetName;
+        this.bufferSize = bufferSize;
+    }
 
     @Override
-    protected Iterator<Row> toIterator(File file, int sheetIndex) throws IOException {
-        // 缓存100行
-        // 看源码发现open时使用file更好
+    protected void openFile(File file) throws IOException {
+        // 看源码发现open时感觉使用file更好
         workbook = StreamingReader.builder()
                 .rowCacheSize(200)
-                .bufferSize(1024 * 1024)
+                .bufferSize(bufferSize)
                 .open(file);
-        return workbook.getSheetAt(sheetIndex).rowIterator();
+
+        sheetIndex = workbook.getSheetIndex(sheetName);
+        sheet = workbook.getSheetAt(sheetIndex);
+    }
+
+    @Override
+    protected String sheetName() throws IOException {
+        return sheet.getSheetName();
+    }
+
+    @Override
+    protected int sheetIndex() {
+        return sheetIndex;
+    }
+
+    @Override
+    protected Iterator<Row> toRowIterator() throws IOException {
+        return sheet.rowIterator();
     }
 
     @Override
@@ -65,5 +89,7 @@ class ExcelReader extends TableReader<Row> {
     @Override
     public void close() throws Exception {
         CloseableUtils.closeSafely(workbook);
+        // help gc
+        sheet = null;
     }
 }

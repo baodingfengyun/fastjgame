@@ -37,56 +37,61 @@ public final class ExcelCsvUtils {
     /**
      * 读取CSV表格。
      * 默认编码格式 GBK
-     * 默认属性名所在行索引 0 (也就是第一行)
-     *
-     * @param file csv文件
-     */
-    public static TableSheet readCsv(File file) throws Exception {
-        return new CSVReader().readCfg(file, 0, 0);
-    }
-
-    /**
-     * 读取CSV表格。
      *
      * @param file         csv文件
      * @param nameRowIndex 属性名所在行
      */
-    public static TableSheet readCsv(File file, int nameRowIndex) throws Exception {
-        return new CSVReader().readCfg(file, 0, nameRowIndex);
+    public static Sheet readCsv(File file, int nameRowIndex) throws Exception {
+        try (final CSVReader reader = new CSVReader()) {
+            return reader.readCfg(file, nameRowIndex);
+        }
     }
 
     /**
      * CSV 不支持分页，但是可以指定第几行为属性名
      *
      * @param file         csv文件
-     * @param charset      指定csv文件编码格式
      * @param nameRowIndex 属性名所在行索引
-     * @return
+     * @param charset      指定csv文件编码格式
      */
-    public static TableSheet readCsv(File file, Charset charset, int nameRowIndex) throws Exception {
-        return new CSVReader(charset).readCfg(file, 0, nameRowIndex);
+    public static Sheet readCsv(File file, int nameRowIndex, Charset charset) throws Exception {
+        try (final CSVReader reader = new CSVReader(charset)) {
+            return reader.readCfg(file, nameRowIndex);
+        }
     }
 
     // ---------------------------------- EXCEL ----------------------------
 
     /**
-     * 读完excel的第一页，且第一行为属性名所在行
+     * 读取一个excel页签
      *
-     * @param file excel文件 (.xlsx)
+     * @param file         excel文件
+     * @param sheetName    页签名字
+     * @param nameRowIndex 属性名所在行
      */
-    public static TableSheet readExcel(File file) throws Exception {
-        return readExcel(file, 0, 0);
+    public static Sheet readExcel(File file, String sheetName, int nameRowIndex) throws Exception {
+        return readExcel(file, sheetName, nameRowIndex, 16 * 1024);
     }
 
     /**
-     * Excel支持分页，可以指定 读取第几页 和 第几行为属性名
+     * 读取一个excel页签
      *
-     * @param file         excel文件 (.xlsx)
-     * @param sheetIndex   excel文件页索引
-     * @param nameRowIndex 属性名所在行的索引
+     * @param file         excel文件
+     * @param sheetName    页签名字
+     * @param nameRowIndex 属性名所在行
+     * @param bufferSize   缓冲区大小
      */
-    public static TableSheet readExcel(File file, int sheetIndex, int nameRowIndex) throws Exception {
-        return new ExcelReader().readCfg(file, sheetIndex, nameRowIndex);
+    public static Sheet readExcel(File file, String sheetName, int nameRowIndex, int bufferSize) throws Exception {
+        try (final ExcelReader reader = new ExcelReader(sheetName, bufferSize)) {
+            return reader.readCfg(file, nameRowIndex);
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        final String path = "D:\\work\\desgin\\config\\Chapter.xlsx";
+        final File file = new File(path);
+        final Sheet sheet = readExcel(file, "Sample", 0);
+        System.out.println(sheet);
     }
 
 }

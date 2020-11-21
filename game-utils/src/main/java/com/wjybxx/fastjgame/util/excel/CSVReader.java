@@ -1,21 +1,21 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 package com.wjybxx.fastjgame.util.excel;
 
-import com.wjybxx.fastjgame.util.CloseableUtils;
+import com.wjybxx.util.common.CloseableUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -34,7 +34,7 @@ import java.util.Iterator;
  * date - 2019/5/11 16:17
  * github - https://github.com/hl845740757
  */
-class CSVReader extends TableReader<CSVRecord> {
+class CSVReader extends SheetReader<CSVRecord> {
 
     /**
      * windows上的CSV编码为GBK
@@ -44,12 +44,14 @@ class CSVReader extends TableReader<CSVRecord> {
      * 文件编码集
      */
     private final Charset charset;
+
     /**
      * CSV文件解析器
      */
     private CSVParser parser = null;
+    private String sheetName;
 
-    public CSVReader() {
+    CSVReader() {
         this(windowsCharset);
     }
 
@@ -58,7 +60,7 @@ class CSVReader extends TableReader<CSVRecord> {
      *
      * @param charset CSV 支持指定编码，默认GBK
      */
-    public CSVReader(Charset charset) {
+    CSVReader(Charset charset) {
         this.charset = charset;
     }
 
@@ -68,11 +70,27 @@ class CSVReader extends TableReader<CSVRecord> {
     }
 
     @Override
-    protected Iterator<CSVRecord> toIterator(File file, int sheetIndex) throws IOException {
-        if (sheetIndex != 0) {
-            throw new IllegalArgumentException("csv reader only support sheetIndex 0");
-        }
+    protected void openFile(File file) throws IOException {
         parser = CSVParser.parse(file, charset, CSVFormat.DEFAULT);
+        sheetName = parseSheetName(file.getName());
+    }
+
+    private static String parseSheetName(String fileName) {
+        return fileName.substring(0, fileName.length() - ".csv".length());
+    }
+
+    @Override
+    protected String sheetName() throws IOException {
+        return sheetName;
+    }
+
+    @Override
+    protected int sheetIndex() {
+        return 0;
+    }
+
+    @Override
+    protected Iterator<CSVRecord> toRowIterator() throws IOException {
         return parser.iterator();
     }
 
@@ -84,5 +102,6 @@ class CSVReader extends TableReader<CSVRecord> {
     @Override
     public void close() throws Exception {
         CloseableUtils.closeSafely(parser);
+        sheetName = null;
     }
 }

@@ -118,23 +118,13 @@ public final class CodecUtils {
     }
     // ---------------------------------  MD5 编码 ------------------------------------------
 
-    public enum Md5Mode {
-
-        UPPER_CASE,
-        LOWER_CASE;
-
-        public boolean isLowerCase() {
-            return this == LOWER_CASE;
-        }
-    }
-
     /**
      * 计算字节数组的MD5，并返回一个32个字符的十六进制字符串
      *
      * @param data 待计算的字节数组
      * @return 32个字符的十六进制字符串
      */
-    public static String md5Hex(@Nonnull byte[] data, Md5Mode mode) {
+    public static String md5Hex(@Nonnull byte[] data, CaseMode mode) {
         return new String(Hex.encodeHex(DigestUtils.md5(data), mode.isLowerCase()));
     }
 
@@ -144,7 +134,7 @@ public final class CodecUtils {
      * @param data 待计算的字符串
      * @return 32个字符的十六进制字符串
      */
-    public static String md5Hex(@Nonnull String data, Md5Mode mode) {
+    public static String md5Hex(@Nonnull String data, CaseMode mode) {
         return new String(Hex.encodeHex(DigestUtils.md5(data), mode.isLowerCase()));
     }
 
@@ -154,7 +144,7 @@ public final class CodecUtils {
      * @param file 要计算md5的文件
      * @return 32个字符的十六进制字符串
      */
-    public static String md5Hex(@Nonnull File file, Md5Mode mode) throws IOException {
+    public static String md5Hex(@Nonnull File file, CaseMode mode) throws IOException {
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
             return md5Hex(fileInputStream, mode);
         }
@@ -166,14 +156,14 @@ public final class CodecUtils {
      * @param data 待计算的输入流，注意：该输入流并不会自动关闭！
      * @return 32个字符的十六进制字符串
      */
-    public static String md5Hex(@Nonnull InputStream data, Md5Mode mode) throws IOException {
+    public static String md5Hex(@Nonnull InputStream data, CaseMode mode) throws IOException {
         return new String(Hex.encodeHex(DigestUtils.md5(data), mode.isLowerCase()));
     }
 
     // -----------------------------------  测试 --------------------------------------------
 
     public static void main(String[] args) throws IOException {
-        String md5 = md5Hex(CodecUtils.class.getCanonicalName(), Md5Mode.UPPER_CASE);
+        String md5 = md5Hex(CodecUtils.class.getCanonicalName(), CaseMode.UPPER_CASE);
         System.out.println(md5);
     }
 }
