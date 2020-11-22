@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.util.excel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * 单元格内容解析器，用于自定义类型和解析。
@@ -27,6 +28,11 @@ import javax.annotation.Nullable;
  * github - https://github.com/hl845740757
  */
 public interface CellValueParser {
+
+    /**
+     * @return 返回支持的元素类型
+     */
+    Set<String> supportedTypes();
 
     /**
      * @return 获取单元格的字符串内容。

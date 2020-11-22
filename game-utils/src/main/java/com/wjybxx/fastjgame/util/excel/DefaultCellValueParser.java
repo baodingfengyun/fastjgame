@@ -16,12 +16,11 @@
 
 package com.wjybxx.fastjgame.util.excel;
 
-import com.google.common.collect.Maps;
-import com.wjybxx.util.common.constant.AbstractConstant;
-import com.wjybxx.util.common.constant.ConstantPool;
-
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * 默认的单元格解析器，为避免引入不必要的依赖，识别为json时只是当作普通字符串，不解析json。
@@ -30,44 +29,108 @@ import java.util.Map;
  * date - 2020/11/21
  * github - https://github.com/hl845740757
  */
-public class DefaultCellValueParser {
+public class DefaultCellValueParser implements CellValueParser {
 
-    /**
-     * @author wjybxx
-     * date - 2020/11/20
-     * github - https://github.com/hl845740757
-     */
-    public static final class CellType extends AbstractConstant<CellType> {
+    private static final String STRING = "string";
+    private static final String INT32 = "int32";
+    private static final String INT64 = "int64";
+    private static final String FLOAT = "float";
+    private static final String DOUBLE = "double";
+    private static final String BOOL = "bool";
 
-        private static final ConstantPool<CellType> POOL = new ConstantPool<>(CellType::new);
+    private static final Set<String> SUPPORTED_TYPES = Set.of(STRING, INT32, INT64, FLOAT, DOUBLE, BOOL);
 
-        private CellType(String name) {
-            super(name);
-        }
+    private static final List<String> STRING_TYPE = List.of(STRING);
+    private static final List<String> INTEGER_TYPES = List.of(INT32, INT64);
+    private static final List<String> FLOAT_DOUBLE_TYPES = List.of(FLOAT, DOUBLE);
+    private static final List<String> BOOL_TYPE = List.of(BOOL);
 
-        public static final CellType STRING = POOL.newInstance("string");
-        public static final CellType NUMBER = POOL.newInstance("number");
-        public static final CellType FLOAT = POOL.newInstance("float");
-        public static final CellType BOOL = POOL.newInstance("bool");
-
-        public static final CellType JSON = POOL.newInstance("json");
-
-        private static final List<CellType> BASIC_CELL_TYPE_LIST;
-        private static final Map<String, CellType> ARRAY_CELL_TYPE_MAP;
-
-        static {
-            BASIC_CELL_TYPE_LIST = List.of(STRING, NUMBER, FLOAT, BOOL);
-            ARRAY_CELL_TYPE_MAP = Maps.newHashMapWithExpectedSize(BASIC_CELL_TYPE_LIST.size() * 2);
-
-            for (CellType cellType : BASIC_CELL_TYPE_LIST) {
-                String a1 = cellType.name() + "[]";
-                String a2 = cellType.name() + "[][]";
-
-                ARRAY_CELL_TYPE_MAP.put(a1, POOL.newInstance(a1));
-                ARRAY_CELL_TYPE_MAP.put(a2, POOL.newInstance(a2));
+    private static boolean isExpectedType(List<String> expectedTypeStrings, String typeString) {
+        for (int index = 0, size = expectedTypeStrings.size(); index < size; index++) {
+            final String expectedTypeString = expectedTypeStrings.get(index);
+            if (expectedTypeString.equals(typeString)) {
+                return true;
             }
-
         }
-
+        return false;
     }
+
+    private static void checkTypeString(List<String> expectedTypeStrings, String typeString) {
+        if (!isExpectedType(expectedTypeStrings, typeString)) {
+            throw new CellTypeIncompatibleException(expectedTypeStrings, typeString);
+        }
+    }
+
+    @Override
+    public Set<String> supportedTypes() {
+        return SUPPORTED_TYPES;
+    }
+
+    @Override
+    public String readAsString(@Nonnull String typeString, @Nullable String value) {
+        return Objects.requireNonNullElse(value, "");
+    }
+
+    @Override
+    public int readAsInt(@Nonnull String typeString, @Nullable String value) {
+        Objects.requireNonNull(value, "value");
+        checkTypeString(INTEGER_TYPES, typeString);
+        return Integer.parseInt(value);
+    }
+
+    @Override
+    public long readAsLong(@Nonnull String typeString, @Nullable String value) {
+        Objects.requireNonNull(value, "value");
+        checkTypeString(INTEGER_TYPES, typeString);
+        return Long.parseLong(value);
+    }
+
+    @Override
+    public float readAsFloat(@Nonnull String typeString, @Nullable String value) {
+        Objects.requireNonNull(value, "value");
+        checkTypeString(FLOAT_DOUBLE_TYPES, typeString);
+        return Float.parseFloat(value);
+    }
+
+    @Override
+    public double readAsDouble(@Nonnull String typeString, @Nullable String value) {
+        Objects.requireNonNull(value, "value");
+        checkTypeString(FLOAT_DOUBLE_TYPES, typeString);
+        return Double.parseDouble(value);
+    }
+
+    @Override
+    public boolean readAsBool(@Nonnull String typeString, @Nullable String value) {
+        Objects.requireNonNull(value, "value");
+        checkTypeString(BOOL_TYPE, typeString);
+        return parseBool(value);
+    }
+
+    private static boolean parseBool(@Nonnull String value) {
+        return value.equals("1") ||
+                value.equalsIgnoreCase("TRUE") ||
+                value.equalsIgnoreCase("YES") ||
+                value.equalsIgnoreCase("Y");
+    }
+
+    @Override
+    public <T> T readAsArray(@Nonnull String typeString, @Nullable String value, @Nonnull Class<T> typeToken) {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public short readAsShort(@Nonnull String typeString, @Nullable String value) {
+        Objects.requireNonNull(value, "value");
+        checkTypeString(INTEGER_TYPES, typeString);
+        return Short.parseShort(value);
+    }
+
+    @Override
+    public byte readAsByte(@Nonnull String typeString, @Nullable String value) {
+        Objects.requireNonNull(value, "value");
+        checkTypeString(INTEGER_TYPES, typeString);
+        return Byte.parseByte(value);
+    }
+
 }

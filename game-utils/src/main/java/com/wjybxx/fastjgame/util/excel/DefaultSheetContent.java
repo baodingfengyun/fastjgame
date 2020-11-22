@@ -26,15 +26,15 @@ import java.util.List;
  *            |---------------|--------------|---------------|---------------|
  *  cs标记列   |     cs        |     cs       |      c       |       c        |
  *            |---------------|--------------|---------------|---------------|
- *  类型列     |    int32      |    int32     |    boolean    |    string     |
+ *  类型列     |    int32      |    int32     |     bool      |    string     |
  *            |---------------|--------------|---------------|---------------|
  *  命名列     |   skillId     |   actionId   |   shockScreen |  animationId  |
  *            |---------------|--------------|---------------|---------------|
  *  描述列     |    技能id     |     动作id    |    是否震屏    |    动画id     |
  *            |---------------|--------------|---------------|---------------|
- *   内容行    |     10001     |    20001     |    false      |    30001      |
+ *   内容行    |     10001     |    20001     |    false      |  ani_30001    |
  *            |---------------|--------------|---------------|---------------|
- *   内容行    |     10002     |    20001     |     true      |    30002      |
+ *   内容行    |     10002     |    20001     |     true      |  ani_30002   |
  *            |---------------|--------------|---------------|---------------|
  * </pre>
  *
@@ -45,20 +45,29 @@ import java.util.List;
 public class DefaultSheetContent implements SheetContent {
 
     /**
-     * 内容行
+     * 表头行
      */
-    private final List<SheetRow> sheetRows;
+    private final List<HeaderRow> headerRows;
+    /**
+     * 内容行，按标准的行存储。
+     */
+    private final List<ValueRow> valueRows;
 
-    public DefaultSheetContent(List<SheetRow> sheetRows) {
-        this.sheetRows = Collections.unmodifiableList(sheetRows);
+    public DefaultSheetContent(List<HeaderRow> headerRows, List<ValueRow> valueRows) {
+        this.headerRows = Collections.unmodifiableList(headerRows);
+        this.valueRows = Collections.unmodifiableList(valueRows);
     }
 
-    public List<SheetRow> getSheetRows() {
-        return sheetRows;
+    public List<HeaderRow> getHeaderRows() {
+        return headerRows;
+    }
+
+    public List<ValueRow> getValueRows() {
+        return valueRows;
     }
 
     @Override
-    public int rowCount() {
-        return sheetRows.size();
+    public int totalRowCount() {
+        return headerRows.size() + valueRows.size();
     }
 }

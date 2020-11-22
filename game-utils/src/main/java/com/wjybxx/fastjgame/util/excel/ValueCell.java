@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * date - 2020/11/20
  * github - https://github.com/hl845740757
  */
-public interface CellValue {
+public interface ValueCell {
 
     /**
      * @return 返回该单元格的原始字符串

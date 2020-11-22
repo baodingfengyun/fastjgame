@@ -28,82 +28,23 @@ import java.util.Objects;
  * date - 2020/11/21
  * github - https://github.com/hl845740757
  */
-class HeaderCellValue implements CellValue {
+class HeaderCell {
 
     private final String name;
-    private final String type;
     private final String value;
 
-    public HeaderCellValue(String name, String type, String value) {
+    public HeaderCell(String name, String value) {
         this.name = Objects.requireNonNull(name, "name");
-        this.type = Objects.requireNonNull(type, "type");
         this.value = Objects.requireNonNull(value, "value");
     }
 
     @Nonnull
-    @Override
     public String name() {
         return name;
     }
 
-    @Nonnull
-    @Override
-    public String type() {
-        return type;
-    }
-
     @Nullable
-    @Override
     public String value() {
         return value;
     }
-
-    // 以下方法不应该被访问
-
-    @Nonnull
-    @Override
-    public String readAsString() {
-        throw new AssertionError();
-    }
-
-    @Override
-    public int readAsInt() {
-        throw new AssertionError();
-    }
-
-    @Override
-    public long readAsLong() {
-        throw new AssertionError();
-    }
-
-    @Override
-    public float readAsFloat() {
-        throw new AssertionError();
-    }
-
-    @Override
-    public double readAsDouble() {
-        throw new AssertionError();
-    }
-
-    @Override
-    public boolean readAsBool() {
-        throw new AssertionError();
-    }
-
-    @Override
-    public <T> T readAsArray(@Nonnull Class<T> typeToken) {
-        throw new AssertionError();
-    }
-
-    @Override
-    public short readAsShort() {
-        throw new AssertionError();
-    }
-
-    @Override
-    public byte readAsByte() {
-        throw new AssertionError();
-    }
-
 }

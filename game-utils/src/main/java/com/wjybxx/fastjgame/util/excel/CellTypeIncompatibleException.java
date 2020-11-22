@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.util.excel;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 /**
  * 当excel单元格格式不兼容时抛出该异常
@@ -27,17 +28,17 @@ import javax.annotation.Nonnull;
  */
 public class CellTypeIncompatibleException extends RuntimeException {
 
-    private final String expectedType;
+    private final List<String> expectedTypeStrings;
     private final String realType;
 
-    public CellTypeIncompatibleException(@Nonnull String expectedType, @Nonnull String realType) {
-        super(String.format("expectedType: %s, realType: %s", expectedType, realType));
-        this.expectedType = expectedType;
+    public CellTypeIncompatibleException(@Nonnull List<String> expectedTypeStrings, @Nonnull String realType) {
+        super(String.format("expectedTypeStrings: %s, realType: %s", expectedTypeStrings, realType));
+        this.expectedTypeStrings = expectedTypeStrings;
         this.realType = realType;
     }
 
-    public String getExpectedType() {
-        return expectedType;
+    public List<String> getExpectedTypeStrings() {
+        return expectedTypeStrings;
     }
 
     public String getRealType() {

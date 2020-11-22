@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Excel或CSV等配置表的一页
+ * Excel表的一页
  *
  * @author wjybxx
  * @version 1.0
@@ -30,7 +30,7 @@ public final class Sheet {
 
     /**
      * 文件名字
-     * 如: bag.xlsx / bag.csv
+     * 如: bag.xlsx
      */
     private final String fileName;
     /**
@@ -45,12 +45,7 @@ public final class Sheet {
     private final int sheetIndex;
 
     /**
-     * 表头行
-     */
-    private final List<SheetRow> headerRows;
-
-    /**
-     * 表格的内容
+     * 表格内容
      */
     private final SheetContent sheetContent;
 
@@ -58,38 +53,15 @@ public final class Sheet {
      * new instance
      *
      * @param fileName     文件名
-     * @param sheetName    页签名字
+     * @param sheetName    页签名
      * @param sheetIndex   第几页
-     * @param headerRows   表头行
-     * @param sheetContent 内容部分
+     * @param sheetContent 表格内容
      */
-    public Sheet(String fileName, String sheetName, int sheetIndex, List<SheetRow> headerRows, SheetContent sheetContent) {
+    public Sheet(String fileName, String sheetName, int sheetIndex, SheetContent sheetContent) {
         this.fileName = fileName;
         this.sheetName = sheetName;
         this.sheetIndex = sheetIndex;
-        this.headerRows = headerRows;
         this.sheetContent = sheetContent;
-    }
-
-    public List<SheetRow> getContentAsList() {
-        if (sheetContent instanceof DefaultSheetContent) {
-            return ((DefaultSheetContent) sheetContent).getSheetRows();
-        }
-        throw new IllegalStateException("this sheet may be a param sheet?");
-    }
-
-    public Map<String, CellValue> getContentAsMap() {
-        if (sheetContent instanceof ParamSheetContent) {
-            return ((ParamSheetContent) sheetContent).getName2CellValueMap();
-        }
-        throw new IllegalStateException("this sheet may be a normal sheet?");
-    }
-
-    public CellValue getCellValue(String name) {
-        if (sheetContent instanceof ParamSheetContent) {
-            return ((ParamSheetContent) sheetContent).getCellValue(name);
-        }
-        throw new IllegalStateException("this sheet may be a normal sheet?");
     }
 
     public String getFileName() {
@@ -104,27 +76,56 @@ public final class Sheet {
         return sheetIndex;
     }
 
-    public List<SheetRow> getHeaderRows() {
-        return headerRows;
-    }
-
     public SheetContent getSheetContent() {
         return sheetContent;
     }
 
-    public int headerRowCount() {
-        return headerRows.size();
-    }
-
-    public int contentRowCount() {
-        return sheetContent.rowCount();
+    /**
+     * 普通表格使用该方法读取每一行
+     */
+    public List<ValueRow> getValueRows() {
+        if (sheetContent instanceof DefaultSheetContent) {
+            return ((DefaultSheetContent) sheetContent).getValueRows();
+        }
+        throw notDefaultSheetException();
     }
 
     /**
-     * @return 获取总行数
+     * param表使用这种方法读取每一个字段
+     *
+     * @param name 参数的名字
+     * @return 参数对应的值
      */
-    public int allRowCont() {
-        return headerRowCount() + contentRowCount();
+    public ValueCell getValueCell(String name) {
+        if (sheetContent instanceof ParamSheetContent) {
+            return ((ParamSheetContent) sheetContent).getCellValue(name);
+        }
+        throw notParamSheetException();
+    }
+
+    /**
+     * param表使用这种方式获取所有的键值对信息
+     */
+    public Map<String, ValueCell> getName2CellMap() {
+        if (sheetContent instanceof ParamSheetContent) {
+            return ((ParamSheetContent) sheetContent).getName2CellMap();
+        }
+        throw notParamSheetException();
+    }
+
+    /**
+     * @return 获取表格的总行数
+     */
+    public int totalRowCount() {
+        return sheetContent.totalRowCount();
+    }
+
+    static RuntimeException notDefaultSheetException() {
+        return new IllegalStateException("this sheet might be a param sheet?");
+    }
+
+    static IllegalStateException notParamSheetException() {
+        return new IllegalStateException("this sheet might be a normal sheet?");
     }
 
     @Override
@@ -133,8 +134,7 @@ public final class Sheet {
                 "fileName='" + fileName + '\'' +
                 ", sheetName='" + sheetName + '\'' +
                 ", sheetIndex=" + sheetIndex +
-                ", headerRows=" + headerRows +
-                ", sheetContent=" + sheetContent +
+                ", content=" + sheetContent +
                 '}';
     }
 }

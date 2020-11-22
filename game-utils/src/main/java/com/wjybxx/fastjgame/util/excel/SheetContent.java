@@ -26,8 +26,22 @@ package com.wjybxx.fastjgame.util.excel;
 public interface SheetContent {
 
     /**
-     * @return 内容的行数
+     * @return 表格内容的总行数
      */
-    int rowCount();
+    int totalRowCount();
+
+    default ParamSheetContent asParamSheetContent() {
+        if (this instanceof ParamSheetContent) {
+            return (ParamSheetContent) this;
+        }
+        throw Sheet.notParamSheetException();
+    }
+
+    default DefaultSheetContent asDefaultSheetContent() {
+        if (this instanceof DefaultSheetContent) {
+            return (DefaultSheetContent) this;
+        }
+        throw Sheet.notDefaultSheetException();
+    }
 
 }

@@ -20,20 +20,20 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * {@link CellValue}的默认实现，将解析过程转移给{@link CellValueParser}，以实现各项目的扩展。
+ * {@link ValueCell}的默认实现，将解析过程转移给{@link CellValueParser}，以实现各项目的扩展。
  *
  * @author wjybxx
  * date - 2020/11/21
  * github - https://github.com/hl845740757
  */
-public class DefaultCellValue implements CellValue {
+public class DefaultValueCell implements ValueCell {
 
     private final CellValueParser parser;
     private final String name;
     private final String type;
     private final String value;
 
-    DefaultCellValue(CellValueParser parser, String name, String type, String value) {
+    DefaultValueCell(CellValueParser parser, String name, String type, String value) {
         this.parser = parser;
         this.name = name;
         this.type = type;
@@ -61,46 +61,46 @@ public class DefaultCellValue implements CellValue {
     @Nonnull
     @Override
     public final String readAsString() {
-        return parser.readAsString(type(), value());
+        return parser.readAsString(type, value);
     }
 
     @Override
     public final int readAsInt() {
-        return parser.readAsInt(type(), value());
+        return parser.readAsInt(type, value);
     }
 
     @Override
     public final long readAsLong() {
-        return parser.readAsLong(type(), value());
+        return parser.readAsLong(type, value);
     }
 
     @Override
     public final float readAsFloat() {
-        return parser.readAsFloat(type(), value());
+        return parser.readAsFloat(type, value);
     }
 
     @Override
     public final double readAsDouble() {
-        return parser.readAsDouble(type(), value());
+        return parser.readAsDouble(type, value);
     }
 
     @Override
     public final boolean readAsBool() {
-        return parser.readAsBool(type(), value());
+        return parser.readAsBool(type, value);
     }
 
     @Override
     public final <T> T readAsArray(@Nonnull Class<T> typeToken) {
-        return parser.readAsArray(type(), value(), typeToken);
+        return parser.readAsArray(type, value, typeToken);
     }
 
     @Override
     public final short readAsShort() {
-        return parser.readAsShort(type(), value());
+        return parser.readAsShort(type, value);
     }
 
     @Override
     public final byte readAsByte() {
-        return parser.readAsByte(type(), value());
+        return parser.readAsByte(type, value);
     }
 }

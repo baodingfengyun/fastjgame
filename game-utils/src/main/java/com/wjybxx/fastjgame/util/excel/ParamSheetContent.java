@@ -16,7 +16,10 @@
 
 package com.wjybxx.fastjgame.util.excel;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 参数表，表结构如下:
@@ -31,7 +34,9 @@ import java.util.*;
  *   内容行    |   NPC_NAME    |   string   |     wjybxx    |   某个NPC的名字|
  *            |---------------|------------|---------------|---------------|
  * </pre>
- * name的值不可以重复，我们可以通过name取到对应的value
+ * 注意：
+ * 1. name的值不可以重复，我们可以通过name取到对应的value
+ * 2. 只要name列标记了s，那么name/type/value三列都会读取到内存，不论是否会被使用；
  *
  * @author wjybxx
  * date - 2020/11/20
@@ -39,36 +44,43 @@ import java.util.*;
  */
 public class ParamSheetContent implements SheetContent {
 
-    /**
-     * 内容行(使用key-value形式存储，而不是列表形式)
-     */
-    private final Map<String, CellValue> name2CellValueMap;
+    public static final String name = "name";
+    public static  final String type = "type";
+    public static  final String value = "value";
 
-    /**
-     * @param name2CellValueMap 使用{@link LinkedHashMap}保持表格顺序。
-     */
-    ParamSheetContent(final LinkedHashMap<String, CellValue> name2CellValueMap) {
-        this.name2CellValueMap = Collections.unmodifiableMap(name2CellValueMap);
+    public static final Set<String> PARAM_SHEET_COL_NAMES;
+    static {
+        PARAM_SHEET_COL_NAMES = Set.of(name, type, value);
     }
 
-    public CellValue getCellValue(String name) {
-        return name2CellValueMap.get(name);
+    // 表头没有意义，不存储
+    /**
+     * 使用key-value形式存储，而不是{@link ValueRow}形式
+     */
+    private final Map<String, ValueCell> name2CellMap;
+
+    ParamSheetContent(final Map<String, ValueCell> name2CellMap) {
+        this.name2CellMap = Collections.unmodifiableMap(name2CellMap);
+    }
+
+    public Map<String, ValueCell> getName2CellMap() {
+        return name2CellMap;
     }
 
     public Set<String> nameSet() {
-        return name2CellValueMap.keySet();
+        return name2CellMap.keySet();
     }
 
-    public Collection<CellValue> cellValues() {
-        return name2CellValueMap.values();
+    public Collection<ValueCell> valueCells() {
+        return name2CellMap.values();
     }
 
-    public Map<String, CellValue> getName2CellValueMap() {
-        return name2CellValueMap;
+    public ValueCell getCellValue(String name) {
+        return name2CellMap.get(name);
     }
 
     @Override
-    public int rowCount() {
-        return name2CellValueMap.size();
+    public int totalRowCount() {
+        return name2CellMap.size() + 2;
     }
 }
