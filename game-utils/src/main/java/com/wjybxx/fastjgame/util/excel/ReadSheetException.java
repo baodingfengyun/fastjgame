@@ -16,38 +16,36 @@
 
 package com.wjybxx.fastjgame.util.excel;
 
-import java.util.Collections;
-import java.util.Map;
-
 /**
- * Excel的表头行
+ * excel读取异常
  *
  * @author wjybxx
  * @version 1.0
- * date - 2020/11/21
+ * date - 2020/11/23
  * github - https://github.com/hl845740757
  */
-public class HeaderRow {
+public class ReadSheetException extends RuntimeException {
 
-    /**
-     * 所属的行号，0开始
-     */
-    private final int rowIndex;
-    /**
-     * name -> cell 可读性更好
-     */
-    private final Map<String, HeaderCell> name2CellMap;
+    private final String fileName;
+    private final String sheetName;
+    private final int sheetIndex;
 
-    HeaderRow(int rowIndex, Map<String, HeaderCell> name2CellMap) {
-        this.rowIndex = rowIndex;
-        this.name2CellMap = Collections.unmodifiableMap(name2CellMap);
+    public ReadSheetException(String fileName, String sheetName, int sheetIndex, Exception e) {
+        super(String.format("fileName: %s, sheetName: %s, sheetIndex: %d", fileName, sheetName, sheetIndex), e);
+        this.fileName = fileName;
+        this.sheetName = sheetName;
+        this.sheetIndex = sheetIndex;
     }
 
-    public int getRowIndex() {
-        return rowIndex;
+    public String getFileName() {
+        return fileName;
     }
 
-    public Map<String, HeaderCell> getName2CellMap() {
-        return name2CellMap;
+    public String getSheetName() {
+        return sheetName;
+    }
+
+    public int getSheetIndex() {
+        return sheetIndex;
     }
 }

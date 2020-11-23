@@ -41,7 +41,7 @@ public class ValueRow {
     /**
      * create instance
      *
-     * @param rowIndex          行索引
+     * @param rowIndex     行索引
      * @param name2CellMap 属性名到属性值的映射
      */
     public ValueRow(int rowIndex, Map<String, ValueCell> name2CellMap) {

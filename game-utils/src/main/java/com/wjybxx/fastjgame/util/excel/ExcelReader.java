@@ -59,7 +59,7 @@ class ExcelReader implements AutoCloseable {
                 .open(file);
     }
 
-    public static List<String> readExcelSheetNames(File file, Predicate<String> sheetNameFilter) throws IOException {
+    static List<String> readExcelSheetNames(File file, Predicate<String> sheetNameFilter) throws IOException {
         try (final Workbook workbook = StreamingReader.builder()
                 .rowCacheSize(10)
                 .bufferSize(16 * 1024)
@@ -87,32 +87,36 @@ class ExcelReader implements AutoCloseable {
                 || !sheetNameFilter.test(sheetName);
     }
 
-    Map<String, Sheet> readSheets() throws IOException {
+    Map<String, Sheet> readSheets() {
         final int numberOfSheets = workbook.getNumberOfSheets();
         final Map<String, Sheet> result = Maps.newLinkedHashMapWithExpectedSize(numberOfSheets);
         for (int sheetIndex = 0; sheetIndex < numberOfSheets; sheetIndex++) {
             final org.apache.poi.ss.usermodel.Sheet poiSheet = workbook.getSheetAt(sheetIndex);
-
             final String sheetName = poiSheet.getSheetName();
+
             if (isSheetNameSkippable(sheetName, sheetNameFilter)) {
                 // 无意义的命名，跳过
                 logger.info("skip sheet, sheetName is invalid, fileName{}, sheetName {}", file.getName(), sheetName);
                 continue;
             }
 
-            if (result.containsKey(sheetName)) {
-                final String msg = String.format("sheetName is duplicate, file: %s. sheetName: %s", file.getName(), sheetName);
-                throw new IllegalArgumentException(msg);
-            }
+            try {
+                if (result.containsKey(sheetName)) {
+                    final String msg = String.format("sheetName is duplicate, sheetName: %s", sheetName);
+                    throw new IllegalStateException(msg);
+                }
 
-            final Sheet appSheet = new SheetReader(file.getName(), sheetIndex, poiSheet, parser).read();
-            if (appSheet == null) {
-                // 可能没需要读取的字段
-                logger.info("skip sheet, appSheet is null, fileName{}, sheetName {}", file.getName(), sheetName);
-                continue;
-            }
+                final Sheet appSheet = new SheetReader(file.getName(), sheetIndex, poiSheet, parser).read();
+                if (appSheet == null) {
+                    // 可能没需要读取的字段
+                    logger.info("skip sheet, appSheet is null, fileName{}, sheetName {}", file.getName(), sheetName);
+                    continue;
+                }
 
-            result.put(sheetName, appSheet);
+                result.put(sheetName, appSheet);
+            } catch (Exception e) {
+                throw new ReadSheetException(file.getName(), sheetName, sheetIndex, e);
+            }
         }
         return result;
     }

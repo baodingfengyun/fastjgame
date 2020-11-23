@@ -93,7 +93,7 @@ public class DefaultCellValueParser implements CellValueParser {
 
     @Override
     public String readAsString(@Nonnull String typeString, @Nullable String value) {
-        return Objects.requireNonNullElse(value, "");
+        return null == value ? "" : value;
     }
 
     @Override
@@ -301,7 +301,7 @@ public class DefaultCellValueParser implements CellValueParser {
 
     private static void checkArrayTypeToken(Class<?> typeToken) {
         if (!typeToken.isArray()) {
-            throw new IllegalArgumentException("typeToken must be an array");
+            throw new IllegalArgumentException("typeToken must be an array, typeToken: " + typeToken);
         }
     }
 
@@ -309,7 +309,9 @@ public class DefaultCellValueParser implements CellValueParser {
         final int typeTokenDimensional = getArrayDimensional(typeToken);
         final int typeStringDimensional = getArrayDimensional(typeString);
         if (typeTokenDimensional != typeStringDimensional) {
-            throw new IllegalArgumentException("typeString and typeToken have different dimensions");
+            final String msg = String.format("typeString and typeToken have different dimensions, typeString: %s, typeToken: %s",
+                    typeString, typeToken.toString());
+            throw new IllegalArgumentException(msg);
         }
     }
 

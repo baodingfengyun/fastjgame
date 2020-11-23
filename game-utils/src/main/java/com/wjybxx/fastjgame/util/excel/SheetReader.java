@@ -109,7 +109,7 @@ class SheetReader {
             return Objects.requireNonNullElse(cell.getStringCellValue(), "");
         }
 
-        throw new IllegalStateException("Unsupported cellType: " + cell.getCellType());
+        throw new IllegalStateException("unsupported cellType, cellType: " + cell.getCellType());
     }
 
     private static boolean isServerCell(String cellValue) {
@@ -123,7 +123,7 @@ class SheetReader {
         }
 
         if (!cellValue.startsWith("c")) {
-            throw new IllegalArgumentException("the cell in the firstRow must start with c or s, value: " + cellValue);
+            throw new IllegalStateException("the cell in the firstRow must start with c or s, value: " + cellValue);
         }
         return false;
     }
@@ -141,7 +141,7 @@ class SheetReader {
 
     private void ensureNormalSheet(Row firstRow, Row secondRow) {
         if (totalRowCount < 4) {
-            throw new IllegalArgumentException("unrecognized sheet, sheetName: " + sheetName);
+            throw new IllegalStateException("unrecognized sheet");
         }
 
         final int totalColCount = getTotalColCount(firstRow);
@@ -153,8 +153,8 @@ class SheetReader {
 
             final String secondRowCellValue = getCellValueNonNull(secondRow, colIndex);
             if (!parser.supportedTypes().contains(secondRowCellValue)) {
-                final String msg = String.format("unrecognized type, sheetName: %s, valueType: %s", sheetName, secondRowCellValue);
-                throw new IllegalArgumentException(msg);
+                final String msg = String.format("unrecognized valueType, valueType: %s", secondRowCellValue);
+                throw new IllegalStateException(msg);
             }
         }
     }
@@ -234,15 +234,13 @@ class SheetReader {
                 final String colName = getCellValueNonNull(nameRow, colIndex);
                 if (StringUtils.isBlank(colName)) {
                     // 属性名不可以空白
-                    final String msg = String.format("the name cannot be blank, sheetName: %s， colIndex: %d",
-                            sheetName, colIndex);
+                    final String msg = String.format("the name cannot be blank, colIndex: %d", colIndex);
                     throw new IllegalStateException(msg);
                 }
 
                 if (name2ColIndexMap.containsKey(colName)) {
                     // 属性名不可以有重复
-                    final String msg = String.format("the name is duplicate, sheetName: %s， name: %s",
-                            sheetName, colName);
+                    final String msg = String.format("the name is duplicate, name: %s", colName);
                     throw new IllegalStateException(msg);
                 }
 
@@ -295,8 +293,7 @@ class SheetReader {
 
             if (isBlackLine) {
                 // 内容行不可以空白
-                final String msg = String.format("sheetName: %s, rowIndex: %d is blank line",
-                        sheetName, getRowIndex(valueRow));
+                final String msg = String.format("black line, rowIndex: %d is blank line", getRowIndex(valueRow));
                 throw new IllegalStateException(msg);
             }
 
@@ -344,18 +341,18 @@ class SheetReader {
                 final String value = getCellValueNonNull(valueRow, valueColIndex);
 
                 if (StringUtils.isBlank(name)) {
-                    final String msg = String.format("the name cannot be blank, sheetName: %s, rowIndex: %d", sheetName, getRowIndex(valueRow));
+                    final String msg = String.format("the name cannot be blank, rowIndex: %d", getRowIndex(valueRow));
                     throw new IllegalStateException(msg);
-                }
-
-                if (!parser.supportedTypes().contains(type)) {
-                    final String msg = String.format("unrecognized type, sheetName: %s, valueType: %s", sheetName, type);
-                    throw new IllegalArgumentException(msg);
                 }
 
                 if (name2ValueMap.containsKey(name)) {
                     // 变量命不可以重复
-                    final String msg = String.format("the name is duplicate, sheetName: %s， name: %s", sheetName, name);
+                    final String msg = String.format("the name is duplicate, name: %s", name);
+                    throw new IllegalStateException(msg);
+                }
+
+                if (!parser.supportedTypes().contains(type)) {
+                    final String msg = String.format("unrecognized type, valueType: %s", type);
                     throw new IllegalStateException(msg);
                 }
 

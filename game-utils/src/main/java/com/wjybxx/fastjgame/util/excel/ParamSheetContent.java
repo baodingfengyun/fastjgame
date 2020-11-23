@@ -45,10 +45,11 @@ import java.util.Set;
 public class ParamSheetContent implements SheetContent {
 
     public static final String name = "name";
-    public static  final String type = "type";
-    public static  final String value = "value";
+    public static final String type = "type";
+    public static final String value = "value";
 
     public static final Set<String> PARAM_SHEET_COL_NAMES;
+
     static {
         PARAM_SHEET_COL_NAMES = Set.of(name, type, value);
     }
