@@ -36,40 +36,40 @@ public class ValueRow {
      * 本行内容
      * cellName -> cellValue 可读性更好
      */
-    private final Map<String, ValueCell> name2CellValueMap;
+    private final Map<String, ValueCell> name2CellMap;
 
     /**
      * create instance
      *
      * @param rowIndex          行索引
-     * @param name2CellValueMap 属性名到属性值的映射
+     * @param name2CellMap 属性名到属性值的映射
      */
-    public ValueRow(int rowIndex, Map<String, ValueCell> name2CellValueMap) {
+    public ValueRow(int rowIndex, Map<String, ValueCell> name2CellMap) {
         this.rowIndex = rowIndex;
-        this.name2CellValueMap = Collections.unmodifiableMap(name2CellValueMap);
+        this.name2CellMap = Collections.unmodifiableMap(name2CellMap);
     }
 
     public int getRowIndex() {
         return rowIndex;
     }
 
-    public Map<String, ValueCell> getName2CellValueMap() {
-        return name2CellValueMap;
+    public Map<String, ValueCell> getName2CellMap() {
+        return name2CellMap;
     }
 
     /**
      * @param name 列名/参数名
      * @return 该列对应的值
      */
-    public ValueCell getCellValue(String name) {
-        return name2CellValueMap.get(name);
+    public ValueCell getCell(String name) {
+        return name2CellMap.get(name);
     }
 
     @Override
     public String toString() {
         return "TableRow{" +
                 "rowIndex=" + rowIndex +
-                ", colName2Value=" + name2CellValueMap +
+                ", colName2Value=" + name2CellMap +
                 '}';
     }
 }

@@ -65,12 +65,6 @@ public interface CellValueParser {
     boolean readAsBool(@Nonnull String typeString, @Nullable String value);
 
     /**
-     * @param typeToken 类型令牌，用于捕获类型信息
-     * @return 如果单元格是约定的数组类型，则返回对应的数组类型。
-     */
-    <T> T readAsArray(@Nonnull String typeString, @Nullable String value, @Nonnull Class<T> typeToken);
-
-    /**
      * @return @return 如果单元格是约定的short类型，则返回对应的short值
      */
     short readAsShort(@Nonnull String typeString, @Nullable String value);
@@ -79,5 +73,11 @@ public interface CellValueParser {
      * @return @return 如果单元格是约定的byte类型，则返回对应的byte值
      */
     byte readAsByte(@Nonnull String typeString, @Nullable String value);
+
+    /**
+     * @param typeToken 类型令牌，用于捕获类型信息
+     * @return 如果单元格是约定的数组类型，则返回对应的数组类型。
+     */
+    <T> T readAsArray(@Nonnull String typeString, @Nullable String value, @Nonnull Class<T> typeToken);
 
 }

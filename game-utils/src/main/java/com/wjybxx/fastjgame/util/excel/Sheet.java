@@ -98,7 +98,7 @@ public final class Sheet {
      */
     public ValueCell getValueCell(String name) {
         if (sheetContent instanceof ParamSheetContent) {
-            return ((ParamSheetContent) sheetContent).getCellValue(name);
+            return ((ParamSheetContent) sheetContent).getCell(name);
         }
         throw notParamSheetException();
     }

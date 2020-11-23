@@ -75,7 +75,7 @@ public class ParamSheetContent implements SheetContent {
         return name2CellMap.values();
     }
 
-    public ValueCell getCellValue(String name) {
+    public ValueCell getCell(String name) {
         return name2CellMap.get(name);
     }
 

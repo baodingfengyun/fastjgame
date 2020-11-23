@@ -28,12 +28,12 @@ import java.util.Objects;
  * date - 2020/11/21
  * github - https://github.com/hl845740757
  */
-class HeaderCell {
+public class HeaderCell {
 
     private final String name;
     private final String value;
 
-    public HeaderCell(String name, String value) {
+    HeaderCell(String name, String value) {
         this.name = Objects.requireNonNull(name, "name");
         this.value = Objects.requireNonNull(value, "value");
     }

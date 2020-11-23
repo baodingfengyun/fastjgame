@@ -17,7 +17,8 @@
 package com.wjybxx.fastjgame.util.excel;
 
 import java.io.File;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * @author wjybxx
@@ -34,8 +35,9 @@ public final class ExcelUtils {
      * 读取一个excel页签
      *
      * @param file excel文件
+     * @return
      */
-    public static List<Sheet> readExcel(File file, CellValueParser parser) throws Exception {
+    public static Map<String, Sheet> readExcel(File file, CellValueParser parser) throws Exception {
         return readExcel(file, parser, 16 * 1024);
     }
 
@@ -44,18 +46,24 @@ public final class ExcelUtils {
      *
      * @param file       excel文件
      * @param bufferSize 缓冲区大小
+     * @return
      */
-    public static List<Sheet> readExcel(File file, CellValueParser parser, int bufferSize) throws Exception {
+    public static Map<String, Sheet> readExcel(File file, CellValueParser parser, int bufferSize) throws Exception {
         try (final ExcelReader reader = new ExcelReader(file, parser, bufferSize)) {
             return reader.readSheets();
         }
     }
 
     public static void main(String[] args) throws Exception {
-        final String path = "D:\\work\\test.xlsx";
+        // 测试表格放在了doc目录下
+        final String path = "./game-utils/src/doc/test.xlsx";
         final File file = new File(path);
-        final List<Sheet> sheet = readExcel(file, new DefaultCellValueParser());
-        System.out.println(sheet);
+        final Map<String, Sheet> sheetMap = readExcel(file, new DefaultCellValueParser());
+        System.out.println(sheetMap);
+
+        final Sheet skillParam = sheetMap.get("SkillParam");
+        System.out.println(Arrays.toString(skillParam.getValueCell("ONE_DIMENSIONAL_ARRAY").readAsArray(int[].class)));
+        System.out.println(Arrays.deepToString(skillParam.getValueCell("TWO_DIMENSIONAL_ARRAY").readAsArray(int[][].class)));
     }
 
 }
