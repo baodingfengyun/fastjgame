@@ -47,4 +47,12 @@ public class HeaderCell {
     public String value() {
         return value;
     }
+
+    @Override
+    public String toString() {
+        return "HeaderCell{" +
+                "name='" + name + '\'' +
+                ", value='" + value + '\'' +
+                '}';
+    }
 }

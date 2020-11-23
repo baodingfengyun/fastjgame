@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -57,6 +59,34 @@ class ExcelReader implements AutoCloseable {
                 .open(file);
     }
 
+    public static List<String> readExcelSheetNames(File file, Predicate<String> sheetNameFilter) throws IOException {
+        try (final Workbook workbook = StreamingReader.builder()
+                .rowCacheSize(10)
+                .bufferSize(16 * 1024)
+                .open(file)) {
+
+            final int numberOfSheets = workbook.getNumberOfSheets();
+            final List<String> result = new ArrayList<>();
+
+            for (int sheetIndex = 0; sheetIndex < numberOfSheets; sheetIndex++) {
+                final org.apache.poi.ss.usermodel.Sheet poiSheet = workbook.getSheetAt(sheetIndex);
+                final String sheetName = poiSheet.getSheetName();
+                if (isSheetNameSkippable(sheetName, sheetNameFilter)) {
+                    continue;
+                }
+                result.add(sheetName);
+            }
+            return result;
+        }
+    }
+
+    private static boolean isSheetNameSkippable(String sheetName, Predicate<String> sheetNameFilter) {
+        return StringUtils.isBlank(sheetName)
+                || sheetName.startsWith("Sheet")
+                || sheetName.startsWith("sheet")
+                || !sheetNameFilter.test(sheetName);
+    }
+
     Map<String, Sheet> readSheets() throws IOException {
         final int numberOfSheets = workbook.getNumberOfSheets();
         final Map<String, Sheet> result = Maps.newLinkedHashMapWithExpectedSize(numberOfSheets);
@@ -64,10 +94,7 @@ class ExcelReader implements AutoCloseable {
             final org.apache.poi.ss.usermodel.Sheet poiSheet = workbook.getSheetAt(sheetIndex);
 
             final String sheetName = poiSheet.getSheetName();
-            if (StringUtils.isBlank(sheetName)
-                    || sheetName.startsWith("Sheet")
-                    || sheetName.startsWith("sheet")
-                    || !sheetNameFilter.test(sheetName)) {
+            if (isSheetNameSkippable(sheetName, sheetNameFilter)) {
                 // 无意义的命名，跳过
                 logger.info("skip sheet, sheetName is invalid, fileName{}, sheetName {}", file.getName(), sheetName);
                 continue;
