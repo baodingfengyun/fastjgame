@@ -16,9 +16,12 @@
 
 package com.wjybxx.fastjgame.util.excel;
 
+import com.wjybxx.fastjgame.util.function.FunctionUtils;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * @author wjybxx
@@ -37,8 +40,8 @@ public final class ExcelUtils {
      * @param file excel文件
      * @return
      */
-    public static Map<String, Sheet> readExcel(File file, CellValueParser parser) throws Exception {
-        return readExcel(file, parser, 16 * 1024);
+    public static Map<String, Sheet> readExcel(File file, CellValueParser parser, Predicate<String> sheetNameFilter) throws Exception {
+        return readExcel(file, parser, sheetNameFilter, 16 * 1024);
     }
 
     /**
@@ -48,8 +51,8 @@ public final class ExcelUtils {
      * @param bufferSize 缓冲区大小
      * @return
      */
-    public static Map<String, Sheet> readExcel(File file, CellValueParser parser, int bufferSize) throws Exception {
-        try (final ExcelReader reader = new ExcelReader(file, parser, bufferSize)) {
+    public static Map<String, Sheet> readExcel(File file, CellValueParser parser, Predicate<String> sheetNameFilter, int bufferSize) throws Exception {
+        try (final ExcelReader reader = new ExcelReader(file, parser, sheetNameFilter, bufferSize)) {
             return reader.readSheets();
         }
     }
@@ -58,7 +61,7 @@ public final class ExcelUtils {
         // 测试表格放在了config目录下
         final String path = "./config/test.xlsx";
         final File file = new File(path);
-        final Map<String, Sheet> sheetMap = readExcel(file, new DefaultCellValueParser());
+        final Map<String, Sheet> sheetMap = readExcel(file, new DefaultCellValueParser(), FunctionUtils.alwaysTrue());
         System.out.println(sheetMap);
 
         final Sheet skillParam = sheetMap.get("SkillParam");

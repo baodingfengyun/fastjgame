@@ -348,6 +348,11 @@ class SheetReader {
                     throw new IllegalStateException(msg);
                 }
 
+                if (!parser.supportedTypes().contains(type)) {
+                    final String msg = String.format("unrecognized type, sheetName: %s, valueType: %s", sheetName, type);
+                    throw new IllegalArgumentException(msg);
+                }
+
                 if (name2ValueMap.containsKey(name)) {
                     // 变量命不可以重复
                     final String msg = String.format("the name is duplicate, sheetName: %s， name: %s", sheetName, name);
