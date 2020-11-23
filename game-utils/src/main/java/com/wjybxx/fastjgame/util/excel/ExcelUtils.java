@@ -55,8 +55,8 @@ public final class ExcelUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        // 测试表格放在了doc目录下
-        final String path = "./game-utils/src/doc/test.xlsx";
+        // 测试表格放在了config目录下
+        final String path = "./config/test.xlsx";
         final File file = new File(path);
         final Map<String, Sheet> sheetMap = readExcel(file, new DefaultCellValueParser());
         System.out.println(sheetMap);
