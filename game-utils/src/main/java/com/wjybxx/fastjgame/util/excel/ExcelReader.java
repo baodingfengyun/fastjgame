@@ -26,8 +26,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * {@link StreamingReader}不可以使用{@code getRow这种方法}
@@ -43,15 +46,45 @@ class ExcelReader implements AutoCloseable {
 
     private final File file;
     private final CellValueParser parser;
+    private final Predicate<String> sheetNameFilter;
     private final Workbook workbook;
 
-    ExcelReader(File file, CellValueParser parser, final int bufferSize) {
+    ExcelReader(File file, CellValueParser parser, Predicate<String> sheetNameFilter, final int bufferSize) {
         this.file = file;
         this.parser = Objects.requireNonNull(parser, "parser");
+        this.sheetNameFilter = sheetNameFilter;
         workbook = StreamingReader.builder()
                 .rowCacheSize(200)
                 .bufferSize(bufferSize)
                 .open(file);
+    }
+
+    public static List<String> readExcelSheetNames(File file, Predicate<String> sheetNameFilter) throws IOException {
+        try (final Workbook workbook = StreamingReader.builder()
+                .rowCacheSize(10)
+                .bufferSize(16 * 1024)
+                .open(file)) {
+
+            final int numberOfSheets = workbook.getNumberOfSheets();
+            final List<String> result = new ArrayList<>();
+
+            for (int sheetIndex = 0; sheetIndex < numberOfSheets; sheetIndex++) {
+                final org.apache.poi.ss.usermodel.Sheet poiSheet = workbook.getSheetAt(sheetIndex);
+                final String sheetName = poiSheet.getSheetName();
+                if (isSheetNameSkippable(sheetName, sheetNameFilter)) {
+                    continue;
+                }
+                result.add(sheetName);
+            }
+            return result;
+        }
+    }
+
+    private static boolean isSheetNameSkippable(String sheetName, Predicate<String> sheetNameFilter) {
+        return StringUtils.isBlank(sheetName)
+                || sheetName.startsWith("Sheet")
+                || sheetName.startsWith("sheet")
+                || !sheetNameFilter.test(sheetName);
     }
 
     Map<String, Sheet> readSheets() throws IOException {
@@ -61,9 +94,7 @@ class ExcelReader implements AutoCloseable {
             final org.apache.poi.ss.usermodel.Sheet poiSheet = workbook.getSheetAt(sheetIndex);
 
             final String sheetName = poiSheet.getSheetName();
-            if (StringUtils.isBlank(sheetName)
-                    || sheetName.startsWith("Sheet")
-                    || sheetName.startsWith("sheet")) {
+            if (isSheetNameSkippable(sheetName, sheetNameFilter)) {
                 // 无意义的命名，跳过
                 logger.info("skip sheet, sheetName is invalid, fileName{}, sheetName {}", file.getName(), sheetName);
                 continue;

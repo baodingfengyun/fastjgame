@@ -103,4 +103,13 @@ public class DefaultValueCell implements ValueCell {
     public final byte readAsByte() {
         return parser.readAsByte(type, value);
     }
+
+    @Override
+    public String toString() {
+        return "DefaultValueCell{" +
+                "name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                ", value='" + value + '\'' +
+                '}';
+    }
 }
