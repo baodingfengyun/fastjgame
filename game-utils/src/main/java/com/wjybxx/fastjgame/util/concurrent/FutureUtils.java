@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.util.concurrent;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 
 /**
@@ -105,6 +106,16 @@ public class FutureUtils {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * {@link java.util.concurrent.CompletableFuture}总是使用{@link CompletionException}包装异常，我们需要找到原始异常
+     */
+    public static Throwable unwrapCompletionException(Throwable t) {
+        while (t instanceof CompletionException && t.getCause() != null) {
+            t = t.getCause();
+        }
+        return t;
+    }
 
     public static <V> Promise<V> fromCompletableFuture(CompletableFuture<V> completableFuture) {
         final Promise<V> promise = new JdkPromise<>(completableFuture);

@@ -17,7 +17,10 @@
 package com.wjybxx.fastjgame.util.example;
 
 import com.wjybxx.fastjgame.util.concurrent.DefaultThreadFactory;
-import com.wjybxx.fastjgame.util.eventbus.*;
+import com.wjybxx.fastjgame.util.eventbus.EventBus;
+import com.wjybxx.fastjgame.util.eventbus.FastEventBus;
+import com.wjybxx.fastjgame.util.eventbus.GenericEvent;
+import com.wjybxx.fastjgame.util.eventbus.Subscribe;
 
 import javax.annotation.Nonnull;
 import java.util.HashSet;

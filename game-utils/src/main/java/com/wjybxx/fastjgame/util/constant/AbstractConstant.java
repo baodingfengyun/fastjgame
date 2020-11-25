@@ -36,19 +36,29 @@ public abstract class AbstractConstant<T extends AbstractConstant<T>> implements
     private static final AtomicLong uniqueIdGenerator = new AtomicLong();
 
     /**
+     * 常量在其常量池下的唯一id
+     */
+    private final int id;
+    /**
      * 常量的名字
      */
     private final String name;
 
     /**
-     * 常量的唯一标识。
+     * 常量的全局唯一标识。
      * 注意：该标识受到常量创建顺序的影响。
      */
     private final long uniqueId;
 
-    protected AbstractConstant(String name) {
+    protected AbstractConstant(int id, String name) {
+        this.id = id;
         this.name = Objects.requireNonNull(name, "name");
         this.uniqueId = uniqueIdGenerator.incrementAndGet();
+    }
+
+    @Override
+    public final int id() {
+        return id;
     }
 
     @Override

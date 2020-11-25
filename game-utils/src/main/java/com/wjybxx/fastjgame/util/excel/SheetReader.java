@@ -234,13 +234,13 @@ class SheetReader {
                 final String colName = getCellValueNonNull(nameRow, colIndex);
                 if (StringUtils.isBlank(colName)) {
                     // 属性名不可以空白
-                    final String msg = String.format("the name cannot be blank, colIndex: %d", colIndex);
+                    final String msg = String.format("the colName cannot be blank, colIndex: %d", colIndex);
                     throw new IllegalStateException(msg);
                 }
 
                 if (name2ColIndexMap.containsKey(colName)) {
                     // 属性名不可以有重复
-                    final String msg = String.format("the name is duplicate, name: %s", colName);
+                    final String msg = String.format("the colName is duplicate, colIndex: %d, colName: %s", colIndex, colName);
                     throw new IllegalStateException(msg);
                 }
 
@@ -293,7 +293,7 @@ class SheetReader {
 
             if (isBlackLine) {
                 // 内容行不可以空白
-                final String msg = String.format("black line, rowIndex: %d is blank line", getRowIndex(valueRow));
+                final String msg = String.format("black line, rowIndex: %d", getRowIndex(valueRow));
                 throw new IllegalStateException(msg);
             }
 
@@ -371,13 +371,17 @@ class SheetReader {
             for (int colIndex = 0; colIndex < totalColCount; colIndex++) {
                 // 注意：只有有一列标记了s，则三列都读取到内存中，不论是否使用，因此这里不检验第一列
                 final String colName = getCellValueNonNull(nameRow, colIndex);
-                if (!ParamSheetContent.PARAM_SHEET_COL_NAMES.contains(colName)) {
+                if (StringUtils.isBlank(colName)) {
                     continue;
                 }
-                name2ColIndexMap.put(colName, colIndex);
-                if (name2ColIndexMap.size() == ParamSheetContent.PARAM_SHEET_COL_NAMES.size()) {
-                    break;
+
+                if (name2ColIndexMap.containsKey(colName)) {
+                    // 列名不可以重复
+                    final String msg = String.format("the colName is duplicate, colName: %s", colName);
+                    throw new IllegalStateException(msg);
                 }
+
+                name2ColIndexMap.put(colName, colIndex);
             }
             return name2ColIndexMap;
         }

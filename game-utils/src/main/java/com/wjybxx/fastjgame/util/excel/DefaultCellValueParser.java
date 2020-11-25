@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.stream.Stream;
  * date - 2020/11/21
  * github - https://github.com/hl845740757
  */
+@Immutable
 public class DefaultCellValueParser implements CellValueParser {
 
     // 基本数据类型

@@ -28,12 +28,6 @@ package com.wjybxx.fastjgame.util.constant;
  * 2. 其使用方式与{@link ThreadLocal}非常相似，优先定义静态属性，只有有足够理由的时候才定义非静态属性。
  *
  * <p>
- * Q: 为什么没有id属性？
- * A: 与枚举不同，常量可以在任意地方定义，因此常量的创建顺序受到类初始化顺序的影响，也就导致了id属性的不稳定。
- * 虽然在某些情况下，可以保证其创建顺序是确定的，但是尽量延迟做决定是否支持它。
- * 拿Netty的{@code AttributeKey}来讲，应用程序是可以在任意地方创建的，也就导致了{@code AttributeKey}的id是不稳定的。
- *
- * <p>
  * Q: 类型参数{@link T}的作用？
  * A: 类型参数用作类型令牌，它好过{@link Class}对象，因为{@link Class}是不能带类型参数的，
  * 即你不能传递一个{@code Class<Map<Integer,String>>}给另一个方法，但你可以传递一个{@code Constant<Map<Integer,String>>}给另一个方法。
@@ -45,8 +39,16 @@ package com.wjybxx.fastjgame.util.constant;
 public interface Constant<T extends Constant<T>> extends Comparable<T> {
 
     /**
-     * 返回常量的名字。
+     * 注意：该id仅仅在其所属的{@link ConstantPool}下唯一。
+     *
+     * @return 常量的数字id。
+     */
+    int id();
+
+    /**
      * 注意：即使名字相同，也不代表是同一个同一个常量，只有同一个引用时才一定相等。
+     *
+     * @return 常量的名字。
      */
     String name();
 

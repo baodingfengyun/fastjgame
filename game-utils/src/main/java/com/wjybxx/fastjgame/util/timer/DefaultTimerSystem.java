@@ -179,7 +179,7 @@ public class DefaultTimerSystem implements TimerSystem {
         curTickFrame++;
 
         try {
-            tickTimer(curTimeMillis);
+            tickTimer(curTimeMillis, curTickFrame);
         } finally {
             runningTimer = null;
         }
@@ -188,10 +188,9 @@ public class DefaultTimerSystem implements TimerSystem {
     /**
      * 检查周期性执行的timer
      */
-    private void tickTimer(final long curTimeMillis) {
+    private void tickTimer(final long curTimeMillis, final int curFrame) {
         PriorityQueue<AbstractTimerHandle> timerQueue;
         AbstractTimerHandle timerHandle;
-        int curTickFrame = this.curTickFrame;
 
         while ((timerQueue = this.timerQueue) != null && (timerHandle = timerQueue.peek()) != null) {
             // 优先级最高的timer不需要执行，那么后面的也不需要执行
@@ -200,7 +199,7 @@ public class DefaultTimerSystem implements TimerSystem {
             }
 
             // timer对帧数有要求（避免无限循环）
-            if (curTickFrame < timerHandle.getNextExecuteFrameThreshold()) {
+            if (curFrame < timerHandle.getNextExecuteFrameThreshold()) {
                 return;
             }
 
