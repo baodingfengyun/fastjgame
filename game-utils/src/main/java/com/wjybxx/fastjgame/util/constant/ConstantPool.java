@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.util.constant;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -85,6 +86,7 @@ public final class ConstantPool<T extends Constant<T>> {
      *
      * @return 返回常量名关联的常量，若不存在则返回null。
      */
+    @Nullable
     public final T get(String name) {
         checkNotNullAndNotEmpty(name, "name");
         return constants.get(name);
@@ -107,7 +109,8 @@ public final class ConstantPool<T extends Constant<T>> {
     }
 
     /**
-     * 注意：该操作并不等同于枚举的{@code values()}，是个高开销操作，且每次返回的结果可能并不一致。
+     * 注意：该操作并不等同于枚举的{@code values()}，是个高开销操作；
+     * 此外，如果存在竞态条件，那么每次返回的结果可能并不一致。
      *
      * @return 返回当前拥有的所有常量
      */

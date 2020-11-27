@@ -62,7 +62,7 @@ class ExcelReader implements AutoCloseable {
     static List<String> readExcelSheetNames(File file, Predicate<String> sheetNameFilter) throws IOException {
         try (final Workbook workbook = StreamingReader.builder()
                 .rowCacheSize(10)
-                .bufferSize(2048)
+                .bufferSize(1024)
                 .open(file)) {
 
             final int numberOfSheets = workbook.getNumberOfSheets();

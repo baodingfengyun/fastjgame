@@ -39,7 +39,10 @@ package com.wjybxx.fastjgame.util.constant;
 public interface Constant<T extends Constant<T>> extends Comparable<T> {
 
     /**
-     * 注意：该id仅仅在其所属的{@link ConstantPool}下唯一。
+     * 注意：
+     * 1. 该id仅仅在其所属的{@link ConstantPool}下唯一。
+     * 2. 如果常量的创建存在竞争，那么其id可能并不稳定，也就不能保证连续。
+     * 3. 如果常量的创建是无竞争的，那么常量之间的id应是连续的，且起始id为1。
      *
      * @return 常量的数字id。
      */

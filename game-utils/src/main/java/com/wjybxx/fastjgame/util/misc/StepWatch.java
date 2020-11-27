@@ -23,14 +23,14 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 用于监测每一步的耗时和总耗时。
+ * 步进表:用于监测每一步的耗时和总耗时。
  * 循环模式示例:
  * <pre>{@code
  *  public void tick() {
  *      final StepWatch stepWatch = new StepWatch("tick");
  *      while(true) {
- *          // 重启计时器
- *          stepWatch.resetAndStart();
+ *          // 重启计时器（推荐在循环的开头重启定时器）
+ *          stepWatch.restart();
  *
  *          doSomethingA();
  *          stepWatch.logStep("step1");
@@ -44,10 +44,12 @@ import java.util.Objects;
  *          doSomethingD();
  *          stepWatch.logStep("step4");
  *
- *          // 可不调用stop
+ *          // 停止计时
  *          stepWatch.stop();
- *          // 输出日志
- *          System.out.println(stepWatch.getLog());
+ *          // 如果本帧耗时超过50ms，则输出日志
+ *          if (stepWatch.getCostTime() > 50) {
+ *              logger.info(stepWatch.getLog());
+ *          }
  *      }
  *  }
  * }
@@ -55,8 +57,8 @@ import java.util.Objects;
  * <p>
  * 非循环模式示例<pre>{@code
  *  public void execute() {
- *      final StepWatch stepWatch = new StepWatch("tick");
- *      stepWatch.start();
+ *      // 创建一个已启动的计时器
+ *      final StepWatch stepWatch = StepWatch.createStarted("execute");
  *
  *      doSomethingA();
  *      stepWatch.logStep("step1");
@@ -70,10 +72,8 @@ import java.util.Objects;
  *      doSomethingD();
  *      stepWatch.logStep("step4");
  *
- *      // 可不调用stop
- *      stepWatch.stop();
  *      // 输出日志
- *      System.out.println(stepWatch.getLog());
+ *      logger.info(stepWatch.getLog());
  *  }
  * }
  * </pre>
@@ -91,6 +91,16 @@ public class StepWatch {
 
     public StepWatch(String name) {
         this.name = Objects.requireNonNull(name, "name");
+    }
+
+    /**
+     * @param name 该计时器的名字
+     * @return 一个已启动的计时器
+     */
+    public static StepWatch createStarted(String name) {
+        final StepWatch sw = new StepWatch(name);
+        sw.start();
+        return sw;
     }
 
     /**
@@ -117,6 +127,7 @@ public class StepWatch {
 
     /**
      * 如果希望停止计时，则调用该方法。
+     * 停止计时后，{@link #getCostTime()}将获得一个稳定的时间值。
      */
     public void stop() {
         delegate.stop();
@@ -140,15 +151,17 @@ public class StepWatch {
     }
 
     /**
-     * 获取start时的时间戳
+     * 获取启动定时器时的时间戳
      */
     public long getStartTime() {
         return delegate.getStartTime();
     }
 
     /**
+     * 获取消耗的总时间
      * 如果尚未stop，则返回从start到当前的已消耗的时间。
      * 如果已经stop，则返回从start到stop时消耗的时间。
+     * 注意：总时长不一定等于各步骤耗时，在最后一个步骤与获取日志之间存在误差。
      */
     public long getCostTime() {
         return delegate.getTime();
@@ -162,21 +175,31 @@ public class StepWatch {
     public String getSortedLog() {
         // 排序开销还算比较小
         itemList.sort(null);
-        return getLog();
+        return toString();
     }
 
     /**
      * 获取按照时间消耗排序后的log。
-     * 注意：可以在不调用{@link #stop()}的情况下调用该方法。
-     * <p>
-     * 格式: [name={name}ms][a={a}ms,b={b}ms...]
-     * 其中{@code {x}}表示x的耗时，前半部分为总耗时，后半部分为各步骤耗时。
      */
     public String getLog() {
+        return toString();
+    }
+
+    /**
+     * 格式: StepWatch[name={name}ms][a={a}ms,b={b}ms...]
+     * 1. StepWatch为标记，方便检索。
+     * 2. {@code {x}}表示x的耗时。
+     * 3. 前半部分为总耗时，后半部分为各步骤耗时。
+     * <p>
+     * Q: 为什么重写{@code toString}？
+     * A: 在输出日志的时候，我们可能常常使用占位符，那么延迟构建内容就是必须的，这要求我们实现{@code toString()}。
+     */
+    @Override
+    public String toString() {
         final StringBuilder sb = this.sb;
         final List<Item> itemList = this.itemList;
         // 总耗时
-        sb.append('[').append(name).append('=').append(delegate.getTime()).append("ms]");
+        sb.append("StepWatch[").append(name).append('=').append(delegate.getTime()).append("ms]");
         // 每个步骤耗时
         sb.append('[');
         for (int i = 0; i < itemList.size(); i++) {
