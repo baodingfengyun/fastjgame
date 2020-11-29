@@ -3,11 +3,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <packaging>pom</packaging>
 
     <groupId>com.wjybxx.fastjgame</groupId>
-    <artifactId>game-parent</artifactId>
-    <version>1.0</version>
+    <artifactId>game-reload</artifactId>
+    <version>1.0-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -15,22 +14,9 @@
         <encoding>UTF-8</encoding>
     </properties>
 
-    <!-- 子模块 -->
-    <modules>
-        <module>game-utils</module>
-        <module>game-guid-api</module>
-        <module>game-log-api</module>
-        <module>game-reload</module>
-
-        <module>game-log-kafka</module>
-        <module>game-zookeeper</module>
-        <module>game-redis</module>
-
-    </modules>
-
     <build>
         <plugins>
-            <!-- 编译插件 -->
+            <!-- 编译插件-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -42,7 +28,7 @@
                 </configuration>
             </plugin>
 
-            <!-- 源码插件 -->
+            <!--配置生成源码包-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -57,7 +43,23 @@
                 </executions>
             </plugin>
         </plugins>
-
     </build>
+
+
+    <dependencies>
+        <!-- class热更新组件 -->
+        <dependency>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-classreloadagent</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <!-- 基本工具集 -->
+        <dependency>
+            <groupId>com.wjybxx.fastjgame</groupId>
+            <artifactId>game-utils</artifactId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
 
 </project>
