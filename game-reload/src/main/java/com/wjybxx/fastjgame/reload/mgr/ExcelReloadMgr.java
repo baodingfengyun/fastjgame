@@ -58,14 +58,20 @@ public class ExcelReloadMgr implements ExtensibleObject {
 
     private final Map<String, Object> blackboard = new HashMap<>();
 
+    private final String projectResDir;
+    private final String configDirName;
     private final FileReloadMgr fileReloadMgr;
     private final SheetDataMgr sheetDataMgr;
+    private final Supplier<CellValueParser> parserSupplier;
+
     private final SheetDataContainer sheetDataContainer = new SheetDataContainer();
     private final Map<SheetName<?>, ListenerWrapper> listenerWrapperMap = new IdentityHashMap<>(50);
 
-    private final Map<SheetName<?>, ReaderMetadata<?>> readerMetadataMap;
-    private final Map<Class<?>, BuilderMetadata<?>> builderMetadataMap;
-    private final Map<FileName<?>, ExcelReader> excelReaderMap;
+    private final Map<SheetName<?>, ReaderMetadata<?>> readerMetadataMap = new IdentityHashMap<>(500);
+    private final Map<Class<?>, BuilderMetadata<?>> builderMetadataMap = new IdentityHashMap<>(50);
+
+    private final ExcelReloadListener excelReloadListener = new ExcelReloadListener();
+    private final Map<FileName<?>, ExcelReader> excelReaderMap = new IdentityHashMap<>(300);
 
     /**
      * @param projectResDir  项目资源目录
@@ -78,34 +84,19 @@ public class ExcelReloadMgr implements ExtensibleObject {
     public ExcelReloadMgr(String projectResDir, String configDirName, Set<String> readerPackages,
                           FileReloadMgr fileReloadMgr, SheetDataMgr sheetDataMgr,
                           Supplier<CellValueParser> parserSupplier) throws Exception {
+        this.projectResDir = projectResDir;
+        this.configDirName = configDirName;
         this.fileReloadMgr = fileReloadMgr;
         this.sheetDataMgr = sheetDataMgr;
+        this.parserSupplier = parserSupplier;
 
         final StepWatch stepWatch = StepWatch.createStarted("ExcelReloadMrg:init");
         final CreateResult createResult = createInstances(readerPackages);
         stepWatch.logStep("createInstances");
 
-        final Map<SheetName<?>, SheetReader<?>> readerMap = createResult.readerMap;
-        final Map<Class<?>, SheetCacheBuilder<?>> builderMap = createResult.builderMap;
-
-        this.readerMetadataMap = new IdentityHashMap<>(readerMap.size());
-        this.builderMetadataMap = new IdentityHashMap<>(builderMap.size());
-
-        registerReaders(readerMap);
-        registerBuilders(builderMap);
-
-        final ExcelInitResult excelInitResult = initExcelReaders(projectResDir, configDirName, readerMap, parserSupplier);
-        this.excelReaderMap = excelInitResult.excelReaderMap;
-        stepWatch.logStep("initExcelReaders");
-
-        // 表格缺失检查
-        ensureReaderSheetExist();
-
-        // 挂接到文件管理器
-        fileReloadMgr.registerReaders(new IdentityHashMap<>(excelReaderMap));
-
-        // 监听所有excel文件的变化
-        fileReloadMgr.registerListener(Collections.unmodifiableSet(excelReaderMap.keySet()), new ExcelReloadListener());
+        registerReaders(createResult.readerMap.values());
+        registerBuilders(createResult.builderMap.values());
+        stepWatch.logStep("registerReaders");
 
         logger.info(stepWatch.getLog());
     }
@@ -160,61 +151,46 @@ public class ExcelReloadMgr implements ExtensibleObject {
     /**
      * 注意：先注册{@link SheetReader}，再注册{@link SheetCacheBuilder}
      */
-    public final void registerReaders(Map<SheetName<?>, SheetReader<?>> readerMap) {
-        for (Map.Entry<SheetName<?>, SheetReader<?>> entry : readerMap.entrySet()) {
-            final SheetName<?> sheetName = entry.getKey();
-            final SheetReader<?> reader = entry.getValue();
-
+    public final void registerReaders(Collection<? extends SheetReader<?>> readers) throws IOException {
+        for (SheetReader<?> reader : readers) {
+            final SheetName<?> sheetName = reader.sheetName();
             if (sheetName != reader.sheetName()) {
                 final String msg = String.format("fileName assert exception, sheetName: %s, reader: %s", sheetName, reader.getClass().getName());
                 throw new IllegalArgumentException(msg);
             }
-
             if (readerMetadataMap.containsKey(sheetName)) {
                 final String msg = String.format("sheetName has more than one associated reader, sheetName: %s, reader: %s", sheetName, reader.getClass().getName());
                 throw new IllegalArgumentException(msg);
             }
             readerMetadataMap.put(sheetName, new ReaderMetadata<>(reader));
         }
+
+        // 这里只是为了方便后面采取全部注册的方式
+        fileReloadMgr.unregisterReader(new ArrayList<>(excelReaderMap.values()));
+        // listener一定要取消注册，否则监听的文件不全
+        fileReloadMgr.unregisterListener(new HashSet<>(excelReaderMap.keySet()), excelReloadListener);
+
+        excelReaderMap.clear();
+        excelReaderMap.putAll(createExcelReaders());
+
+        // 重新注册excel文件读取实现
+        fileReloadMgr.registerReaders(new ArrayList<>(excelReaderMap.values()));
+        // 重新监控所有文件
+        fileReloadMgr.registerListener(new HashSet<>(excelReaderMap.keySet()), excelReloadListener);
+
+        // 表格缺失检查
+        ensureReaderSheetExist();
     }
 
-    public final void registerBuilders(Map<Class<?>, SheetCacheBuilder<?>> builderMap) {
-        for (Map.Entry<Class<?>, SheetCacheBuilder<?>> entry : builderMap.entrySet()) {
-            final Class<?> builderType = entry.getKey();
-            final SheetCacheBuilder<?> builder = entry.getValue();
-
-            if (builderType != builder.getClass()) {
-                final String msg = String.format("builderType assert exception, builderType: %s, reader: %s", builderType, builder.getClass().getName());
-                throw new IllegalArgumentException(msg);
-            }
-
-            final Set<SheetName<?>> builderSheetNames = builder.sheetNames();
-            // 关注的表格不可以为空
-            if (builderSheetNames.isEmpty()) {
-                throw new IllegalStateException("sheetNames is empty, builder: " + builderType.getName());
-            }
-            // reader缺失检查
-            for (SheetName<?> sheetName : builderSheetNames) {
-                if (!readerMetadataMap.containsKey(sheetName)) {
-                    final String msg = String.format("reader is null, sheetName: %s, builder: %s", sheetName, builderType.getName());
-                    throw new IllegalStateException(msg);
-                }
-            }
-            builderMetadataMap.put(builderType, new BuilderMetadata<>(builder, builder.sheetNames()));
-        }
-    }
-
-    private static ExcelInitResult initExcelReaders(final String projectResDir, final String configDirName,
-                                                    final Map<SheetName<?>, SheetReader<?>> readerMap,
-                                                    final Supplier<CellValueParser> parserSupplier) throws IOException {
-
+    private Map<FileName<?>, ExcelReader> createExcelReaders() throws IOException {
         // 该集合不可以修改，否则会影响readExcelSheetNames调用
-        final Map<String, SheetReader<?>> stringSheetName2ReaderMap = readerMap.keySet().stream()
-                .collect(Collectors.toUnmodifiableMap(SheetName::name, readerMap::get));
+        final Map<String, SheetReader<?>> stringSheetName2ReaderMap = readerMetadataMap.values().stream()
+                .map(e -> e.reader)
+                .collect(Collectors.toUnmodifiableMap(e -> e.sheetName().name(), e -> e));
         // 已发现的页签名称，用于判重
-        final Set<String> existSheetNameSet = Sets.newHashSetWithExpectedSize(readerMap.size());
+        final Set<String> existSheetNameSet = Sets.newHashSetWithExpectedSize(readerMetadataMap.size());
 
-        final List<File> allExcelFiles = findAllExcelFiles(projectResDir, configDirName, readerMap.size());
+        final List<File> allExcelFiles = findAllExcelFiles(projectResDir, configDirName);
         final Map<FileName<?>, ExcelReader> excelReaderMap = new IdentityHashMap<>(allExcelFiles.size());
         final Set<String> existExcelNameSet = Sets.newHashSetWithExpectedSize(allExcelFiles.size());
         for (File file : allExcelFiles) {
@@ -244,7 +220,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
             excelReaderMap.put(fileName, new ExcelReader(file.getName(), fileName, sheetReaderMap, parserSupplier));
         }
 
-        return new ExcelInitResult(excelReaderMap);
+        return excelReaderMap;
     }
 
     private static FileName<ExcelFileData> findFileName(String configDirName, File file) {
@@ -267,8 +243,8 @@ public class ExcelReloadMgr implements ExtensibleObject {
         return FileName.valueOf(relativePath);
     }
 
-    private static List<File> findAllExcelFiles(final String projectResDir, final String configDirName, final int readerCount) {
-        final ArrayList<File> result = new ArrayList<>(readerCount);
+    private static List<File> findAllExcelFiles(final String projectResDir, final String configDirName) {
+        final ArrayList<File> result = new ArrayList<>(300);
         final String configDirPath = projectResDir + File.separator + configDirName;
         ReloadUtils.recurseDir(new File(configDirPath), result, file -> file.getName().endsWith(".xlsx"));
         return result;
@@ -286,12 +262,22 @@ public class ExcelReloadMgr implements ExtensibleObject {
         }
     }
 
-    private static class ExcelInitResult {
-
-        final Map<FileName<?>, ExcelReader> excelReaderMap;
-
-        ExcelInitResult(Map<FileName<?>, ExcelReader> excelReaderMap) {
-            this.excelReaderMap = excelReaderMap;
+    public final void registerBuilders(Collection<? extends SheetCacheBuilder<?>> cacheBuilders) {
+        for (SheetCacheBuilder<?> builder : cacheBuilders) {
+            final Class<?> builderType = builder.getClass();
+            final Set<SheetName<?>> builderSheetNames = builder.sheetNames();
+            // 关注的表格不可以为空
+            if (builderSheetNames.isEmpty()) {
+                throw new IllegalStateException("sheetNames is empty, builder: " + builderType.getName());
+            }
+            // reader缺失检查
+            for (SheetName<?> sheetName : builderSheetNames) {
+                if (!readerMetadataMap.containsKey(sheetName)) {
+                    final String msg = String.format("reader is null, sheetName: %s, builder: %s", sheetName, builderType.getName());
+                    throw new IllegalStateException(msg);
+                }
+            }
+            builderMetadataMap.put(builderType, new BuilderMetadata<>(builder, builder.sheetNames()));
         }
     }
 
@@ -359,6 +345,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
 
         // 避免内部大规模拷贝，外部拷贝一次
         sheetNameSet = Set.copyOf(sheetNameSet);
+        final ListenerWrapper listenerWrapper = new DefaultListenerWrapper(sheetNameSet, listener);
 
         for (SheetName<?> sheetName : sheetNameSet) {
             Objects.requireNonNull(sheetName, "sheetName");
@@ -367,7 +354,6 @@ public class ExcelReloadMgr implements ExtensibleObject {
                 throw new IllegalArgumentException("Unknown sheetName " + sheetName);
             }
 
-            final ListenerWrapper listenerWrapper = new DefaultListenerWrapper(sheetNameSet, listener);
             final ListenerWrapper existListenerWrapper = listenerWrapperMap.get(sheetName);
             if (existListenerWrapper == null) {
                 // 一般一个listener

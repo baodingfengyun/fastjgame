@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 /**
  * 文件热更管理器。
+ * 实现上是否觉得像NIO的Select模型？
  *
  * @author wjybxx
  * date - 2020/11/17
@@ -53,13 +54,13 @@ public class FileReloadMgr implements ExtensibleObject {
 
     private final String projectResDir;
     private final ExecutorService commonPool;
-
     private final FileDataMgr fileDataMgr;
+
     private final FileDataContainer fileDataContainer = new FileDataContainer();
     private final Map<FileName<?>, ListenerWrapper> listenerWrapperMap = new IdentityHashMap<>(50);
 
-    private final Map<FileName<?>, ReaderMetadata<?>> readerMetadataMap;
-    private final Map<Class<?>, BuilderMetadata<?>> builderMetadataMap;
+    private final Map<FileName<?>, ReaderMetadata<?>> readerMetadataMap = new IdentityHashMap<>(500);
+    private final Map<Class<?>, BuilderMetadata<?>> builderMetadataMap = new IdentityHashMap<>(50);
 
     /**
      * @param projectResDir  项目资源目录
@@ -78,68 +79,11 @@ public class FileReloadMgr implements ExtensibleObject {
         final CreateResult createResult = createInstances(readerPackages);
         stepWatch.logStep("createInstance");
 
-        this.readerMetadataMap = new IdentityHashMap<>(500);
-        this.builderMetadataMap = new IdentityHashMap<>(100);
-
-        registerReaders(createResult.readerMap);
-        registerBuilders(createResult.builderMap);
+        registerReaders(createResult.readerMap.values());
+        registerBuilders(createResult.builderMap.values());
+        stepWatch.logStep("registerReaders");
 
         logger.info(stepWatch.getLog());
-    }
-
-    public final void registerReaders(Map<FileName<?>, ? extends FileReader<?>> readerMap) {
-        for (Map.Entry<FileName<?>, ? extends FileReader<?>> entry : readerMap.entrySet()) {
-            final FileName<?> fileName = entry.getKey();
-            final FileReader<?> reader = entry.getValue();
-
-            if (fileName != reader.fileName()) {
-                final String msg = String.format("fileName assert exception, fileName: %s, reader: %s", fileName, reader.getClass().getName());
-                throw new IllegalArgumentException(msg);
-            }
-
-            if (readerMetadataMap.containsKey(fileName)) {
-                final String msg = String.format("fileName has more than one associated reader, fileName: %s, reader: %s", fileName, reader.getClass().getName());
-                throw new IllegalArgumentException(msg);
-            }
-            final File file = checkedFileOfName(projectResDir, fileName);
-            readerMetadataMap.put(fileName, new ReaderMetadata<>(reader, file));
-        }
-    }
-
-    private static File checkedFileOfName(String projectResDir, FileName<?> fileName) {
-        final String relativePath = fileName.getRelativePath();
-        final File file = new File(projectResDir + File.separator + relativePath);
-        if (!file.exists() || !file.isFile()) {
-            throw new IllegalArgumentException(relativePath + " must be a normal file that already exists");
-        }
-        return file;
-    }
-
-    public final void registerBuilders(Map<Class<?>, ? extends FileCacheBuilder<?>> builderMap) {
-        for (Map.Entry<Class<?>, ? extends FileCacheBuilder<?>> entry : builderMap.entrySet()) {
-            final Class<?> builderType = entry.getKey();
-            final FileCacheBuilder<?> builder = entry.getValue();
-
-            if (builderType != builder.getClass()) {
-                final String msg = String.format("builderType assert exception, builderType: %s, reader: %s", builderType, builder.getClass().getName());
-                throw new IllegalArgumentException(msg);
-            }
-
-            final Set<FileName<?>> builderFileNames = builder.fileNames();
-            // 不可以为空
-            if (builderFileNames.isEmpty()) {
-                throw new IllegalStateException("fileName is empty, builder: " + builder.getClass().getName());
-            }
-
-            // reader缺失检查
-            for (FileName<?> fileName : builderFileNames) {
-                if (!readerMetadataMap.containsKey(fileName)) {
-                    final String msg = String.format("reader is null, fileName: %s, builder: %s", fileName, builder.getClass().getName());
-                    throw new IllegalStateException(msg);
-                }
-            }
-            builderMetadataMap.put(builderType, new BuilderMetadata<>(builder, builder.fileNames()));
-        }
     }
 
     private static CreateResult createInstances(Set<String> readerPackages) throws Exception {
@@ -160,6 +104,65 @@ public class FileReloadMgr implements ExtensibleObject {
             }
         }
         return new CreateResult(readerMap, builderMap);
+    }
+
+    public final void registerReaders(Collection<? extends FileReader<?>> readers) {
+        for (FileReader<?> reader : readers) {
+            final FileName<?> fileName = reader.fileName();
+            if (readerMetadataMap.containsKey(fileName)) {
+                final String msg = String.format("fileName has more than one associated reader, fileName: %s, reader: %s", fileName, reader.getClass().getName());
+                throw new IllegalArgumentException(msg);
+            }
+            final File file = checkedFileOfName(projectResDir, fileName);
+            readerMetadataMap.put(fileName, new ReaderMetadata<>(reader, file));
+        }
+    }
+
+    public final void unregisterReader(Collection<? extends FileReader<?>> readers) {
+        for (FileReader<?> reader : readers) {
+            final FileName<?> fileName = reader.fileName();
+            final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(fileName);
+            if (readerMetadata.reader != reader) {
+                final String msg = String.format("reader mismatch, fileName: %s, reader: %s", fileName, reader.getClass().getName());
+                throw new IllegalArgumentException(msg);
+            }
+            readerMetadataMap.remove(fileName);
+        }
+    }
+
+    private static File checkedFileOfName(String projectResDir, FileName<?> fileName) {
+        final String relativePath = fileName.getRelativePath();
+        final File file = new File(projectResDir + File.separator + relativePath);
+        if (!file.exists() || !file.isFile()) {
+            throw new IllegalArgumentException(relativePath + " must be a normal file that already exists");
+        }
+        return file;
+    }
+
+    public final void registerBuilders(Collection<? extends FileCacheBuilder<?>> cacheBuilders) {
+        for (FileCacheBuilder<?> builder : cacheBuilders) {
+            final Class<?> builderType = builder.getClass();
+            final Set<FileName<?>> builderFileNames = builder.fileNames();
+            // 不可以为空
+            if (builderFileNames.isEmpty()) {
+                throw new IllegalStateException("fileName is empty, builder: " + builder.getClass().getName());
+            }
+            // reader缺失检查
+            for (FileName<?> fileName : builderFileNames) {
+                if (!readerMetadataMap.containsKey(fileName)) {
+                    final String msg = String.format("reader is null, fileName: %s, builder: %s", fileName, builder.getClass().getName());
+                    throw new IllegalStateException(msg);
+                }
+            }
+            builderMetadataMap.put(builderType, new BuilderMetadata<>(builder, builder.fileNames()));
+        }
+    }
+
+    public final void unregisterBuilders(Collection<? extends FileCacheBuilder<?>> cacheBuilders) {
+        for (FileCacheBuilder<?> builder : cacheBuilders) {
+            final Class<?> builderType = builder.getClass();
+            builderMetadataMap.remove(builderType);
+        }
     }
 
     private static List<Class<?>> scanPackages(Set<String> readerPackages) {
@@ -481,6 +484,7 @@ public class FileReloadMgr implements ExtensibleObject {
 
         // 避免大规模拷贝，外部拷贝一次
         fileNameSet = Set.copyOf(fileNameSet);
+        final DefaultListenerWrapper listenerWrapper = new DefaultListenerWrapper(fileNameSet, listener);
 
         for (FileName<?> fileName : fileNameSet) {
             Objects.requireNonNull(fileName, "fileName");
@@ -489,7 +493,6 @@ public class FileReloadMgr implements ExtensibleObject {
                 throw new IllegalArgumentException("unknown fileName: " + fileName);
             }
 
-            final DefaultListenerWrapper listenerWrapper = new DefaultListenerWrapper(fileNameSet, listener);
             final ListenerWrapper existListenerWrapper = listenerWrapperMap.get(fileName);
             if (null == existListenerWrapper) {
                 // 一般一个listener
@@ -503,6 +506,33 @@ public class FileReloadMgr implements ExtensibleObject {
             } else {
                 // 两个listener
                 listenerWrapperMap.put(fileName, new CompositeListenerWrapper(existListenerWrapper, listenerWrapper));
+            }
+        }
+    }
+
+    public void unregisterListener(@Nonnull Set<FileName<?>> fileNameSet, FileReloadListener listener) {
+        for (FileName<?> fileName : fileNameSet) {
+            Objects.requireNonNull(fileName, "fileName");
+            final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(fileName);
+            if (null == readerMetadata) {
+                throw new IllegalArgumentException("unknown fileName: " + fileName);
+            }
+
+            final ListenerWrapper existListenerWrapper = listenerWrapperMap.get(fileName);
+            if (existListenerWrapper == null) {
+                continue;
+            }
+
+            if (existListenerWrapper instanceof DefaultListenerWrapper) {
+                if (((DefaultListenerWrapper) existListenerWrapper).reloadListener == listener) {
+                    listenerWrapperMap.remove(fileName);
+                }
+            } else {
+                final CompositeListenerWrapper compositeListenerWrapper = (CompositeListenerWrapper) existListenerWrapper;
+                compositeListenerWrapper.children.removeIf(e -> ((DefaultListenerWrapper) e).reloadListener == listener);
+                if (compositeListenerWrapper.children.isEmpty()) {
+                    listenerWrapperMap.remove(fileName);
+                }
             }
         }
     }
