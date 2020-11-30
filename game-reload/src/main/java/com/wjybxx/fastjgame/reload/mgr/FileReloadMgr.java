@@ -21,9 +21,7 @@ import com.wjybxx.fastjgame.reload.file.FileName;
 import com.wjybxx.fastjgame.reload.file.FileReader;
 import com.wjybxx.fastjgame.reload.file.FileReloadListener;
 import com.wjybxx.fastjgame.reload.mgr.ReloadUtils.FileStat;
-import com.wjybxx.fastjgame.util.ClassScanner;
 import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
-import com.wjybxx.fastjgame.util.function.FunctionUtils;
 import com.wjybxx.fastjgame.util.misc.StepWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,10 +29,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -46,14 +43,14 @@ import java.util.stream.Collectors;
  * date - 2020/11/17
  * github - https://github.com/hl845740757
  */
-public class FileReloadMgr implements ExtensibleObject {
+public final class FileReloadMgr implements ExtensibleObject {
 
     private static final Logger logger = LoggerFactory.getLogger(FileReloadMgr.class);
 
     private final Map<String, Object> blackboard = new HashMap<>();
 
     private final String projectResDir;
-    private final ExecutorService commonPool;
+    private final Executor executor;
     private final FileDataMgr fileDataMgr;
 
     private final FileDataContainer fileDataContainer = new FileDataContainer();
@@ -63,50 +60,19 @@ public class FileReloadMgr implements ExtensibleObject {
     private final Map<Class<?>, BuilderMetadata<?>> builderMetadataMap = new IdentityHashMap<>(50);
 
     /**
-     * @param projectResDir  项目资源目录
-     * @param readerPackages reader所在的包名，反射创建对象
-     * @param commonPool     公共线程池，最好独享，该线程池上不要有大量的阻塞任务即可。
-     *                       如果独享，建议拒绝策略为{@link java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy}。
-     * @param fileDataMgr    应用自身管理数据的地方
+     * @param projectResDir 项目资源目录，所有的{@link FileName}都是相对于该目录的路径
+     * @param executor      用于并发读取文件的线程池。
+     *                      如果是共享线程池，该线程池上不要有大量的阻塞任务即可。
+     *                      如果独享，建议拒绝策略为{@link java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy}。
+     * @param fileDataMgr   应用自身管理数据的地方
      */
-    public FileReloadMgr(String projectResDir, Set<String> readerPackages,
-                         ExecutorService commonPool, FileDataMgr fileDataMgr) throws Exception {
+    public FileReloadMgr(String projectResDir, Executor executor, FileDataMgr fileDataMgr) throws Exception {
         this.projectResDir = projectResDir;
-        this.commonPool = commonPool;
+        this.executor = executor;
         this.fileDataMgr = fileDataMgr;
-
-        final StepWatch stepWatch = StepWatch.createStarted("FileReloadMrg:init");
-        final CreateResult createResult = createInstances(readerPackages);
-        stepWatch.logStep("createInstance");
-
-        registerReaders(createResult.readerMap.values());
-        registerBuilders(createResult.builderMap.values());
-        stepWatch.logStep("registerReaders");
-
-        logger.info(stepWatch.getLog());
     }
 
-    private static CreateResult createInstances(Set<String> readerPackages) throws Exception {
-        final List<Class<?>> clazzSet = scanPackages(readerPackages);
-        final Map<FileName<?>, FileReader<?>> readerMap = new IdentityHashMap<>(200);
-        final Map<Class<?>, FileCacheBuilder<?>> builderMap = new IdentityHashMap<>(20);
-        for (Class<?> clazz : clazzSet) {
-            final Object instance = ReloadUtils.createInstance(clazz);
-            if (instance instanceof FileReader) {
-                final FileReader<?> reader = (FileReader<?>) instance;
-                if (readerMap.put(reader.fileName(), reader) != null) {
-                    final String msg = String.format("fileName of reader is duplicate, fileName : %s, readerName: %s", reader.fileName(), clazz.getName());
-                    throw new IllegalStateException(msg);
-                }
-            } else {
-                final FileCacheBuilder<?> builder = (FileCacheBuilder<?>) instance;
-                builderMap.put(clazz, builder);
-            }
-        }
-        return new CreateResult(readerMap, builderMap);
-    }
-
-    public final void registerReaders(Collection<? extends FileReader<?>> readers) {
+    public void registerReaders(Collection<? extends FileReader<?>> readers) {
         for (FileReader<?> reader : readers) {
             final FileName<?> fileName = reader.fileName();
             if (readerMetadataMap.containsKey(fileName)) {
@@ -115,18 +81,6 @@ public class FileReloadMgr implements ExtensibleObject {
             }
             final File file = checkedFileOfName(projectResDir, fileName);
             readerMetadataMap.put(fileName, new ReaderMetadata<>(reader, file));
-        }
-    }
-
-    public final void unregisterReader(Collection<? extends FileReader<?>> readers) {
-        for (FileReader<?> reader : readers) {
-            final FileName<?> fileName = reader.fileName();
-            final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(fileName);
-            if (readerMetadata.reader != reader) {
-                final String msg = String.format("reader mismatch, fileName: %s, reader: %s", fileName, reader.getClass().getName());
-                throw new IllegalArgumentException(msg);
-            }
-            readerMetadataMap.remove(fileName);
         }
     }
 
@@ -139,7 +93,22 @@ public class FileReloadMgr implements ExtensibleObject {
         return file;
     }
 
-    public final void registerBuilders(Collection<? extends FileCacheBuilder<?>> cacheBuilders) {
+    public void unregisterReader(Collection<? extends FileReader<?>> readers) {
+        for (FileReader<?> reader : readers) {
+            final FileName<?> fileName = reader.fileName();
+            final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(fileName);
+            if (readerMetadata.reader != reader) {
+                final String msg = String.format("reader mismatch, fileName: %s, reader: %s", fileName, reader.getClass().getName());
+                throw new IllegalArgumentException(msg);
+            }
+            readerMetadataMap.remove(fileName);
+        }
+    }
+
+    /**
+     * 注意：需要先调用{@link #registerReaders(Collection)}注册文件读取实现。
+     */
+    public void registerCacheBuilders(Collection<? extends FileCacheBuilder<?>> cacheBuilders) {
         for (FileCacheBuilder<?> builder : cacheBuilders) {
             final Class<?> builderType = builder.getClass();
             final Set<FileName<?>> builderFileNames = builder.fileNames();
@@ -158,44 +127,16 @@ public class FileReloadMgr implements ExtensibleObject {
         }
     }
 
-    public final void unregisterBuilders(Collection<? extends FileCacheBuilder<?>> cacheBuilders) {
+    public void unregisterCacheBuilders(Collection<? extends FileCacheBuilder<?>> cacheBuilders) {
         for (FileCacheBuilder<?> builder : cacheBuilders) {
             final Class<?> builderType = builder.getClass();
             builderMetadataMap.remove(builderType);
         }
     }
 
-    private static List<Class<?>> scanPackages(Set<String> readerPackages) {
-        if (readerPackages.isEmpty()) {
-            throw new IllegalArgumentException("packages is empty");
-        }
-        return readerPackages.stream()
-                .flatMap(pkg -> ClassScanner.findClasses(pkg, FunctionUtils.alwaysTrue(), FileReloadMgr::isReaderOrBuilder).stream())
-                .collect(Collectors.toList());
-    }
-
-    private static boolean isReaderOrBuilder(Class<?> clazz) {
-        if (Modifier.isAbstract(clazz.getModifiers())) {
-            return false;
-        }
-        return FileReader.class.isAssignableFrom(clazz) || FileCacheBuilder.class.isAssignableFrom(clazz);
-    }
-
-    private static class CreateResult {
-
-        final Map<FileName<?>, FileReader<?>> readerMap;
-        final Map<Class<?>, FileCacheBuilder<?>> builderMap;
-
-        CreateResult(Map<FileName<?>, FileReader<?>> readerMap, Map<Class<?>, FileCacheBuilder<?>> builderMap) {
-            this.readerMap = readerMap;
-            this.builderMap = builderMap;
-        }
-    }
-
     /**
-     * 获取指定文件的数据
-     *
-     * @throws IllegalArgumentException 如果该文件名没有对应的数据，则抛出该异常
+     * 获取指定文件的数据。
+     * 注意：这是给扩展预留的接口，不是应用层使用的接口。
      */
     public <T> T getFileData(FileName<T> fileName) {
         return fileDataContainer.getFileData(fileName);
@@ -239,7 +180,7 @@ public class FileReloadMgr implements ExtensibleObject {
             }
 
             final TaskContext taskContext = new TaskContext(readerMetadata.reader, readerMetadata.file, readerMetadata.fileStat);
-            futureList.add(CompletableFuture.runAsync(new StatisticFileStatTask(taskContext), commonPool));
+            futureList.add(CompletableFuture.runAsync(new StatisticFileStatTask(taskContext), executor));
             contextList.add(taskContext);
         }
 
@@ -262,7 +203,7 @@ public class FileReloadMgr implements ExtensibleObject {
         final List<CompletableFuture<?>> futureList = new ArrayList<>(changedFiles.size());
         for (TaskContext context : changedFiles) {
             Objects.requireNonNull(context.fileStat);
-            futureList.add(CompletableFuture.runAsync(new ReadFileTask(context), commonPool));
+            futureList.add(CompletableFuture.runAsync(new ReadFileTask(context), executor));
         }
         CompletableFuture.allOf(futureList.toArray(CompletableFuture[]::new))
                 .orTimeout(1, TimeUnit.MINUTES)
@@ -482,7 +423,7 @@ public class FileReloadMgr implements ExtensibleObject {
             throw new IllegalArgumentException("fileNameSet is empty");
         }
 
-        // 避免大规模拷贝，外部拷贝一次
+        // 防御性拷贝
         fileNameSet = Set.copyOf(fileNameSet);
         final DefaultListenerWrapper listenerWrapper = new DefaultListenerWrapper(fileNameSet, listener);
 

@@ -19,14 +19,12 @@ package com.wjybxx.fastjgame.reload.mgr;
 
 import com.wjybxx.fastjgame.util.CaseMode;
 import com.wjybxx.fastjgame.util.CodecUtils;
-import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -36,12 +34,6 @@ import java.util.function.Predicate;
  * github - https://github.com/hl845740757
  */
 class ReloadUtils {
-
-    static Object createInstance(Class<?> clazz) throws Exception {
-        final Constructor<?> constructor = clazz.getDeclaredConstructor(ArrayUtils.EMPTY_CLASS_ARRAY);
-        constructor.setAccessible(true);
-        return constructor.newInstance(ArrayUtils.EMPTY_OBJECT_ARRAY);
-    }
 
     static byte[] readBytes(File file) throws IOException {
         try (final FileInputStream inputStream = new FileInputStream(file)) {
