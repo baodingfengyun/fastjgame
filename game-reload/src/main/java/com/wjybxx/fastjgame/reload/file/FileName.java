@@ -46,7 +46,7 @@ public final class FileName<T> extends AbstractConstant<FileName<T>> {
     /**
      * 必须作为第一个字段，在其它字段使用它之前初始化。
      */
-    private static final ConstantPool<FileName<Object>> NAME_POOL = new ConstantPool<>(FileName::new);
+    private static final ConstantPool<FileName<Object>> POOL = new ConstantPool<>(FileName::new);
 
     /**
      * @param relativePath 相对项目资源目录的路径
@@ -54,7 +54,7 @@ public final class FileName<T> extends AbstractConstant<FileName<T>> {
      */
     @SuppressWarnings("unchecked")
     public static <T> FileName<T> valueOf(String relativePath) {
-        return (FileName<T>) NAME_POOL.valueOf(relativePath);
+        return (FileName<T>) POOL.valueOf(relativePath);
     }
 
     /**
@@ -64,7 +64,7 @@ public final class FileName<T> extends AbstractConstant<FileName<T>> {
      */
     @SuppressWarnings("unchecked")
     public static <T> FileName<T> newInstance(String relativePath) {
-        return (FileName<T>) NAME_POOL.newInstance(relativePath);
+        return (FileName<T>) POOL.newInstance(relativePath);
     }
 
     /**
@@ -75,8 +75,15 @@ public final class FileName<T> extends AbstractConstant<FileName<T>> {
     @SuppressWarnings("unchecked")
     public static <T> FileName<T> forNameThrowable(String relativePath) {
         Objects.requireNonNull(relativePath, "relativePath");
-        return (FileName<T>) NAME_POOL.getOrThrow(relativePath);
+        return (FileName<T>) POOL.getOrThrow(relativePath);
     }
 
+    /**
+     * @param relativePath 相对项目资源目录的路径
+     * @return 如果存在对应的文件名常量，则返回true
+     */
+    public static boolean exists(String relativePath) {
+        return POOL.exists(relativePath);
+    }
     // TODO 公共常量定义在下面f
 }

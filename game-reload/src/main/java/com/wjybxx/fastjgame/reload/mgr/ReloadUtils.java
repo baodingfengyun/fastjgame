@@ -24,11 +24,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @author wjybxx
@@ -133,12 +133,20 @@ class ReloadUtils {
      * @param out    接收结果的列表，用于减少不必要的列表创建
      * @param filter 文件过滤器，可以为null
      */
-    static void recurseDir(@Nonnull File dir, @Nonnull List<File> out, @Nullable FileFilter filter) {
+    static void recurseDir(@Nonnull File dir, @Nonnull List<File> out, @Nullable Predicate<File> filter) {
         if (!dir.exists() || !dir.isDirectory()) {
             return;
         }
 
-        final File[] children = dir.listFiles(file -> file.isDirectory() || null == filter || filter.accept(file));
+        final File[] children = dir.listFiles(file -> {
+            if (file.getName().startsWith("~$")) {
+                // 临时文件
+                return false;
+            } else {
+                return file.isDirectory() || null == filter || filter.test(file);
+            }
+        });
+
         if (null == children) {
             return;
         }

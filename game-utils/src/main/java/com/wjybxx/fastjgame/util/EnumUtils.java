@@ -162,7 +162,7 @@ public class EnumUtils {
             }
 
             if (!fieldSet.add(field)) {
-                final String msg = String.format("Field is duplicate, num: %s, enum: %s", field, t.toString());
+                final String msg = String.format("Field is duplicate, filed: %s, enum: %s", field, t.toString());
                 throw new IllegalArgumentException(msg);
             }
         }

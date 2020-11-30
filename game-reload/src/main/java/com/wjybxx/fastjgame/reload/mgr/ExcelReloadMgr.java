@@ -26,7 +26,7 @@ import com.wjybxx.fastjgame.reload.file.FileName;
 import com.wjybxx.fastjgame.reload.file.FileReader;
 import com.wjybxx.fastjgame.reload.file.FileReloadListener;
 import com.wjybxx.fastjgame.util.ClassScanner;
-import com.wjybxx.fastjgame.util.excel.DefaultCellValueParser;
+import com.wjybxx.fastjgame.util.excel.CellValueParser;
 import com.wjybxx.fastjgame.util.excel.ExcelUtils;
 import com.wjybxx.fastjgame.util.excel.Sheet;
 import com.wjybxx.fastjgame.util.function.FunctionUtils;
@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -72,9 +73,11 @@ public class ExcelReloadMgr implements ExtensibleObject {
      * @param readerPackages reader所在的包名，反射创建对象
      * @param fileReloadMgr  真正管理文件更新的地方
      * @param sheetDataMgr   应用自身管理数据的地方
+     * @param parserSupplier 用于解析excel表格的内容，注意：如果不能确保线程安全，请每次new新对象。
      */
     public ExcelReloadMgr(String projectResDir, String configDirName, Set<String> readerPackages,
-                          FileReloadMgr fileReloadMgr, SheetDataMgr sheetDataMgr) throws Exception {
+                          FileReloadMgr fileReloadMgr, SheetDataMgr sheetDataMgr,
+                          Supplier<CellValueParser> parserSupplier) throws Exception {
         this.fileReloadMgr = fileReloadMgr;
         this.sheetDataMgr = sheetDataMgr;
 
@@ -91,7 +94,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
         registerReaders(readerMap);
         registerBuilders(builderMap);
 
-        final ExcelInitResult excelInitResult = initExcelReaders(projectResDir, configDirName, readerMap);
+        final ExcelInitResult excelInitResult = initExcelReaders(projectResDir, configDirName, readerMap, parserSupplier);
         this.excelReaderMap = excelInitResult.excelReaderMap;
         stepWatch.logStep("initExcelReaders");
 
@@ -202,7 +205,8 @@ public class ExcelReloadMgr implements ExtensibleObject {
     }
 
     private static ExcelInitResult initExcelReaders(final String projectResDir, final String configDirName,
-                                                    final Map<SheetName<?>, SheetReader<?>> readerMap) throws IOException {
+                                                    final Map<SheetName<?>, SheetReader<?>> readerMap,
+                                                    final Supplier<CellValueParser> parserSupplier) throws IOException {
 
         // 该集合不可以修改，否则会影响readExcelSheetNames调用
         final Map<String, SheetReader<?>> stringSheetName2ReaderMap = readerMap.keySet().stream()
@@ -237,7 +241,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
             for (String sheetName : sheetNameList) {
                 sheetReaderMap.put(sheetName, stringSheetName2ReaderMap.get(sheetName));
             }
-            excelReaderMap.put(fileName, new ExcelReader(file.getName(), fileName, sheetReaderMap));
+            excelReaderMap.put(fileName, new ExcelReader(file.getName(), fileName, sheetReaderMap, parserSupplier));
         }
 
         return new ExcelInitResult(excelReaderMap);
@@ -245,9 +249,10 @@ public class ExcelReloadMgr implements ExtensibleObject {
 
     private static FileName<ExcelFileData> findFileName(String configDirName, File file) {
         final LinkedList<String> nameList = new LinkedList<>();
+        nameList.addFirst(file.getName());
         do {
-            nameList.addFirst(file.getName());
             file = file.getParentFile();
+            nameList.addFirst(file.getName());
         } while (!file.getName().equals(configDirName));
 
         final StringBuilder stringBuilder = new StringBuilder(30);
@@ -295,6 +300,14 @@ public class ExcelReloadMgr implements ExtensibleObject {
      */
     public <T> T getSheetData(SheetName<T> sheetName) {
         return sheetDataContainer.getSheetData(sheetName);
+    }
+
+    /**
+     * 启服加载所有表格
+     * 注意：需要先调用{@link FileReloadMgr#loadAll()}
+     */
+    public void loadAll() throws Exception {
+        reloadImpl(Collections.unmodifiableSet(excelReaderMap.keySet()), ReloadMode.START_SERVER);
     }
 
     /**
@@ -374,6 +387,121 @@ public class ExcelReloadMgr implements ExtensibleObject {
 
     // region 内部实现
 
+    private void reloadImpl(Set<FileName<?>> changedFileNameSet, ReloadMode reloadMode) throws Exception {
+        final StepWatch stepWatch = StepWatch.createStarted("ExcelReloadMrg:reloadImpl");
+        // 合并所有sheet读取结果
+        final Map<SheetName<?>, Object> sheetDataMap = new IdentityHashMap<>(changedFileNameSet.size() * 3);
+        for (FileName<?> fileName : changedFileNameSet) {
+            final ExcelFileData fileData = (ExcelFileData) fileReloadMgr.getFileData(fileName);
+            sheetDataMap.putAll(fileData.sheetDataMap);
+        }
+
+        // 在沙箱上进行修改和一致性校验
+        final SandBox sandBox = createSandBox(sheetDataMgr, sheetDataContainer);
+        assignSheetData(sheetDataMap, sandBox.sheetDataMgr, sandBox.sheetDataContainer);
+        final Map<Class<?>, Object> sheetCacheMap = buildSheetCache(sheetDataMap.keySet(), sandBox.sheetDataContainer);
+        assignCacheData(sheetCacheMap, sandBox.sheetDataMgr, sandBox.sheetDataContainer);
+        stepWatch.logStep("buildSandbox");
+
+        // 检查所有表格之间的一致性(开销可能很大，热更前应该在本地进行热更和启服测试)
+        // TODO 以后可以本地测试一下开销，再决定热更新时是否也开启检测
+        // 这里是沙箱存在的意义
+        validateOther(sandBox.sheetDataMgr);
+        stepWatch.logStep("validateOther");
+
+        // 赋值到真实环境（这里其实已经完成了读表逻辑）
+        assignSheetData(sheetDataMap, sheetDataMgr, sheetDataContainer);
+        assignCacheData(sheetCacheMap, sheetDataMgr, sheetDataContainer);
+
+        // 执行回调逻辑（这里可能产生异常）
+        if (reloadMode != ReloadMode.START_SERVER) {
+            notifySheetListeners(Collections.unmodifiableSet(sheetDataMap.keySet()));
+            stepWatch.logStep("notifyListeners");
+        }
+
+        logger.info(stepWatch.getLog());
+    }
+
+    private SandBox createSandBox(SheetDataMgr dataMgrProtoType, SheetDataContainer containerPrototype) {
+        // 重建SheetDataMgr和SheetDataContainer
+        final SheetDataMgr sandBoxSheetDataMgr = dataMgrProtoType.newInstance();
+        final SheetDataContainer sandBoxSheetDataContainer = new SheetDataContainer();
+        assignSheetData(containerPrototype.getAllSheetData(), sandBoxSheetDataMgr, sandBoxSheetDataContainer);
+        assignCacheData(containerPrototype.getAllCacheData(), sandBoxSheetDataMgr, sandBoxSheetDataContainer);
+        return new SandBox(sandBoxSheetDataMgr, sandBoxSheetDataContainer);
+    }
+
+    private void assignSheetData(Map<SheetName<?>, ?> sheetDataMap, SheetDataMgr sheetDataMgr, SheetDataContainer sheetDataContainer) {
+        for (Map.Entry<SheetName<?>, ?> entry : sheetDataMap.entrySet()) {
+            @SuppressWarnings("unchecked") final SheetName<Object> sheetName = (SheetName<Object>) entry.getKey();
+            final Object sheetData = entry.getValue();
+            final ReaderMetadata<?> readerMetaData = readerMetadataMap.get(sheetName);
+            @SuppressWarnings("unchecked") final SheetReader<Object> reader = (SheetReader<Object>) readerMetaData.reader;
+            reader.assignTo(sheetData, sheetDataMgr);
+            // 额外存储
+            sheetDataContainer.putSheetData(sheetName, sheetData);
+        }
+    }
+
+    private void assignCacheData(Map<Class<?>, ?> cacheMap, SheetDataMgr sheetDataMgr, SheetDataContainer sheetDataContainer) {
+        for (Map.Entry<Class<?>, ?> entry : cacheMap.entrySet()) {
+            final Class<?> builderType = entry.getKey();
+            final Object cache = entry.getValue();
+            final BuilderMetadata<?> builderMetadata = builderMetadataMap.get(builderType);
+            @SuppressWarnings("unchecked") final SheetCacheBuilder<Object> builder = (SheetCacheBuilder<Object>) builderMetadata.builder;
+            builder.assignTo(cache, sheetDataMgr);
+            // 额外存储
+            sheetDataContainer.putCacheData(builderType, cache);
+        }
+    }
+
+    private Map<Class<?>, Object> buildSheetCache(Collection<SheetName<?>> sheetNames, SheetDataContainer sheetDataContainer) {
+        final Map<Class<?>, Object> result = new IdentityHashMap<>(20);
+        // 这里数量较少，直接遍历所有的builder(减少不必要的依赖)
+        for (BuilderMetadata<?> builderMetadata : builderMetadataMap.values()) {
+            for (SheetName<?> sheetName : builderMetadata.sheetNamSet) {
+                if (sheetNames.contains(sheetName)) {
+                    final SheetDataProviderImpl sheetDataProvider = new SheetDataProviderImpl(sheetDataContainer, builderMetadata.sheetNamSet);
+                    final Object cache = builderMetadata.builder.build(sheetDataProvider);
+                    result.put(builderMetadata.builder.getClass(), cache);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    private void validateOther(SheetDataMgr sheetDataMgr) {
+        for (final ReaderMetadata<?> readerMetaData : readerMetadataMap.values()) {
+            readerMetaData.reader.validateOther(sheetDataMgr);
+        }
+
+        for (final BuilderMetadata<?> builderMetadata : builderMetadataMap.values()) {
+            builderMetadata.builder.validateOther(sheetDataMgr);
+        }
+    }
+
+    private void notifySheetListeners(Set<SheetName<?>> allChangedSheetNames) throws Exception {
+        final Set<ListenerWrapper> invokedListeners = Collections.newSetFromMap(new IdentityHashMap<>(20));
+        for (SheetName<?> sheetName : allChangedSheetNames) {
+            final ListenerWrapper listenerWrapper = listenerWrapperMap.get(sheetName);
+            if (listenerWrapper == null) {
+                continue;
+            }
+            if (!invokedListeners.add(listenerWrapper)) {
+                // 已通知
+                continue;
+            }
+            // 不捕获异常，这会中断热更新流程，上层保证文件状态不被更新，可以再次执行
+            listenerWrapper.afterReload(allChangedSheetNames);
+        }
+    }
+
+    private enum ReloadMode {
+        START_SERVER,
+        FILE_CHANGED,
+    }
+
     private static class ReaderMetadata<T> {
 
         final SheetReader<T> reader;
@@ -397,11 +525,15 @@ public class ExcelReloadMgr implements ExtensibleObject {
         final String simpleFileName;
         final FileName<ExcelFileData> fileName;
         final Map<String, SheetReader<?>> sheetReaderMap;
+        final Supplier<CellValueParser> parserSupplier;
 
-        ExcelReader(String simpleFileName, FileName<ExcelFileData> fileName, Map<String, SheetReader<?>> sheetReaderMap) {
+        ExcelReader(String simpleFileName, FileName<ExcelFileData> fileName,
+                    Map<String, SheetReader<?>> sheetReaderMap,
+                    Supplier<CellValueParser> parserSupplier) {
             this.simpleFileName = simpleFileName;
             this.fileName = fileName;
             this.sheetReaderMap = sheetReaderMap;
+            this.parserSupplier = parserSupplier;
         }
 
         @Override
@@ -412,7 +544,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
         @Override
         public ExcelFileData read(File file) throws Exception {
             // 读取Excel到内存
-            final Map<String, Sheet> sheetMap = ExcelUtils.readExcel(file, new DefaultCellValueParser(), sheetReaderMap::containsKey);
+            final Map<String, Sheet> sheetMap = ExcelUtils.readExcel(file, parserSupplier.get(), sheetReaderMap::containsKey);
             final Map<SheetName<?>, Object> sheetDataMap = Maps.newHashMapWithExpectedSize(sheetMap.size());
             for (Map.Entry<String, Sheet> entry : sheetMap.entrySet()) {
                 final String sheetName = entry.getKey();
@@ -446,116 +578,9 @@ public class ExcelReloadMgr implements ExtensibleObject {
 
         @Override
         public void afterReload(Set<FileName<?>> fileNameSet, Set<FileName<?>> changedFileNameSet) throws Exception {
-            reloadImpl(changedFileNameSet);
+            reloadImpl(changedFileNameSet, ReloadMode.FILE_CHANGED);
         }
 
-        private void reloadImpl(Set<FileName<?>> changedFileNameSet) throws Exception {
-            final StepWatch stepWatch = StepWatch.createStarted("ExcelReloadMrg:reloadImpl");
-            // 合并所有sheet读取结果
-            final Map<SheetName<?>, Object> sheetDataMap = new IdentityHashMap<>(changedFileNameSet.size() * 3);
-            for (FileName<?> fileName : changedFileNameSet) {
-                final ExcelFileData fileData = (ExcelFileData) fileReloadMgr.getFileData(fileName);
-                sheetDataMap.putAll(fileData.sheetDataMap);
-            }
-
-            // 在沙箱上进行修改和一致性校验
-            final SandBox sandBox = createSandBox(sheetDataMgr, sheetDataContainer);
-            assignSheetData(sheetDataMap, sandBox.sheetDataMgr, sandBox.sheetDataContainer);
-            final Map<Class<?>, Object> sheetCacheMap = buildSheetCache(sheetDataMap.keySet(), sandBox.sheetDataContainer);
-            assignCacheData(sheetCacheMap, sandBox.sheetDataMgr, sandBox.sheetDataContainer);
-            stepWatch.logStep("buildSandbox");
-
-            // 检查所有表格之间的一致性(开销可能很大，热更前应该在本地进行热更和启服测试)
-            // TODO 以后可以本地测试一下开销，再决定热更新时是否也开启检测
-            // 这里是沙箱存在的意义
-            validateOther(sandBox.sheetDataMgr);
-            stepWatch.logStep("validateOther");
-
-            // 赋值到真实环境（这里其实已经完成了读表逻辑）
-            assignSheetData(sheetDataMap, sheetDataMgr, sheetDataContainer);
-            assignCacheData(sheetCacheMap, sheetDataMgr, sheetDataContainer);
-
-            // 执行回调逻辑（这里可能产生异常）
-            notifySheetListeners(Collections.unmodifiableSet(sheetDataMap.keySet()));
-            stepWatch.logStep("notifyListeners");
-
-            logger.info(stepWatch.getLog());
-        }
-
-        private SandBox createSandBox(SheetDataMgr dataMgrProtoType, SheetDataContainer containerPrototype) {
-            // 重建SheetDataMgr和SheetDataContainer
-            final SheetDataMgr sandBoxSheetDataMgr = dataMgrProtoType.newInstance();
-            final SheetDataContainer sandBoxSheetDataContainer = new SheetDataContainer();
-            assignSheetData(containerPrototype.getAllSheetData(), sandBoxSheetDataMgr, sandBoxSheetDataContainer);
-            assignCacheData(containerPrototype.getAllCacheData(), sandBoxSheetDataMgr, sandBoxSheetDataContainer);
-            return new SandBox(sandBoxSheetDataMgr, sandBoxSheetDataContainer);
-        }
-
-        private void assignSheetData(Map<SheetName<?>, ?> sheetDataMap, SheetDataMgr sheetDataMgr, SheetDataContainer sheetDataContainer) {
-            for (Map.Entry<SheetName<?>, ?> entry : sheetDataMap.entrySet()) {
-                @SuppressWarnings("unchecked") final SheetName<Object> sheetName = (SheetName<Object>) entry.getKey();
-                final Object sheetData = entry.getValue();
-                final ReaderMetadata<?> readerMetaData = readerMetadataMap.get(sheetName);
-                @SuppressWarnings("unchecked") final SheetReader<Object> reader = (SheetReader<Object>) readerMetaData.reader;
-                reader.assignTo(sheetData, sheetDataMgr);
-                // 额外存储
-                sheetDataContainer.putSheetData(sheetName, sheetData);
-            }
-        }
-
-        private void assignCacheData(Map<Class<?>, ?> cacheMap, SheetDataMgr sheetDataMgr, SheetDataContainer sheetDataContainer) {
-            for (Map.Entry<Class<?>, ?> entry : cacheMap.entrySet()) {
-                final Class<?> builderType = entry.getKey();
-                final Object cache = entry.getValue();
-                final BuilderMetadata<?> builderMetadata = builderMetadataMap.get(builderType);
-                @SuppressWarnings("unchecked") final SheetCacheBuilder<Object> builder = (SheetCacheBuilder<Object>) builderMetadata.builder;
-                builder.assignTo(cache, sheetDataMgr);
-                // 额外存储
-                sheetDataContainer.putCacheData(builderType, cache);
-            }
-        }
-
-        private Map<Class<?>, Object> buildSheetCache(Collection<SheetName<?>> sheetNames, SheetDataContainer sheetDataContainer) {
-            final Map<Class<?>, Object> result = new IdentityHashMap<>(20);
-            // 这里数量较少，直接遍历所有的builder(减少不必要的依赖)
-            for (BuilderMetadata<?> builderMetadata : builderMetadataMap.values()) {
-                for (SheetName<?> sheetName : builderMetadata.sheetNamSet) {
-                    if (sheetNames.contains(sheetName)) {
-                        final SheetDataProviderImpl sheetDataProvider = new SheetDataProviderImpl(sheetDataContainer, builderMetadata.sheetNamSet);
-                        final Object cache = builderMetadata.builder.build(sheetDataProvider);
-                        result.put(builderMetadata.builder.getClass(), cache);
-                        break;
-                    }
-                }
-            }
-            return result;
-        }
-
-        private void validateOther(SheetDataMgr sheetDataMgr) {
-            for (final ReaderMetadata<?> readerMetaData : readerMetadataMap.values()) {
-                readerMetaData.reader.validateOther(sheetDataMgr);
-            }
-
-            for (final BuilderMetadata<?> builderMetadata : builderMetadataMap.values()) {
-                builderMetadata.builder.validateOther(sheetDataMgr);
-            }
-        }
-
-        private void notifySheetListeners(Set<SheetName<?>> allChangedSheetNames) throws Exception {
-            final Set<ListenerWrapper> invokedListeners = Collections.newSetFromMap(new IdentityHashMap<>(20));
-            for (SheetName<?> sheetName : allChangedSheetNames) {
-                final ListenerWrapper listenerWrapper = listenerWrapperMap.get(sheetName);
-                if (listenerWrapper == null) {
-                    continue;
-                }
-                if (!invokedListeners.add(listenerWrapper)) {
-                    // 已通知
-                    continue;
-                }
-                // 不捕获异常，这会中断热更新流程，上层保证文件状态不被更新，可以再次执行
-                listenerWrapper.afterReload(allChangedSheetNames);
-            }
-        }
     }
 
     private static class SheetDataProviderImpl implements SheetCacheBuilder.SheetDataProvider {

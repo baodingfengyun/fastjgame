@@ -397,7 +397,7 @@ public class FileReloadMgr implements ExtensibleObject {
             }
 
             // 执行热更新
-            reloadImpl(changedFiles, ReloadMode.RELOAD_ALL);
+            reloadImpl(changedFiles, ReloadMode.RELOAD_SCOPE);
 
             // 打印详细日志
             for (TaskContext context : changedFiles) {
@@ -409,7 +409,7 @@ public class FileReloadMgr implements ExtensibleObject {
         } catch (Throwable e) {
             // 打印失败日志
             logger.info("reloadScope failure, stepInfo {}", stepWatch);
-            throw new ReloadException(e);
+            throw new ReloadException(FutureUtils.unwrapCompletionException(e));
         }
     }
 
@@ -461,7 +461,7 @@ public class FileReloadMgr implements ExtensibleObject {
         } catch (Throwable e) {
             // 打印失败日志
             logger.warn("forceReload failure, stepInfo {}", stepWatch);
-            throw new ReloadException(e);
+            throw new ReloadException(FutureUtils.unwrapCompletionException(e));
         }
     }
 
@@ -530,7 +530,7 @@ public class FileReloadMgr implements ExtensibleObject {
 
     private enum ReloadMode {
         START_SERVER,
-        RELOAD_ALL,
+        RELOAD_SCOPE,
         FORCE_RELOAD
     }
 

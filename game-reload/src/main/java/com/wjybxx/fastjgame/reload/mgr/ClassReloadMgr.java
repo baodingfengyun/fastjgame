@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.reload.mgr;
 import com.google.common.collect.Maps;
 import com.wjybxx.fastjgame.agent.ClassReloadAgent;
 import com.wjybxx.fastjgame.reload.mgr.ReloadUtils.FileStat;
+import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.util.misc.StepWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +101,7 @@ public class ClassReloadMgr implements ExtensibleObject {
         } catch (Throwable e) {
             // 打印失败日志
             logger.info("reloadAll failure, stepInfo {}", stepWatch);
-            throw new ReloadException(e);
+            throw new ReloadException(FutureUtils.unwrapCompletionException(e));
         }
     }
 

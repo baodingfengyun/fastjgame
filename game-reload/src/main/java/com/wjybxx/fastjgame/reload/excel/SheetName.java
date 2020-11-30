@@ -37,21 +37,24 @@ public final class SheetName<T> extends AbstractConstant<SheetName<T>> {
      * 必须作为第一个字段，在其它字段使用它之前初始化。
      * 注意：该字段会被置为null，这并不是常用模式
      */
-    private static final ConstantPool<SheetName<Object>> SHEET_NAME_POOL = new ConstantPool<>(SheetName::new);
+    private static final ConstantPool<SheetName<Object>> POOL = new ConstantPool<>(SheetName::new);
 
     @SuppressWarnings("unchecked")
     public static <T> SheetName<T> valueOf(String name) {
-        return (SheetName<T>) SHEET_NAME_POOL.valueOf(name);
+        return (SheetName<T>) POOL.valueOf(name);
     }
 
     @SuppressWarnings("unchecked")
     public static <T> SheetName<T> newInstance(String name) {
-        return (SheetName<T>) SHEET_NAME_POOL.newInstance(name);
+        return (SheetName<T>) POOL.newInstance(name);
     }
 
     @SuppressWarnings("unchecked")
     public static <T> SheetName<T> forNameThrowable(String name) {
-        return (SheetName<T>) SHEET_NAME_POOL.getOrThrow(name);
+        return (SheetName<T>) POOL.getOrThrow(name);
     }
 
+    public static boolean exists(String relativePath) {
+        return POOL.exists(relativePath);
+    }
 }
