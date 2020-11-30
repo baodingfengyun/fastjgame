@@ -70,4 +70,9 @@ public class DefaultSheetContent implements SheetContent {
     public int totalRowCount() {
         return headerRows.size() + valueRows.size();
     }
+
+    @Override
+    public int valueRowCount() {
+        return valueRows.size();
+    }
 }

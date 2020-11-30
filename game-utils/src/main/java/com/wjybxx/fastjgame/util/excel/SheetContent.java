@@ -30,6 +30,11 @@ public interface SheetContent {
      */
     int totalRowCount();
 
+    /**
+     * @return 表格的有效内容行行数
+     */
+    int valueRowCount();
+
     default ParamSheetContent asParamSheetContent() {
         if (this instanceof ParamSheetContent) {
             return (ParamSheetContent) this;

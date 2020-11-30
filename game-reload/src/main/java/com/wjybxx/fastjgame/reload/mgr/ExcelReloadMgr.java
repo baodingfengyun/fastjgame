@@ -499,11 +499,6 @@ public class ExcelReloadMgr implements ExtensibleObject {
             // 不验证
         }
 
-        @Override
-        public boolean autoReload() {
-            // excel表格必须等待Http请求才允许更新
-            return false;
-        }
     }
 
     private class ExcelReloadListener implements FileReloadListener {

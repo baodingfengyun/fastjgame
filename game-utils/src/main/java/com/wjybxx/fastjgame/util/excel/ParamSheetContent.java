@@ -84,4 +84,9 @@ public class ParamSheetContent implements SheetContent {
     public int totalRowCount() {
         return name2CellMap.size() + 2;
     }
+
+    @Override
+    public int valueRowCount() {
+        return name2CellMap.size();
+    }
 }

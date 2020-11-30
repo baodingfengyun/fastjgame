@@ -80,7 +80,7 @@ public class ThreadUtils {
      *
      * @param sleepMillis 要睡眠的时间(毫秒)
      */
-    public static void sleepQuietly(int sleepMillis) {
+    public static void sleepQuietly(long sleepMillis) {
         try {
             Thread.sleep(sleepMillis);
         } catch (InterruptedException ignore) {

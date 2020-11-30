@@ -66,7 +66,7 @@ public final class FileReloadMgr implements ExtensibleObject {
      *                      如果独享，建议拒绝策略为{@link java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy}。
      * @param fileDataMgr   应用自身管理数据的地方
      */
-    public FileReloadMgr(String projectResDir, Executor executor, FileDataMgr fileDataMgr) throws Exception {
+    public FileReloadMgr(String projectResDir, Executor executor, FileDataMgr fileDataMgr) {
         this.projectResDir = projectResDir;
         this.executor = executor;
         this.fileDataMgr = fileDataMgr;

@@ -120,6 +120,13 @@ public final class Sheet {
         return sheetContent.totalRowCount();
     }
 
+    /**
+     * @return 表格的有效内容行行数
+     */
+    public int valueRowCount() {
+        return sheetContent.valueRowCount();
+    }
+
     static RuntimeException notDefaultSheetException() {
         return new IllegalStateException("this sheet might be a param sheet?");
     }

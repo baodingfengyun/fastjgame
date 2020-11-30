@@ -63,12 +63,4 @@ public interface FileReader<T> {
      */
     void validateOther(FileDataMgr fileDataMgr);
 
-    /**
-     * TODO 暂未实现
-     *
-     * @return 如果返回true，表示文件可以在后台检测到变化后就更新。
-     */
-    default boolean autoReload() {
-        return false;
-    }
 }
