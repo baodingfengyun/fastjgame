@@ -67,7 +67,6 @@ public interface FileReader<T> {
      * TODO 暂未实现
      *
      * @return 如果返回true，表示文件可以在后台检测到变化后就更新。
-     * 表示检测文件变化后
      */
     default boolean autoReload() {
         return false;

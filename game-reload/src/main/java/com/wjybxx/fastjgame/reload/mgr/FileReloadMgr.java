@@ -87,7 +87,7 @@ public class FileReloadMgr implements ExtensibleObject {
         logger.info(stepWatch.getLog());
     }
 
-    final void registerReaders(Map<FileName<?>, ? extends FileReader<?>> readerMap) {
+    public final void registerReaders(Map<FileName<?>, ? extends FileReader<?>> readerMap) {
         for (Map.Entry<FileName<?>, ? extends FileReader<?>> entry : readerMap.entrySet()) {
             final FileName<?> fileName = entry.getKey();
             final FileReader<?> reader = entry.getValue();
@@ -115,7 +115,7 @@ public class FileReloadMgr implements ExtensibleObject {
         return file;
     }
 
-    private void registerBuilders(Map<Class<?>, ? extends FileCacheBuilder<?>> builderMap) {
+    public final void registerBuilders(Map<Class<?>, ? extends FileCacheBuilder<?>> builderMap) {
         for (Map.Entry<Class<?>, ? extends FileCacheBuilder<?>> entry : builderMap.entrySet()) {
             final Class<?> builderType = entry.getKey();
             final FileCacheBuilder<?> builder = entry.getValue();
@@ -251,7 +251,7 @@ public class FileReloadMgr implements ExtensibleObject {
 
     private void reloadImpl(List<TaskContext> changedFiles, ReloadMode reloadMode) throws Exception {
         if (changedFiles.isEmpty()) {
-            logger.info("changedFiles is empty");
+            logger.info("reloadImpl, changedFiles is empty");
             return;
         }
 
@@ -375,13 +375,15 @@ public class FileReloadMgr implements ExtensibleObject {
     }
 
     /**
-     * 重新加载所有的配置文件
+     * 重新加载所有的配置文件中改变的文件
      */
     public void reloadAll() {
         reloadScope(readerMetadataMap.keySet());
     }
 
     /**
+     * 重新加载指定的配置文件中改变的文件
+     *
      * @param scope 检测范围
      */
     public void reloadScope(Set<FileName<?>> scope) {
@@ -681,8 +683,8 @@ public class FileReloadMgr implements ExtensibleObject {
         private final Map<Class<?>, Object> cacheDataMap;
 
         FileDataContainer() {
-            fileDataMap = new IdentityHashMap<>(100);
-            cacheDataMap = new IdentityHashMap<>(20);
+            fileDataMap = new IdentityHashMap<>(300);
+            cacheDataMap = new IdentityHashMap<>(30);
         }
 
         final <T> T getFileData(FileName<T> fileName) {
@@ -714,7 +716,7 @@ public class FileReloadMgr implements ExtensibleObject {
             return new IdentityHashMap<>(cacheDataMap);
         }
 
-        public final Object getCacheData(Class<?> builderType) {
+        final Object getCacheData(Class<?> builderType) {
             Objects.requireNonNull(builderType, "builderType");
             final Object result = cacheDataMap.get(builderType);
             if (result == null) {

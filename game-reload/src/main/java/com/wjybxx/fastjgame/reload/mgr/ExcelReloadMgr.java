@@ -154,27 +154,50 @@ public class ExcelReloadMgr implements ExtensibleObject {
         }
     }
 
-    private void registerReaders(Map<SheetName<?>, SheetReader<?>> readerMap) {
-        for (SheetReader<?> reader : readerMap.values()) {
-            readerMetadataMap.put(reader.sheetName(), new ReaderMetadata<>(reader));
+    /**
+     * 注意：先注册{@link SheetReader}，再注册{@link SheetCacheBuilder}
+     */
+    public final void registerReaders(Map<SheetName<?>, SheetReader<?>> readerMap) {
+        for (Map.Entry<SheetName<?>, SheetReader<?>> entry : readerMap.entrySet()) {
+            final SheetName<?> sheetName = entry.getKey();
+            final SheetReader<?> reader = entry.getValue();
+
+            if (sheetName != reader.sheetName()) {
+                final String msg = String.format("fileName assert exception, sheetName: %s, reader: %s", sheetName, reader.getClass().getName());
+                throw new IllegalArgumentException(msg);
+            }
+
+            if (readerMetadataMap.containsKey(sheetName)) {
+                final String msg = String.format("sheetName has more than one associated reader, sheetName: %s, reader: %s", sheetName, reader.getClass().getName());
+                throw new IllegalArgumentException(msg);
+            }
+            readerMetadataMap.put(sheetName, new ReaderMetadata<>(reader));
         }
     }
 
-    private void registerBuilders(Map<Class<?>, SheetCacheBuilder<?>> builderMap) {
-        for (SheetCacheBuilder<?> builder : builderMap.values()) {
+    public final void registerBuilders(Map<Class<?>, SheetCacheBuilder<?>> builderMap) {
+        for (Map.Entry<Class<?>, SheetCacheBuilder<?>> entry : builderMap.entrySet()) {
+            final Class<?> builderType = entry.getKey();
+            final SheetCacheBuilder<?> builder = entry.getValue();
+
+            if (builderType != builder.getClass()) {
+                final String msg = String.format("builderType assert exception, builderType: %s, reader: %s", builderType, builder.getClass().getName());
+                throw new IllegalArgumentException(msg);
+            }
+
             final Set<SheetName<?>> builderSheetNames = builder.sheetNames();
             // 关注的表格不可以为空
             if (builderSheetNames.isEmpty()) {
-                throw new IllegalStateException("sheetNames is empty, builder: " + builder.getClass().getName());
+                throw new IllegalStateException("sheetNames is empty, builder: " + builderType.getName());
             }
             // reader缺失检查
             for (SheetName<?> sheetName : builderSheetNames) {
                 if (!readerMetadataMap.containsKey(sheetName)) {
-                    final String msg = String.format("reader is null, sheetName: %s, builder: %s", sheetName, builder.getClass().getName());
+                    final String msg = String.format("reader is null, sheetName: %s, builder: %s", sheetName, builderType.getName());
                     throw new IllegalStateException(msg);
                 }
             }
-            builderMetadataMap.put(builder.getClass(), new BuilderMetadata<>(builder, builder.sheetNames()));
+            builderMetadataMap.put(builderType, new BuilderMetadata<>(builder, builder.sheetNames()));
         }
     }
 
@@ -268,6 +291,13 @@ public class ExcelReloadMgr implements ExtensibleObject {
     }
 
     /**
+     * 获取某个表格的数据
+     */
+    public <T> T getSheetData(SheetName<T> sheetName) {
+        return sheetDataContainer.getSheetData(sheetName);
+    }
+
+    /**
      * 加载所有变化的表格
      */
     public void reloadAll() {
@@ -290,7 +320,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
         // 转换类型
         final Set<FileName<?>> scope = Sets.newHashSetWithExpectedSize(excelNameSet.size());
         for (String excelName : excelNameSet) {
-            final FileName<?> fileName = stringFileNameMap.get(excelName);
+            final FileName<?> fileName = excelName.endsWith(".xlsx") ? stringFileNameMap.get(excelName) : stringFileNameMap.get(excelName + ".xlsx");
             if (fileName == null) {
                 throw new IllegalArgumentException("unknown excel, excelName: " + excelName);
             }
@@ -622,7 +652,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
 
         SheetDataContainer() {
             this.sheetDataMap = new IdentityHashMap<>(500);
-            this.cacheDataMap = new IdentityHashMap<>(20);
+            this.cacheDataMap = new IdentityHashMap<>(50);
         }
 
         final <T> void putSheetData(SheetName<T> sheetName, T data) {

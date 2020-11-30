@@ -63,12 +63,13 @@ public class DefaultCellValueParser implements CellValueParser {
     static {
         Set<String> tempSupportedTypes = Sets.newHashSetWithExpectedSize(BASIC_TYPES.size() * 3 + 1);
         tempSupportedTypes.addAll(BASIC_TYPES);
-        tempSupportedTypes.add(JSON);
         // 一维和二维数组
         for (String typeString : BASIC_TYPES) {
             tempSupportedTypes.add(typeString + "[]");
             tempSupportedTypes.add(typeString + "[][]");
         }
+        // json
+        tempSupportedTypes.add(JSON);
         SUPPORTED_TYPES = Set.copyOf(tempSupportedTypes);
     }
 

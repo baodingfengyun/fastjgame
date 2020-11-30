@@ -48,7 +48,7 @@ public interface SheetCacheBuilder<T> {
      * A: 无法限制实现类访问的范围。比如：你在{@link #sheetNames()}中只返回了两个表格的名字，却在{@link SheetDataMgr}中获取了3个表格的读表结果。
      * <p>
      * Q: 这会导致什么问题呢？
-     * A: 无法在热更时准确的重建缓存！因为在{@link #sheetNames()}与该方法之间存在一致性问题。
+     * A: 无法在热更时准确重建缓存！因为在{@link #sheetNames()}与该方法之间存在一致性问题。
      * 因此，为了保证{@link #sheetNames()}与该方法的一致性，我们只传入你关心的表格的内容，以保证正确性。
      * 另外，我们为多表构建缓存的情况并不多，因此该复杂度影响的范围有限。
      * <p>

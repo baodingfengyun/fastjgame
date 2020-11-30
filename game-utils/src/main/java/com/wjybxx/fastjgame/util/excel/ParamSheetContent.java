@@ -36,7 +36,7 @@ import java.util.Set;
  * </pre>
  * 注意：
  * 1. name的值不可以重复，我们可以通过name取到对应的value
- * 2. 只要name列标记了s，那么name/type/value三列都会读取到内存，不论是否会被使用；
+ * 2. 任意一列标记了s，那么name/type/value三列都会读取到内存，不论是否会被使用；
  *
  * @author wjybxx
  * date - 2020/11/20

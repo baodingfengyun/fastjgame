@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.util.dsl;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * 枚举值映射
@@ -39,10 +40,7 @@ public interface IndexableEnumMapper<T extends IndexableEnum> {
 
     /**
      * 获取映射的所有枚举实例。
-     * (不可以修改数组内容，否则可能导致并发错误)
-     *
-     * @return array
      */
-    T[] values();
+    List<T> values();
 
 }

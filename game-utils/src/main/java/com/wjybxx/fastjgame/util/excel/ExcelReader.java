@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /**
  * {@link StreamingReader}不可以使用{@code getRow这种方法}
@@ -43,6 +44,12 @@ import java.util.function.Predicate;
 class ExcelReader implements AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(ExcelReader.class);
+
+    /**
+     * 字母开头，只可以使用字母数字和下划线
+     */
+    private static final String SHEET_NAME_REGEX = "^[a-zA-Z][a-zA-Z0-9_]*$";
+    private static final Pattern PATTERN = Pattern.compile(SHEET_NAME_REGEX);
 
     private final File file;
     private final CellValueParser parser;
@@ -84,7 +91,8 @@ class ExcelReader implements AutoCloseable {
         return StringUtils.isBlank(sheetName)
                 || sheetName.startsWith("Sheet")
                 || sheetName.startsWith("sheet")
-                || !sheetNameFilter.test(sheetName);
+                || !sheetNameFilter.test(sheetName)
+                || !PATTERN.matcher(sheetName).matches();
     }
 
     Map<String, Sheet> readSheets() {

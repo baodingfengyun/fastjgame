@@ -72,7 +72,7 @@ public final class ExcelUtils {
 
     public static void main(String[] args) throws Exception {
         // 测试表格放在了config目录下
-        final String path = "./config/test.xlsx";
+        final String path = "./res/config/test.xlsx";
         final File file = new File(path);
         final Map<String, Sheet> sheetMap = readExcel(file, new DefaultCellValueParser(), FunctionUtils.alwaysTrue());
         System.out.println(sheetMap);

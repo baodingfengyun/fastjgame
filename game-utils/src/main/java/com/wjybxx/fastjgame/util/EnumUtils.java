@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.util;
 
+import com.google.common.collect.Sets;
 import com.wjybxx.fastjgame.util.dsl.IndexableEnum;
 import com.wjybxx.fastjgame.util.dsl.IndexableEnumMapper;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -23,9 +24,11 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
-import java.util.Arrays;
+import java.util.*;
+import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
 /**
@@ -40,21 +43,6 @@ public class EnumUtils {
 
     private EnumUtils() {
         // close
-    }
-
-    public static <T extends IndexableEnum> void checkNumberDuplicate(T[] values) {
-        checkNumberDuplicate(values, IndexableEnum::getNumber);
-    }
-
-    public static <T> void checkNumberDuplicate(T[] values, ToIntFunction<T> func) {
-        final IntSet numberSet = new IntOpenHashSet(values.length);
-        for (T t : values) {
-            final int number = func.applyAsInt(t);
-            if (!numberSet.add(number)) {
-                final String msg = String.format("The number %d of %s is duplicate", number, t.toString());
-                throw new IllegalArgumentException(msg);
-            }
-        }
     }
 
     /**
@@ -78,14 +66,14 @@ public class EnumUtils {
     /**
      * 查找对应数字的对象
      *
-     * @param values 对象集合
-     * @param func   类型到数字的映射
-     * @param number 要查找的数字
      * @param <T>    对象类型
+     * @param values 对象集合
+     * @param number 要查找的数字
+     * @param func   类型到数字的映射
      * @return T
      */
     @Nullable
-    public static <T> T forNumber(T[] values, ToIntFunction<T> func, int number) {
+    public static <T> T forNumber(T[] values, int number, ToIntFunction<T> func) {
         for (T t : values) {
             if (func.applyAsInt(t) == number) {
                 return t;
@@ -131,32 +119,71 @@ public class EnumUtils {
         return null;
     }
 
-    public static <T extends IndexableEnum> T[] lookup(final T[] values) {
-        final int minNumber = minNumber(values);
-        final int maxNumber = maxNumber(values);
-
-        if (maxNumber - minNumber - values.length > 256) {
-            throw new IllegalArgumentException("lookup is not a good idea");
-        }
-
-        final IntOpenHashSet numberSet = new IntOpenHashSet(values.length);
+    /**
+     * 查找指定元素
+     *
+     * @param values   枚举集合
+     * @param expected 期望的比较值
+     * @param func     映射函数
+     * @return T
+     */
+    public static <T extends Enum<T>, E> T find(T[] values, @Nonnull E expected, Function<T, E> func) {
         for (T t : values) {
-            if (t.getNumber() < 0) {
-                throw new IllegalArgumentException(t.getClass().getSimpleName() + " number:" + t.getNumber() + " is negative");
-            }
-            if (!numberSet.add(t.getNumber())) {
-                throw new IllegalArgumentException(t.getClass().getSimpleName() + " number:" + t.getNumber() + " is duplicate");
+            if (expected.equals(func.apply(t))) {
+                return t;
             }
         }
-
-        // 必定相同的类型
-        @SuppressWarnings("unchecked") final T[] result = (T[]) Array.newInstance(values.getClass().getComponentType(), maxNumber + 1);
-        for (T t : values) {
-            result[t.getNumber()] = t;
-        }
-        return result;
+        return null;
     }
 
+    /**
+     * 检查枚举中的number是否存在重复
+     */
+    public static <T> void checkNumberDuplicate(T[] values, ToIntFunction<T> func) {
+        final IntSet numberSet = new IntOpenHashSet(values.length);
+        for (T t : values) {
+            final int number = func.applyAsInt(t);
+            if (!numberSet.add(number)) {
+                final String msg = String.format("The number is duplicate, num: %d, enum: %s", number, t.toString());
+                throw new IllegalArgumentException(msg);
+            }
+        }
+    }
+
+    /**
+     * 检查枚举中的某个值是否重复
+     */
+    public static <T, R> void checkFieldDuplicate(T[] values, Function<T, R> func) {
+        final Set<R> fieldSet = Sets.newHashSetWithExpectedSize(values.length);
+        for (T t : values) {
+            final R field = func.apply(t);
+            if (field == null) {
+                throw new NullPointerException(t.toString());
+            }
+
+            if (!fieldSet.add(field)) {
+                final String msg = String.format("Field is duplicate, num: %s, enum: %s", field, t.toString());
+                throw new IllegalArgumentException(msg);
+            }
+        }
+    }
+
+    /**
+     * 检查枚举中的number是否连续
+     */
+    public static <T> void checkNumberContinuity(final T[] originValues, ToIntFunction<T> func) {
+        if (originValues.length == 0) {
+            return;
+        }
+        // 避免修改原数组
+        final T[] clone = originValues.clone();
+        Arrays.sort(clone, Comparator.comparingInt(func));
+        for (int index = 0; index < clone.length - 1; index++) {
+            if (func.applyAsInt(clone[index]) + 1 != func.applyAsInt(clone[index + 1])) {
+                throw new IllegalArgumentException("the number or values is not Continuity, value: " + clone[index]);
+            }
+        }
+    }
 
     /**
      * 根据枚举的values建立索引；
@@ -204,14 +231,14 @@ public class EnumUtils {
         }
     }
 
-    public static <T extends IndexableEnum> int minNumber(T[] values) {
+    private static <T extends IndexableEnum> int minNumber(T[] values) {
         return Arrays.stream(values)
                 .mapToInt(IndexableEnum::getNumber)
                 .min()
                 .orElseThrow();
     }
 
-    public static <T extends IndexableEnum> int maxNumber(T[] values) {
+    private static <T extends IndexableEnum> int maxNumber(T[] values) {
         return Arrays.stream(values)
                 .mapToInt(IndexableEnum::getNumber)
                 .max()
@@ -228,10 +255,38 @@ public class EnumUtils {
         return false;
     }
 
+    /**
+     * @return 用枚举的number作为下标的数组
+     */
+    public static <T extends IndexableEnum> T[] lookup(final T[] values) {
+        final int minNumber = minNumber(values);
+        final int maxNumber = maxNumber(values);
+
+        if (maxNumber - minNumber - values.length > 256) {
+            throw new IllegalArgumentException("lookup is not a good idea, the elements are sparse");
+        }
+
+        final IntOpenHashSet numberSet = new IntOpenHashSet(values.length);
+        for (T t : values) {
+            if (t.getNumber() < 0) {
+                throw new IllegalArgumentException(t.getClass().getSimpleName() + " number:" + t.getNumber() + " is negative");
+            }
+            if (!numberSet.add(t.getNumber())) {
+                throw new IllegalArgumentException(t.getClass().getSimpleName() + " number:" + t.getNumber() + " is duplicate");
+            }
+        }
+
+        // 必定相同的类型
+        @SuppressWarnings("unchecked") final T[] result = (T[]) Array.newInstance(values.getClass().getComponentType(), maxNumber + 1);
+        for (T t : values) {
+            result[t.getNumber()] = t;
+        }
+        return result;
+    }
+
     private static class EmptyMapper<T extends IndexableEnum> implements IndexableEnumMapper<T> {
 
         private static final EmptyMapper<?> INSTANCE = new EmptyMapper<>();
-        private static final Object[] EMPTY_ARRAY = new Object[0];
 
         private EmptyMapper() {
         }
@@ -242,10 +297,9 @@ public class EnumUtils {
             return null;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        public T[] values() {
-            return (T[]) EMPTY_ARRAY;
+        public List<T> values() {
+            return Collections.emptyList();
         }
     }
 
@@ -258,7 +312,7 @@ public class EnumUtils {
         private static final float DEFAULT_FACTOR = 0.5f;
         private static final float MIN_FACTOR = 0.25f;
 
-        private final T[] values;
+        private final List<T> values;
         private final T[] elements;
 
         private final int minNumber;
@@ -271,7 +325,7 @@ public class EnumUtils {
          */
         @SuppressWarnings("unchecked")
         private ArrayBasedMapper(T[] values, int minNumber, int maxNumber) {
-            this.values = values;
+            this.values = List.of(values);
             this.minNumber = minNumber;
             this.maxNumber = maxNumber;
 
@@ -295,7 +349,7 @@ public class EnumUtils {
         }
 
         @Override
-        public T[] values() {
+        public List<T> values() {
             return values;
         }
 
@@ -304,11 +358,15 @@ public class EnumUtils {
         }
 
         private static boolean matchDefaultFactor(int minNumber, int maxNumber, int length) {
-            return length >= Math.ceil(capacity(minNumber, maxNumber) * DEFAULT_FACTOR);
+            return matchFactor(minNumber, maxNumber, length, DEFAULT_FACTOR);
         }
 
         private static boolean matchMinFactor(int minNumber, int maxNumber, int length) {
-            return length >= Math.ceil(capacity(minNumber, maxNumber) * MIN_FACTOR);
+            return matchFactor(minNumber, maxNumber, length, MIN_FACTOR);
+        }
+
+        private static boolean matchFactor(int minNumber, int maxNumber, int length, float factor) {
+            return length >= Math.ceil(capacity(minNumber, maxNumber) * factor);
         }
 
         private static int capacity(int minNumber, int maxNumber) {
@@ -322,11 +380,11 @@ public class EnumUtils {
      */
     private static class MapBasedMapper<T extends IndexableEnum> implements IndexableEnumMapper<T> {
 
-        private final T[] values;
+        private final List<T> values;
         private final Int2ObjectMap<T> mapping;
 
         private MapBasedMapper(T[] values, Int2ObjectMap<T> mapping) {
-            this.values = values;
+            this.values = List.of(values);
             this.mapping = mapping;
         }
 
@@ -337,7 +395,7 @@ public class EnumUtils {
         }
 
         @Override
-        public T[] values() {
+        public List<T> values() {
             return values;
         }
     }

@@ -89,12 +89,14 @@ public class StepWatch {
     private final List<Item> itemList = new ArrayList<>(8);
     private final StringBuilder sb = new StringBuilder(120);
 
+    /**
+     * @param name 推荐命名格式{@code ClassName:MethodName}
+     */
     public StepWatch(String name) {
         this.name = Objects.requireNonNull(name, "name");
     }
 
     /**
-     * @param name 该计时器的名字
      * @return 一个已启动的计时器
      */
     public static StepWatch createStarted(String name) {
