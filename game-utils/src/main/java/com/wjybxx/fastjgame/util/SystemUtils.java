@@ -16,8 +16,7 @@
 
 package com.wjybxx.fastjgame.util;
 
-import com.wjybxx.fastjgame.util.config.ConfigWrapper;
-import com.wjybxx.fastjgame.util.config.PropertiesConfigWrapper;
+import com.wjybxx.fastjgame.util.config.*;
 
 /**
  * 系统属性工具类
@@ -32,13 +31,14 @@ public class SystemUtils {
     /**
      * 系统属性 - 既可以是真实的系统属性，也可以把配置文件中的部分属性放在这里
      */
-    private static final ConfigWrapper properties = new PropertiesConfigWrapper(System.getProperties());
+    private static final Params properties = DefaultParams.ofProperties(System.getProperties(), DefaultValueParser.INSTANCE);
+
 
     private SystemUtils() {
 
     }
 
-    public static ConfigWrapper getProperties() {
+    public static Params getProperties() {
         return properties;
     }
 

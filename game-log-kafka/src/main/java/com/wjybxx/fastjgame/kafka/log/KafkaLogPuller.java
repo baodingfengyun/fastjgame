@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.kafka.log;
 
+import com.google.common.collect.Maps;
 import com.wjybxx.fastjgame.log.core.GameLog;
 import com.wjybxx.fastjgame.log.core.LogConsumer;
 import com.wjybxx.fastjgame.log.core.LogDecoder;
@@ -24,7 +25,6 @@ import com.wjybxx.fastjgame.log.imp.CompositeLogConsumer;
 import com.wjybxx.fastjgame.log.imp.DefaultLogRecord;
 import com.wjybxx.fastjgame.log.utils.LogConsumerUtils;
 import com.wjybxx.fastjgame.util.CloseableUtils;
-import com.wjybxx.fastjgame.util.CollectionUtils;
 import com.wjybxx.fastjgame.util.concurrent.RejectedExecutionHandler;
 import com.wjybxx.fastjgame.util.concurrent.disruptor.DisruptorEventLoop;
 import com.wjybxx.fastjgame.util.concurrent.disruptor.TimeoutBlockingWaitStrategyFactory;
@@ -99,7 +99,7 @@ public class KafkaLogPuller<T extends GameLog> extends DisruptorEventLoop implem
     }
 
     private static <T extends GameLog> Map<String, LogConsumer<T>> indexConsumers(Collection<LogConsumer<T>> consumers) {
-        final Map<String, LogConsumer<T>> logConsumerMap = CollectionUtils.newHashMapWithExpectedSize(consumers.size());
+        final Map<String, LogConsumer<T>> logConsumerMap = Maps.newHashMapWithExpectedSize(consumers.size());
         for (LogConsumer<T> logConsumer : consumers) {
             addConsumer(logConsumerMap, logConsumer);
         }

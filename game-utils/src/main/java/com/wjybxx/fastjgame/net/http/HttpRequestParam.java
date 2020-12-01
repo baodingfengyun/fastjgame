@@ -16,12 +16,16 @@
 
 package com.wjybxx.fastjgame.net.http;
 
+import com.wjybxx.fastjgame.util.config.DefaultValueParser;
 import com.wjybxx.fastjgame.util.config.Params;
+import com.wjybxx.fastjgame.util.config.ValueParser;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -70,6 +74,27 @@ public class HttpRequestParam extends Params {
     @Override
     public String getAsString(String key) {
         return params.get(key);
+    }
+
+    @Override
+    public boolean parseBool(@Nonnull String value) {
+        return parser().parseBool(value);
+    }
+
+    @Nonnull
+    @Override
+    public List<String> parseList(@Nonnull String value) {
+        return parser().parseList(value);
+    }
+
+    @Nonnull
+    @Override
+    public Map<String, String> parseMap(@Nonnull String value) {
+        return parser().parseMap(value);
+    }
+
+    private static ValueParser parser() {
+        return DefaultValueParser.INSTANCE;
     }
 
     public HttpVersion getVersion() {

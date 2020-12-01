@@ -16,8 +16,8 @@
 
 package com.wjybxx.fastjgame.kafka.logtest;
 
+import com.google.common.collect.Maps;
 import com.wjybxx.fastjgame.log.core.GameLog;
-import com.wjybxx.fastjgame.util.CollectionUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,7 +40,7 @@ class GameLogTest implements GameLog {
 
     public GameLogTest(String topic, int expectedSize) {
         this.topic = topic;
-        this.dataMap = CollectionUtils.newLinkedHashMapWithExpectedSize(expectedSize);
+        this.dataMap = Maps.newLinkedHashMapWithExpectedSize(expectedSize);
     }
 
     public GameLogTest(String topic, Map<String, Object> dataMap) {

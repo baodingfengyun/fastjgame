@@ -16,6 +16,7 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
+import com.google.common.collect.Sets;
 import com.google.protobuf.*;
 import com.wjybxx.fastjgame.net.misc.BufferPool;
 import com.wjybxx.fastjgame.net.serialization.*;
@@ -30,10 +31,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Constructor;
-import java.util.Collection;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -232,7 +230,7 @@ public class BinarySerializer implements Serializer {
             // 定义有PojoCodec的类
             final Map<Class<?>, PojoCodec<?>> pojoCodecMap = indexPojoCodcMap();
 
-            final Set<Class<?>> allClass = CollectionUtils.newHashSetWithExpectedSize(collectionFactoryMap.size() + mapFactoryMap.size() + arrayTypes.size()
+            final Set<Class<?>> allClass = Sets.newHashSetWithExpectedSize(collectionFactoryMap.size() + mapFactoryMap.size() + arrayTypes.size()
                     + allProtoBufferClasses.size() + pojoCodecMap.size());
 
             allClass.addAll(collectionFactoryMap.keySet());

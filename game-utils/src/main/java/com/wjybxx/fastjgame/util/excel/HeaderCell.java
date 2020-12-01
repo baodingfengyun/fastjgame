@@ -33,7 +33,7 @@ public class HeaderCell {
     private final String name;
     private final String value;
 
-    HeaderCell(String name, String value) {
+    public HeaderCell(String name, String value) {
         this.name = Objects.requireNonNull(name, "name");
         this.value = Objects.requireNonNull(value, "value");
     }

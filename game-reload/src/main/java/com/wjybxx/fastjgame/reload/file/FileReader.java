@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.reload.file;
 
 import com.wjybxx.fastjgame.reload.mgr.FileDataMgr;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 
 /**
@@ -36,6 +37,7 @@ public interface FileReader<T> {
     /**
      * @return 关联的文件，相对路径
      */
+    @Nonnull
     FileName<T> fileName();
 
     /**
@@ -45,6 +47,7 @@ public interface FileReader<T> {
      * @param file 关联的表格
      * @return 读取结果
      */
+    @Nonnull
     T read(File file) throws Exception;
 
     /**

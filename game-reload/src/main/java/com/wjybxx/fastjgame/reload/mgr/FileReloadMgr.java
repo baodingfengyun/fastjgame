@@ -23,6 +23,7 @@ import com.wjybxx.fastjgame.reload.file.FileReloadListener;
 import com.wjybxx.fastjgame.reload.mgr.ReloadUtils.FileStat;
 import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.util.misc.StepWatch;
+import com.wjybxx.fastjgame.util.time.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,23 +56,35 @@ public final class FileReloadMgr implements ExtensibleObject {
     private final Executor executor;
     private final FileDataMgr fileDataMgr;
 
+    private final long timeoutFindChangedFiles;
+    private final long timeoutReadFiles;
+
     private final FileDataContainer fileDataContainer = new FileDataContainer();
     private final Map<FileName<?>, ListenerWrapper> listenerWrapperMap = new IdentityHashMap<>(50);
 
     private final Map<FileName<?>, ReaderMetadata<?>> readerMetadataMap = new IdentityHashMap<>(500);
     private final Map<Class<?>, BuilderMetadata<?>> builderMetadataMap = new IdentityHashMap<>(50);
 
-    /**
-     * @param projectResDir 项目资源目录，所有的{@link FileName}都是相对于该目录的路径
-     * @param executor      用于并发读取文件的线程池。
-     *                      如果是共享线程池，该线程池上不要有大量的阻塞任务即可。
-     *                      如果独享，建议拒绝策略为{@link java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy}。
-     * @param fileDataMgr   应用自身管理数据的地方
-     */
     public FileReloadMgr(String projectResDir, Executor executor, FileDataMgr fileDataMgr) {
+        this(projectResDir, executor, fileDataMgr, TimeUtils.MIN, TimeUtils.MIN);
+    }
+
+    /**
+     * @param projectResDir             项目资源目录，所有的{@link FileName}都是相对于该目录的路径
+     * @param executor                  用于并发读取文件的线程池。
+     *                                  如果是共享线程池，该线程池上不要有大量的阻塞任务即可。
+     *                                  如果独享，建议拒绝策略为{@link java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy}。
+     * @param fileDataMgr               应用自身管理数据的地方
+     * @param timeoutFindChangedFiles 统计文件变化的超时时间(毫秒)
+     * @param timeoutReadFiles          读取文件内容的超时时间(毫秒)
+     */
+    public FileReloadMgr(String projectResDir, Executor executor, FileDataMgr fileDataMgr,
+                         long timeoutFindChangedFiles, long timeoutReadFiles) {
         this.projectResDir = projectResDir;
         this.executor = executor;
         this.fileDataMgr = fileDataMgr;
+        this.timeoutFindChangedFiles = timeoutFindChangedFiles;
+        this.timeoutReadFiles = timeoutReadFiles;
     }
 
     public void registerReaders(Collection<? extends FileReader<?>> readers) {
@@ -197,7 +210,7 @@ public final class FileReloadMgr implements ExtensibleObject {
         }
 
         CompletableFuture.allOf(futureList.toArray(CompletableFuture[]::new))
-                .orTimeout(1, TimeUnit.MINUTES)
+                .orTimeout(timeoutFindChangedFiles, TimeUnit.MILLISECONDS)
                 .join();
 
         return contextList.stream()
@@ -218,7 +231,7 @@ public final class FileReloadMgr implements ExtensibleObject {
             futureList.add(CompletableFuture.runAsync(new ReadFileTask(context), executor));
         }
         CompletableFuture.allOf(futureList.toArray(CompletableFuture[]::new))
-                .orTimeout(1, TimeUnit.MINUTES)
+                .orTimeout(timeoutReadFiles, TimeUnit.MILLISECONDS)
                 .join();
         stepWatch.logStep("join");
 
@@ -246,7 +259,7 @@ public final class FileReloadMgr implements ExtensibleObject {
 
         // 执行回调逻辑（这里可能产生异常）
         if (reloadMode != ReloadMode.START_SERVER) {
-            notifyFileReloadListeners(Collections.unmodifiableSet(fileDataMap.keySet()));
+            notifyListeners(Set.copyOf(fileDataMap.keySet()));
             stepWatch.logStep("notifyListeners");
         }
 
@@ -258,7 +271,7 @@ public final class FileReloadMgr implements ExtensibleObject {
         logger.info(stepWatch.getLog());
     }
 
-    private void notifyFileReloadListeners(Set<FileName<?>> allChangedFileNameSet) throws Exception {
+    private void notifyListeners(Set<FileName<?>> allChangedFileNameSet) throws Exception {
         final Set<ListenerWrapper> notifiedListeners = Collections.newSetFromMap(new IdentityHashMap<>(20));
         for (FileName<?> fileName : allChangedFileNameSet) {
             final ListenerWrapper listenerWrapper = listenerWrapperMap.get(fileName);

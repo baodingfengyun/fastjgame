@@ -59,6 +59,13 @@ public final class FunctionUtils {
 
     private static final BiPredicate<?, ?> _alwaysFalse2 = (t, u) -> false;
 
+    private static final Function<?, ?> identity = t -> t;
+
+    @SuppressWarnings("unchecked")
+    public static <T> Function<T, T> identity() {
+        return (Function<T, T>) identity;
+    }
+
     @SuppressWarnings("unchecked")
     public static <T, U> BiConsumer<T, U> emptyBiConsumer() {
         return (BiConsumer<T, U>) _emptyBiConsumer;

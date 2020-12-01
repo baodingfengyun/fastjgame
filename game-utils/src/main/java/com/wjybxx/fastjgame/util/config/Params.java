@@ -15,13 +15,27 @@
  */
 package com.wjybxx.fastjgame.util.config;
 
+import com.google.common.collect.Maps;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import it.unimi.dsi.fastutil.floats.FloatList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
+import org.apache.commons.lang3.math.NumberUtils;
+
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * 基于字符串键值对配置的帮助类。
- * <p>
- * 注意：数组分隔为{@link ConfigUtils#DEFAULT_ARRAY_DELIMITER} 即'|'
+ * 注意：该层面的API均不修改对象的状态。
  *
  * @author wjybxx
  * @version 1.0
@@ -30,15 +44,13 @@ import java.util.Set;
  */
 public abstract class Params {
 
-    /**
-     * 如果属性名获取属性的值，如果不存在则返回null
-     * 子类可以有不同的存储结构，这里需要自己实现。
-     *
-     * @param key 键
-     * @return value
-     */
     @Nullable
     public abstract String getAsString(String key);
+
+    /**
+     * 返回所有的键的集合。
+     */
+    public abstract Set<String> keys();
 
     /**
      * 判断一个键是否存在
@@ -47,101 +59,152 @@ public abstract class Params {
         return null != getAsString(key);
     }
 
-    /**
-     * 返回所有的键的集合。
-     */
-    public abstract Set<String> keys();
-
+    // region 基本值类型
     public String getAsString(String key, String defaultValue) {
-        return ConfigUtils.getAsString(getAsString(key), defaultValue);
+        final String value = getAsString(key);
+        return null != value ? value : defaultValue;
     }
 
-    // region 对基本类型的支持
     public int getAsInt(String key) {
-        return ConfigUtils.getAsInt(getAsString(key));
+        final String value = getAsString(key);
+        Objects.requireNonNull(value);
+        return Integer.parseInt(value);
     }
 
     public int getAsInt(String key, int defaultValue) {
-        return ConfigUtils.getAsInt(getAsString(key), defaultValue);
+        return NumberUtils.toInt(getAsString(key), defaultValue);
     }
 
     public long getAsLong(String key) {
-        return ConfigUtils.getAsLong(getAsString(key));
+        final String value = getAsString(key);
+        Objects.requireNonNull(value);
+        return Long.parseLong(value);
     }
 
     public long getAsLong(String key, long defaultValue) {
-        return ConfigUtils.getAsLong(getAsString(key), defaultValue);
-    }
-
-    public double getAsDouble(String key) {
-        return ConfigUtils.getAsDouble(getAsString(key));
-    }
-
-    public double getAsDouble(String key, double defaultValue) {
-        return ConfigUtils.getAsDouble(getAsString(key), defaultValue);
-    }
-
-    public byte getAsByte(String key) {
-        return ConfigUtils.getAsByte(getAsString(key));
-    }
-
-    public byte getAsByte(String key, byte defaultValue) {
-        return ConfigUtils.getAsByte(getAsString(key), defaultValue);
-    }
-
-    public short getAsShort(String key) {
-        return ConfigUtils.getAsShort(getAsString(key));
-    }
-
-    public short getAsShort(String key, short defaultValue) {
-        return ConfigUtils.getAsShort(getAsString(key), defaultValue);
+        return NumberUtils.toLong(getAsString(key), defaultValue);
     }
 
     public float getAsFloat(String key) {
-        return ConfigUtils.getAsFloat(getAsString(key));
+        final String value = getAsString(key);
+        Objects.requireNonNull(value);
+        return Float.parseFloat(value);
     }
 
     public float getAsFloat(String key, float defaultValue) {
-        return ConfigUtils.getAsFloat(getAsString(key), defaultValue);
+        return NumberUtils.toFloat(getAsString(key), defaultValue);
     }
 
-    /**
-     * 字符串是否表示true
-     *
-     * @param key name
-     * @return true, yes, 1, y表示为真，其余为假。
-     */
+    public double getAsDouble(String key) {
+        final String value = getAsString(key);
+        Objects.requireNonNull(value);
+        return Double.parseDouble(value);
+    }
+
+    public double getAsDouble(String key, double defaultValue) {
+        return NumberUtils.toDouble(getAsString(key), defaultValue);
+    }
+
     public boolean getAsBool(String key) {
-        return ConfigUtils.getAsBool(getAsString(key));
+        final String value = getAsString(key);
+        Objects.requireNonNull(value);
+        return parseBool(value);
     }
 
-    /**
-     * 字符串是否表示true
-     *
-     * @param key          name
-     * @param defaultValue 如果不存在指定名字的属性，则返回默认值
-     * @return true, yes, 1, y表示为真，其余为假。
-     */
-    public boolean getAsBool(String key, boolean defaultValue) {
-        return ConfigUtils.getAsBool(getAsString(key), defaultValue);
+    public boolean getAsBool(String key, final boolean defaultValue) {
+        final String value = getAsString(key);
+        return null == value ? defaultValue : parseBool(value);
+    }
+
+    public short getAsShort(String key) {
+        final String value = getAsString(key);
+        Objects.requireNonNull(value);
+        return Short.parseShort(value);
+    }
+
+    public short getAsShort(String key, short defaultValue) {
+        return NumberUtils.toShort(getAsString(key), defaultValue);
+    }
+
+    public byte getAsByte(String key) {
+        final String value = getAsString(key);
+        Objects.requireNonNull(value);
+        return Byte.parseByte(value);
+    }
+
+    public byte getAsByte(String key, byte defaultValue) {
+        return NumberUtils.toByte(getAsString(key), defaultValue);
     }
     // endregion
 
     // region 获取为数组类型
-    public String[] getAsStringArray(String key) {
-        return ConfigUtils.getAsStringArray(getAsString(key));
+
+    public IntList getAsIntArray(String key) {
+        final String value = Objects.requireNonNull(getAsString(key));
+        final List<String> stringArray = parseList(value);
+        final IntList result = new IntArrayList(stringArray.size());
+        for (String e : stringArray) {
+            result.add(Integer.parseInt(e));
+        }
+        return result;
     }
 
-    public int[] getAsIntArray(String key) {
-        return ConfigUtils.getAsIntArray(getAsString(key));
+    public LongList getAsLongArray(String key) {
+        final String value = Objects.requireNonNull(getAsString(key));
+        final List<String> stringArray = parseList(value);
+        final LongList result = new LongArrayList(stringArray.size());
+        for (String e : stringArray) {
+            result.add(Long.parseLong(e));
+        }
+        return result;
     }
 
-    public long[] getAsLongArray(String key) {
-        return ConfigUtils.getAsLongArray(getAsString(key));
+    public FloatList getAsFloatArray(String key) {
+        final String value = Objects.requireNonNull(getAsString(key));
+        final List<String> stringArray = parseList(value);
+        final FloatList result = new FloatArrayList(stringArray.size());
+        for (String e : stringArray) {
+            result.add(Float.parseFloat(e));
+        }
+        return result;
     }
 
-    public double[] getAsDoubleArray(String key) {
-        return ConfigUtils.getAsDoubleArray(getAsString(key));
+    public DoubleList getAsDoubleArray(String key) {
+        final String value = Objects.requireNonNull(getAsString(key));
+        final List<String> stringArray = parseList(value);
+        final DoubleList result = new DoubleArrayList(stringArray.size());
+        for (String e : stringArray) {
+            result.add(Double.parseDouble(e));
+        }
+        return result;
     }
+
     // endregion
+
+    public Map<String, String> getAsMap(String key) {
+        final String value = Objects.requireNonNull(getAsString(key));
+        return parseMap(value);
+    }
+
+    /**
+     * 将拥有的key-value转为一个map
+     */
+    public Map<String, String> toMap() {
+        final Set<String> keys = keys();
+        final Map<String, String> result = Maps.newLinkedHashMapWithExpectedSize(keys.size());
+        for (String key : keys) {
+            result.put(key, getAsString(key));
+        }
+        return result;
+    }
+
+    // 内部实现
+    protected abstract boolean parseBool(@Nonnull String value);
+
+    @Nonnull
+    protected abstract List<String> parseList(@Nonnull String value);
+
+    @Nonnull
+    protected abstract Map<String, String> parseMap(@Nonnull String value);
+
 }

@@ -33,7 +33,7 @@ public class DefaultValueCell implements ValueCell {
     private final String type;
     private final String value;
 
-    DefaultValueCell(CellValueParser parser, String name, String type, String value) {
+    public DefaultValueCell(CellValueParser parser, String name, String type, String value) {
         this.parser = parser;
         this.name = name;
         this.type = type;

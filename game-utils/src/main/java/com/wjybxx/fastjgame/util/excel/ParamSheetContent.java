@@ -60,7 +60,7 @@ public class ParamSheetContent implements SheetContent {
      */
     private final Map<String, ValueCell> name2CellMap;
 
-    ParamSheetContent(final Map<String, ValueCell> name2CellMap) {
+    public ParamSheetContent(final Map<String, ValueCell> name2CellMap) {
         this.name2CellMap = Collections.unmodifiableMap(name2CellMap);
     }
 

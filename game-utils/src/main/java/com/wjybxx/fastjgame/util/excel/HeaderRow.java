@@ -38,7 +38,7 @@ public class HeaderRow {
      */
     private final Map<String, HeaderCell> name2CellMap;
 
-    HeaderRow(int rowIndex, Map<String, HeaderCell> name2CellMap) {
+    public HeaderRow(int rowIndex, Map<String, HeaderCell> name2CellMap) {
         this.rowIndex = rowIndex;
         this.name2CellMap = Collections.unmodifiableMap(name2CellMap);
     }

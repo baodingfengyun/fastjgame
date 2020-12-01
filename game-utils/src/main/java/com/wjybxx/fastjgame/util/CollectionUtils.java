@@ -16,11 +16,11 @@
 
 package com.wjybxx.fastjgame.util;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.wjybxx.fastjgame.util.function.FunctionUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
@@ -137,52 +137,6 @@ public final class CollectionUtils {
             }
         }
         return false;
-    }
-
-    /**
-     * 创建足够容量的Map，可减少扩容次数，适合用在能估算最大容量的时候;
-     *
-     * @param expectedSize 期望添加的元素数量
-     * @param <K>          key的类型
-     * @param <V>          value的类型
-     * @return Map
-     */
-    public static <K, V> HashMap<K, V> newHashMapWithExpectedSize(int expectedSize) {
-        return Maps.newHashMapWithExpectedSize(expectedSize);
-    }
-
-    /**
-     * 创建足够容量的Map，可减少扩容次数，适合用在能估算最大容量的时候;
-     *
-     * @param expectedSize 期望添加的元素数量
-     * @param <K>          key的类型
-     * @param <V>          value的类型
-     * @return Map
-     */
-    public static <K, V> LinkedHashMap<K, V> newLinkedHashMapWithExpectedSize(int expectedSize) {
-        return Maps.newLinkedHashMapWithExpectedSize(expectedSize);
-    }
-
-    /**
-     * 创建足够容量的Set，可减少扩容次数，适合用在能估算最大容量的时候;
-     *
-     * @param expectedSize 期望添加的元素数量
-     * @param <E>          the type of element
-     * @return Set
-     */
-    public static <E> HashSet<E> newHashSetWithExpectedSize(int expectedSize) {
-        return Sets.newHashSetWithExpectedSize(expectedSize);
-    }
-
-    /**
-     * 创建足够容量的Set，可减少扩容次数，适合用在能估算最大容量的时候;
-     *
-     * @param expectedSize 期望添加的元素数量
-     * @param <E>          the type of element
-     * @return Set
-     */
-    public static <E> LinkedHashSet<E> newLinkedHashSetWithExpectedSize(int expectedSize) {
-        return Sets.newLinkedHashSetWithExpectedSize(expectedSize);
     }
 
     //////////////////////////////////////////////////////////////////////////////////////

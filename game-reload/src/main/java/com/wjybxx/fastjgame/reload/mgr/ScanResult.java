@@ -79,7 +79,7 @@ public class ScanResult {
         for (Class<?> clazz : classList) {
             final Object instance = createInstance(clazz);
             if (logger.isDebugEnabled()) {
-                logger.info("find class: " + clazz.getName());
+                logger.debug("find class: " + clazz.getName());
             }
             if (instance instanceof FileReader) {
                 fileReaders.add((FileReader<?>) instance);
@@ -113,16 +113,14 @@ public class ScanResult {
         if (Modifier.isAbstract(clazz.getModifiers())) {
             return false;
         }
-        // 必须只有一个无参方法，否则不自动加入，不满足我们的契约
-        final Constructor<?>[] declaredConstructors = clazz.getDeclaredConstructors();
-        if (declaredConstructors.length != 1) {
+        if (FileReader.class.isAssignableFrom(clazz) || FileCacheBuilder.class.isAssignableFrom(clazz)
+                || SheetReader.class.isAssignableFrom(clazz) || SheetCacheBuilder.class.isAssignableFrom(clazz)) {
+            // 必须只有一个无参方法，否则不自动加入，不满足我们的契约
+            final Constructor<?>[] declaredConstructors = clazz.getDeclaredConstructors();
+            return (declaredConstructors.length == 1) && (declaredConstructors[0].getParameterCount() == 0);
+        } else {
             return false;
         }
-        if (declaredConstructors[0].getParameterCount() != 0) {
-            return false;
-        }
-        return FileReader.class.isAssignableFrom(clazz) || FileCacheBuilder.class.isAssignableFrom(clazz)
-                || SheetReader.class.isAssignableFrom(clazz) || SheetCacheBuilder.class.isAssignableFrom(clazz);
     }
 
     private static Object createInstance(Class<?> clazz) throws Exception {

@@ -90,6 +90,10 @@ public class ExcelReloadMgr implements ExtensibleObject {
      * 注意：先注册{@link SheetReader}，再注册{@link SheetCacheBuilder}
      */
     public final void registerReaders(Collection<? extends SheetReader<?>> readers) throws IOException {
+        if (readers.isEmpty()) {
+            return;
+        }
+
         for (SheetReader<?> reader : readers) {
             final SheetName<?> sheetName = reader.sheetName();
             if (sheetName != reader.sheetName()) {
@@ -115,13 +119,13 @@ public class ExcelReloadMgr implements ExtensibleObject {
         // 根据SheetReader创建对应的Excel读取实现
         excelReaderMap.putAll(createExcelReaders());
 
+        // 表格缺失检查
+        ensureReaderSheetExist();
+
         // 重新注册excel文件读取实现
         fileReloadMgr.registerReaders(excelReaderMap.values());
         // 重新监控所有文件
         fileReloadMgr.registerListener(excelReaderMap.keySet(), excelReloadListener);
-
-        // 表格缺失检查
-        ensureReaderSheetExist();
     }
 
     private Map<FileName<?>, ExcelReader> createExcelReaders() throws IOException {
@@ -353,7 +357,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
 
         // 执行回调逻辑（这里可能产生异常）
         if (reloadMode != ReloadMode.START_SERVER) {
-            notifySheetListeners(Collections.unmodifiableSet(sheetDataMap.keySet()));
+            notifyListeners(Set.copyOf(sheetDataMap.keySet()));
             stepWatch.logStep("notifyListeners");
         }
 
@@ -421,7 +425,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
         }
     }
 
-    private void notifySheetListeners(Set<SheetName<?>> allChangedSheetNames) throws Exception {
+    private void notifyListeners(Set<SheetName<?>> allChangedSheetNames) throws Exception {
         final Set<ListenerWrapper> invokedListeners = Collections.newSetFromMap(new IdentityHashMap<>(20));
         for (SheetName<?> sheetName : allChangedSheetNames) {
             final ListenerWrapper listenerWrapper = listenerWrapperMap.get(sheetName);
@@ -476,11 +480,13 @@ public class ExcelReloadMgr implements ExtensibleObject {
             this.parserSupplier = parserSupplier;
         }
 
+        @Nonnull
         @Override
         public FileName<ExcelFileData> fileName() {
             return fileName;
         }
 
+        @Nonnull
         @Override
         public ExcelFileData read(File file) throws Exception {
             // 读取Excel到内存

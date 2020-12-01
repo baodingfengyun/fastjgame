@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.reload.file;
 import com.wjybxx.fastjgame.reload.ReloadTestDataMgr;
 import com.wjybxx.fastjgame.reload.mgr.FileDataMgr;
 
+import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.File;
 import java.util.ArrayList;
@@ -34,11 +35,13 @@ public class WhiteListReader implements FileReader<List<String>> {
 
     public static final FileName<List<String>> FILE_NAME = FileName.valueOf("txt/WhiteList.txt");
 
+    @Nonnull
     @Override
     public FileName<List<String>> fileName() {
         return FILE_NAME;
     }
 
+    @Nonnull
     @Override
     public List<String> read(File file) throws Exception {
         try (BufferedReader reader = new BufferedReader(new java.io.FileReader(file))) {
