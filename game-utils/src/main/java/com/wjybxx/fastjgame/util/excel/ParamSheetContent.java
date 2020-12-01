@@ -42,7 +42,7 @@ import java.util.Set;
  * date - 2020/11/20
  * github - https://github.com/hl845740757
  */
-public class ParamSheetContent implements SheetContent {
+public class ParamSheetContent extends CellProvider implements SheetContent {
 
     public static final String name = "name";
     public static final String type = "type";
@@ -76,6 +76,7 @@ public class ParamSheetContent implements SheetContent {
         return name2CellMap.values();
     }
 
+    @Override
     public ValueCell getCell(String name) {
         return name2CellMap.get(name);
     }

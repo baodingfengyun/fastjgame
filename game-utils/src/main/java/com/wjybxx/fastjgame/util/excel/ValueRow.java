@@ -26,7 +26,7 @@ import java.util.Map;
  * date - 2019/5/11 16:11
  * github - https://github.com/hl845740757
  */
-public class ValueRow {
+public class ValueRow extends CellProvider {
 
     /**
      * 所属的行号，0开始（实际上4开始，因为0-3为表头行）
@@ -61,6 +61,7 @@ public class ValueRow {
      * @param name 列名/参数名
      * @return 该列对应的值
      */
+    @Override
     public ValueCell getCell(String name) {
         return name2CellMap.get(name);
     }
