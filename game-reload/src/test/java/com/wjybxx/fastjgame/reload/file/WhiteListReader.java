@@ -44,7 +44,7 @@ public class WhiteListReader implements FileReader<List<String>> {
         try (BufferedReader reader = new BufferedReader(new java.io.FileReader(file))) {
             final List<String> whiteList = new ArrayList<>(2);
             String account;
-            while ((account =reader.readLine()) != null) {
+            while ((account = reader.readLine()) != null) {
                 whiteList.add(account);
             }
             return whiteList;

@@ -84,7 +84,7 @@ public class ExcelReloadTest {
 
         @Override
         public void afterReload(Set<SheetName<?>> sheetNames, Set<SheetName<?>> changedSheetNames) throws Exception {
-            System.out.println("changedSheetNames: "+ changedSheetNames);
+            System.out.println("changedSheetNames: " + changedSheetNames);
             System.out.println(testDataMgr.skillTemplateMap);
             System.out.println(testDataMgr.skillParamTemplate);
         }

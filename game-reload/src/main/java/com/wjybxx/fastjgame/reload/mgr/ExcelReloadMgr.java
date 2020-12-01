@@ -41,9 +41,8 @@ import java.util.stream.Collectors;
 
 /**
  * 表格热更新管理器
- * 1. 接受热更新的http请求 - 一定不要检测到MD5变化就直接更新，会导致错误的更新。
- * 2. reader存在，对应的表格必须存在。表格存在，可以没有reader，即表格是可以冗余的。
- * 3. 可以通过指定扫描的包名，实现不同模块读取不同的表格。
+ * <p>
+ * 约定：该类不修改方法传入的任何集合，也不保留其引用。
  *
  * @author wjybxx
  * date - 2020/11/17
@@ -106,9 +105,9 @@ public class ExcelReloadMgr implements ExtensibleObject {
 
         if (excelReaderMap.size() > 0) {
             // 这里只是为了方便后面采取全部注册的方式
-            fileReloadMgr.unregisterReader(new ArrayList<>(excelReaderMap.values()));
+            fileReloadMgr.unregisterReader(excelReaderMap.values());
             // listener一定要取消注册，否则监听的文件不全
-            fileReloadMgr.unregisterListener(new HashSet<>(excelReaderMap.keySet()), excelReloadListener);
+            fileReloadMgr.unregisterListener(excelReaderMap.keySet(), excelReloadListener);
             // 清理数据
             excelReaderMap.clear();
         }
@@ -117,9 +116,9 @@ public class ExcelReloadMgr implements ExtensibleObject {
         excelReaderMap.putAll(createExcelReaders());
 
         // 重新注册excel文件读取实现
-        fileReloadMgr.registerReaders(new ArrayList<>(excelReaderMap.values()));
+        fileReloadMgr.registerReaders(excelReaderMap.values());
         // 重新监控所有文件
-        fileReloadMgr.registerListener(new HashSet<>(excelReaderMap.keySet()), excelReloadListener);
+        fileReloadMgr.registerListener(excelReaderMap.keySet(), excelReloadListener);
 
         // 表格缺失检查
         ensureReaderSheetExist();
@@ -192,6 +191,9 @@ public class ExcelReloadMgr implements ExtensibleObject {
         return result;
     }
 
+    /**
+     * reader存在，对应的sheet必须存在
+     */
     private void ensureReaderSheetExist() {
         final Set<String> excelSheetNameSet = excelReaderMap.values().stream()
                 .flatMap(excelReader -> excelReader.sheetReaderMap.keySet().stream())
@@ -232,6 +234,10 @@ public class ExcelReloadMgr implements ExtensibleObject {
      */
     public <T> T getSheetData(SheetName<T> sheetName) {
         return sheetDataContainer.getSheetData(sheetName);
+    }
+
+    public Object getCacheData(Class<?> builderType) {
+        return sheetDataContainer.getCacheData(builderType);
     }
 
     /**
@@ -369,8 +375,8 @@ public class ExcelReloadMgr implements ExtensibleObject {
             final Object sheetData = entry.getValue();
             final ReaderMetadata<?> readerMetaData = readerMetadataMap.get(sheetName);
             @SuppressWarnings("unchecked") final SheetReader<Object> reader = (SheetReader<Object>) readerMetaData.reader;
+
             reader.assignTo(sheetData, sheetDataMgr);
-            // 额外存储
             sheetDataContainer.putSheetData(sheetName, sheetData);
         }
     }
@@ -381,8 +387,8 @@ public class ExcelReloadMgr implements ExtensibleObject {
             final Object cache = entry.getValue();
             final BuilderMetadata<?> builderMetadata = builderMetadataMap.get(builderType);
             @SuppressWarnings("unchecked") final SheetCacheBuilder<Object> builder = (SheetCacheBuilder<Object>) builderMetadata.builder;
+
             builder.assignTo(cache, sheetDataMgr);
-            // 额外存储
             sheetDataContainer.putCacheData(builderType, cache);
         }
     }
@@ -395,6 +401,8 @@ public class ExcelReloadMgr implements ExtensibleObject {
                 if (sheetNames.contains(sheetName)) {
                     final SheetDataProviderImpl sheetDataProvider = new SheetDataProviderImpl(sheetDataContainer, builderMetadata.sheetNamSet);
                     final Object cache = builderMetadata.builder.build(sheetDataProvider);
+                    // null检查
+                    Objects.requireNonNull(cache, builderMetadata.builder.getClass().getName());
                     result.put(builderMetadata.builder.getClass(), cache);
                     break;
                 }
@@ -484,6 +492,8 @@ public class ExcelReloadMgr implements ExtensibleObject {
                 // 读取Sheet到自定义模板
                 final SheetReader<?> sheetReader = sheetReaderMap.get(sheetName);
                 final Object sheetData = sheetReader.read(sheet);
+                // null检查
+                Objects.requireNonNull(sheetData, sheetReader.getClass().getName());
                 sheetDataMap.put(sheetReader.sheetName(), sheetData);
             }
             return new ExcelFileData(sheetDataMap);

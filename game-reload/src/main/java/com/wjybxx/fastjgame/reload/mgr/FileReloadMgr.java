@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 /**
  * 文件热更管理器。
  * 实现上是否觉得像NIO的Select模型？
+ * <p>
+ * 约定：该类不修改方法传入的任何集合，也不保留其引用。
  *
  * @author wjybxx
  * date - 2020/11/17
@@ -84,6 +86,9 @@ public final class FileReloadMgr implements ExtensibleObject {
         }
     }
 
+    /**
+     * reader存在，对应的文件必须存在。
+     */
     private static File checkedFileOfName(String projectResDir, FileName<?> fileName) {
         final String relativePath = fileName.getRelativePath();
         final File file = new File(projectResDir + File.separator + relativePath);
@@ -97,6 +102,9 @@ public final class FileReloadMgr implements ExtensibleObject {
         for (FileReader<?> reader : readers) {
             final FileName<?> fileName = reader.fileName();
             final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(fileName);
+            if (readerMetadata == null) {
+                continue;
+            }
             if (readerMetadata.reader != reader) {
                 final String msg = String.format("reader mismatch, fileName: %s, reader: %s", fileName, reader.getClass().getName());
                 throw new IllegalArgumentException(msg);
@@ -140,6 +148,10 @@ public final class FileReloadMgr implements ExtensibleObject {
      */
     public <T> T getFileData(FileName<T> fileName) {
         return fileDataContainer.getFileData(fileName);
+    }
+
+    public Object getCacheData(Class<?> builderType) {
+        return fileDataContainer.getCacheData(builderType);
     }
 
     /**
@@ -280,6 +292,8 @@ public final class FileReloadMgr implements ExtensibleObject {
                 if (fileNameSet.contains(fileName)) {
                     final FileCacheBuilder.FileDataProvider sheetDataProvider = new FileDataProviderImpl(fileDataContainer, builderMetadata.fileNameSet);
                     final Object cache = builderMetadata.builder.build(sheetDataProvider);
+                    // null检查
+                    Objects.requireNonNull(cache, builderMetadata.builder.getClass().getName());
                     result.put(builderMetadata.builder.getClass(), cache);
                     break;
                 }
@@ -396,12 +410,12 @@ public final class FileReloadMgr implements ExtensibleObject {
             stepWatch.logStep("reloadImpl");
 
             // 打印详细日志
-            for (FileName<?> fileName : fileNameSet) {
-                logger.info("forceReload, reload file success , filePath {}", fileName);
+            for (TaskContext context : contextList) {
+                logger.info("forceReload, reload file success, fileName {}", context.fileName());
             }
 
             // 打印总览日志
-            logger.info("forceReload completed, fileNum {}, stepInfo {}", fileNameSet.size(), stepWatch);
+            logger.info("forceReload completed, fileNum {}, stepInfo {}", contextList.size(), stepWatch);
         } catch (Throwable e) {
             // 打印失败日志
             logger.warn("forceReload failure, stepInfo {}", stepWatch);
@@ -423,24 +437,19 @@ public final class FileReloadMgr implements ExtensibleObject {
             throw new IllegalArgumentException("fileNameSet is empty");
         }
 
-        // 防御性拷贝
+        // 必须拷贝，该类的约定是不修改和引用外部传入的集合，这样更加可靠
         fileNameSet = Set.copyOf(fileNameSet);
+        // 努力保证失败原子性，这里务必在拷贝的集合上检查
+        validateFileNameSet(fileNameSet);
+
         final DefaultListenerWrapper listenerWrapper = new DefaultListenerWrapper(fileNameSet, listener);
-
         for (FileName<?> fileName : fileNameSet) {
-            Objects.requireNonNull(fileName, "fileName");
-            final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(fileName);
-            if (null == readerMetadata) {
-                throw new IllegalArgumentException("unknown fileName: " + fileName);
-            }
-
             final ListenerWrapper existListenerWrapper = listenerWrapperMap.get(fileName);
             if (null == existListenerWrapper) {
                 // 一般一个listener
                 listenerWrapperMap.put(fileName, listenerWrapper);
                 return;
             }
-
             if (existListenerWrapper instanceof CompositeListenerWrapper) {
                 // 超过两个listener
                 ((CompositeListenerWrapper) existListenerWrapper).addChild(listenerWrapper);
@@ -451,19 +460,26 @@ public final class FileReloadMgr implements ExtensibleObject {
         }
     }
 
-    public void unregisterListener(@Nonnull Set<FileName<?>> fileNameSet, FileReloadListener listener) {
+    private void validateFileNameSet(@Nonnull Set<FileName<?>> fileNameSet) {
         for (FileName<?> fileName : fileNameSet) {
             Objects.requireNonNull(fileName, "fileName");
             final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(fileName);
             if (null == readerMetadata) {
                 throw new IllegalArgumentException("unknown fileName: " + fileName);
             }
+        }
+    }
 
+    public void unregisterListener(@Nonnull Set<FileName<?>> fileNameSet, FileReloadListener listener) {
+        Objects.requireNonNull(fileNameSet, "fileNameSet");
+        Objects.requireNonNull(listener, "listener");
+        validateFileNameSet(fileNameSet);
+
+        for (FileName<?> fileName : fileNameSet) {
             final ListenerWrapper existListenerWrapper = listenerWrapperMap.get(fileName);
             if (existListenerWrapper == null) {
                 continue;
             }
-
             if (existListenerWrapper instanceof DefaultListenerWrapper) {
                 if (((DefaultListenerWrapper) existListenerWrapper).reloadListener == listener) {
                     listenerWrapperMap.remove(fileName);
@@ -560,7 +576,9 @@ public final class FileReloadMgr implements ExtensibleObject {
         @Override
         public void run() {
             try {
-                context.fileData = context.reader.read(context.file);
+                final Object fileData = context.reader.read(context.file);
+                Objects.requireNonNull(fileData, context.reader.getClass().getName());
+                context.fileData = fileData;
             } catch (Exception e) {
                 throw new RuntimeException("fileName: " + context.file.getName(), e);
             }

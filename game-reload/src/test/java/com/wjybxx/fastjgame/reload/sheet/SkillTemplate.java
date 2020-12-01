@@ -35,7 +35,7 @@ import javax.annotation.Nonnull;
  */
 public class SkillTemplate {
 
-    public static final SheetName<Int2ObjectMap<SkillTemplate>> FILL_NAME = SheetName.valueOf("Skill");;
+    public static final SheetName<Int2ObjectMap<SkillTemplate>> FILL_NAME = SheetName.valueOf("Skill");
 
     public final int skillId;
     public final int actionId;
