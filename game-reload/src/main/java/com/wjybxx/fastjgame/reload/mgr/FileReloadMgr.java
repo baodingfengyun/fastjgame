@@ -37,7 +37,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
 /**
@@ -213,7 +212,7 @@ public final class FileReloadMgr implements ExtensibleObject {
             final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.RELOAD_SCOPE);
             final CompletableFuture<List<TaskResult>> future = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles);
             reloadTimerHandle = timerSystem.newFixedDelay(1000, 50, new ReloadTaskTracker(future, ReloadMode.RELOAD_SCOPE));
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw new ReloadException(FutureUtils.unwrapCompletionException(e));
         }
     }
@@ -275,7 +274,7 @@ public final class FileReloadMgr implements ExtensibleObject {
         }
     }
 
-    private void ensureFileReaderExist(@Nonnull Set<FileName<?>> fileNameSet) {
+    private void ensureFileReaderExist(@Nonnull Collection<FileName<?>> fileNameSet) {
         for (FileName<?> fileName : fileNameSet) {
             Objects.requireNonNull(fileName, "fileName");
             final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(fileName);
@@ -476,10 +475,18 @@ public final class FileReloadMgr implements ExtensibleObject {
             }
 
             try {
-                reloadImpl(future.join(), reloadMode);
-            } catch (CompletionException e) {
-                final Throwable cause = FutureUtils.unwrapCompletionException(e);
-                logger.warn("reload failure, reloadMode {}", reloadMode, cause);
+                // 检查是否还满足热更新条件
+                final List<TaskResult> resultList = future.join();
+                for (TaskResult taskResult : resultList) {
+                    final FileName<?> fileName = taskResult.taskMetadata.reader.fileName();
+                    if (readerMetadataMap.get(fileName) == null) {
+                        throw new IllegalStateException("the state of fileReloadMgr has changed, fileName: " + fileName);
+                    }
+                }
+                // 执行热更新
+                reloadImpl(resultList, reloadMode);
+            } catch (Exception e) {
+                throw new ReloadException(FutureUtils.unwrapCompletionException(e));
             } finally {
                 reloadTimerHandle = null;
             }
