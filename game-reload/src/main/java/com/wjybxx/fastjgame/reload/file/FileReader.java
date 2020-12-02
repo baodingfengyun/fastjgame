@@ -66,4 +66,11 @@ public interface FileReader<T> {
      */
     void validateOther(FileDataMgr fileDataMgr);
 
+    /**
+     * 关联的文件是否可以后台自动热更新
+     */
+    default boolean autoReloadable() {
+        return false;
+    }
+
 }

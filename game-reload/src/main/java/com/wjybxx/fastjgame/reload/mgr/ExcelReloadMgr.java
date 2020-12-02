@@ -96,10 +96,6 @@ public class ExcelReloadMgr implements ExtensibleObject {
 
         for (SheetReader<?> reader : readers) {
             final SheetName<?> sheetName = reader.sheetName();
-            if (sheetName != reader.sheetName()) {
-                final String msg = String.format("fileName assert exception, sheetName: %s, reader: %s", sheetName, reader.getClass().getName());
-                throw new IllegalArgumentException(msg);
-            }
             if (readerMetadataMap.containsKey(sheetName)) {
                 final String msg = String.format("sheetName has more than one associated reader, sheetName: %s, reader: %s", sheetName, reader.getClass().getName());
                 throw new IllegalArgumentException(msg);
@@ -249,14 +245,14 @@ public class ExcelReloadMgr implements ExtensibleObject {
      * 注意：需要先调用{@link FileReloadMgr#loadAll()}
      */
     public void loadAll() throws Exception {
-        reloadImpl(Collections.unmodifiableSet(excelReaderMap.keySet()), ReloadMode.START_SERVER);
+        reloadImpl(excelReaderMap.keySet(), ReloadMode.START_SERVER);
     }
 
     /**
      * 加载所有变化的表格
      */
     public void reloadAll() {
-        fileReloadMgr.reloadScope(Collections.unmodifiableSet(excelReaderMap.keySet()));
+        fileReloadMgr.reloadScope(excelReaderMap.keySet());
     }
 
     /**

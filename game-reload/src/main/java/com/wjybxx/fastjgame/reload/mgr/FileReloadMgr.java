@@ -20,6 +20,8 @@ import com.wjybxx.fastjgame.reload.file.FileCacheBuilder;
 import com.wjybxx.fastjgame.reload.file.FileName;
 import com.wjybxx.fastjgame.reload.file.FileReader;
 import com.wjybxx.fastjgame.reload.file.FileReloadListener;
+import com.wjybxx.fastjgame.reload.mgr.FileReloadTask.TaskMetadata;
+import com.wjybxx.fastjgame.reload.mgr.FileReloadTask.TaskResult;
 import com.wjybxx.fastjgame.reload.mgr.ReloadUtils.FileStat;
 import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.util.misc.StepWatch;
@@ -33,8 +35,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * 文件热更管理器。
@@ -172,74 +172,160 @@ public final class FileReloadMgr implements ExtensibleObject {
      */
     public void loadAll() throws Exception {
         logger.info("loadAll started");
-        final StepWatch stepWatch = StepWatch.createStarted("FileReloadMrg:loadAll");
         try {
-            final List<TaskContext> changedFiles = findChangedFiles(readerMetadataMap.keySet());
-            stepWatch.logStep("findChangedFiles");
-
-            reloadImpl(changedFiles, ReloadMode.START_SERVER);
-            stepWatch.logStep("reloadImpl");
-
-            logger.info("loadAll completed, stepInfo {}", stepWatch);
+            final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.START_SERVER);
+            final List<TaskResult> taskResultList = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles)
+                    .join();
+            reloadImpl(taskResultList, ReloadMode.START_SERVER);
+            logger.info("loadAll completed, fileNum {}", readerMetadataMap.size());
         } catch (Exception e) {
-            logger.info("loadAll failure, stepInfo {}", stepWatch);
+            logger.info("loadAll failure, fileNum {}}", readerMetadataMap.size());
             throw new ReloadException(FutureUtils.unwrapCompletionException(e));
         }
     }
 
     /**
-     * @param scope 文件检索范围
-     * @return 文件状态发生改变的文件
+     * 重新加载所有的配置文件中改变的文件
      */
-    private List<TaskContext> findChangedFiles(Set<FileName<?>> scope) {
-        if (scope.isEmpty()) {
-            return new ArrayList<>();
+    public void reloadAll() {
+        reloadScope(readerMetadataMap.keySet());
+    }
+
+    /**
+     * 重新加载指定的配置文件中改变的文件
+     *
+     * @param scope 检测范围
+     */
+    public void reloadScope(Set<FileName<?>> scope) {
+        Objects.requireNonNull(scope, "scope");
+        ensureFileReaderExist(scope);
+        try {
+            final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.RELOAD_SCOPE);
+            final CompletableFuture<List<TaskResult>> future = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles);
+        } catch (Throwable e) {
+            throw new ReloadException(FutureUtils.unwrapCompletionException(e));
+        }
+    }
+
+    /**
+     * 重新加载指定的配置文件。
+     * 在指定文件的情况下，不论文件是否变化，都执行回调逻辑。
+     * <p>
+     * Q: 为何如此设计？
+     * A: 避免md5相等导致的无法更新问题（全部更新时某些逻辑失败了，无法再次更新的情况）。
+     * 另一种方式是稍微改动一点内容，导致md5改变，再热更新。
+     */
+    public void forceReload(Set<FileName<?>> scope) {
+        Objects.requireNonNull(scope, "scope");
+        ensureFileReaderExist(scope);
+        try {
+            final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.FORCE_RELOAD);
+            final CompletableFuture<List<TaskResult>> future = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles);
+        } catch (Throwable e) {
+            throw new ReloadException(FutureUtils.unwrapCompletionException(e));
+        }
+    }
+
+    /**
+     * 注册文件热更新回调
+     *
+     * @param fileNameSet 关注的文件名
+     * @param listener    监听器
+     */
+    public void registerListener(@Nonnull Set<FileName<?>> fileNameSet, @Nonnull FileReloadListener listener) throws IOException {
+        Objects.requireNonNull(fileNameSet, "fileNameSet");
+        Objects.requireNonNull(listener, "listener");
+
+        if (fileNameSet.isEmpty()) {
+            throw new IllegalArgumentException("fileNameSet is empty");
         }
 
-        final List<TaskContext> contextList = new ArrayList<>(scope.size());
-        final List<CompletableFuture<?>> futureList = new ArrayList<>(scope.size());
-        for (FileName<?> fileName : scope) {
+        // 必须拷贝，该类的约定是不修改和引用外部传入的集合，这样更加可靠
+        fileNameSet = Set.copyOf(fileNameSet);
+        // 努力保证失败原子性，这里务必在拷贝的集合上检查
+        ensureFileReaderExist(fileNameSet);
+
+        final DefaultListenerWrapper listenerWrapper = new DefaultListenerWrapper(fileNameSet, listener);
+        for (FileName<?> fileName : fileNameSet) {
+            final ListenerWrapper existListenerWrapper = listenerWrapperMap.get(fileName);
+            if (null == existListenerWrapper) {
+                // 一般一个listener
+                listenerWrapperMap.put(fileName, listenerWrapper);
+                return;
+            }
+            if (existListenerWrapper instanceof CompositeListenerWrapper) {
+                // 超过两个listener
+                ((CompositeListenerWrapper) existListenerWrapper).addChild(listenerWrapper);
+            } else {
+                // 两个listener
+                listenerWrapperMap.put(fileName, new CompositeListenerWrapper(existListenerWrapper, listenerWrapper));
+            }
+        }
+    }
+
+    private void ensureFileReaderExist(@Nonnull Set<FileName<?>> fileNameSet) {
+        for (FileName<?> fileName : fileNameSet) {
+            Objects.requireNonNull(fileName, "fileName");
             final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(fileName);
             if (null == readerMetadata) {
                 throw new IllegalArgumentException("unknown fileName: " + fileName);
             }
-
-            final TaskContext taskContext = new TaskContext(readerMetadata.reader, readerMetadata.file, readerMetadata.fileStat);
-            futureList.add(CompletableFuture.runAsync(new StatisticSingleFileStatTask(taskContext), executor));
-            contextList.add(taskContext);
         }
-
-        CompletableFuture.allOf(futureList.toArray(CompletableFuture[]::new))
-                .orTimeout(timeoutFindChangedFiles, TimeUnit.MILLISECONDS)
-                .join();
-
-        return contextList.stream()
-                .filter(c -> c.fileStat != c.oldFileStat)
-                .collect(Collectors.toList());
     }
 
-    private void reloadImpl(List<TaskContext> changedFiles, ReloadMode reloadMode) throws Exception {
+    public void unregisterListener(@Nonnull Set<FileName<?>> fileNameSet, FileReloadListener listener) {
+        Objects.requireNonNull(fileNameSet, "fileNameSet");
+        Objects.requireNonNull(listener, "listener");
+        ensureFileReaderExist(fileNameSet);
+
+        for (FileName<?> fileName : fileNameSet) {
+            final ListenerWrapper existListenerWrapper = listenerWrapperMap.get(fileName);
+            if (existListenerWrapper == null) {
+                continue;
+            }
+            if (existListenerWrapper instanceof DefaultListenerWrapper) {
+                if (((DefaultListenerWrapper) existListenerWrapper).reloadListener == listener) {
+                    listenerWrapperMap.remove(fileName);
+                }
+            } else {
+                final CompositeListenerWrapper compositeListenerWrapper = (CompositeListenerWrapper) existListenerWrapper;
+                compositeListenerWrapper.children.removeIf(e -> ((DefaultListenerWrapper) e).reloadListener == listener);
+                if (compositeListenerWrapper.children.isEmpty()) {
+                    listenerWrapperMap.remove(fileName);
+                }
+            }
+        }
+    }
+
+    // region 内部实现
+
+    private List<TaskMetadata> createTaskMetadata(Set<FileName<?>> scope, ReloadMode reloadMode) {
+        if (scope.isEmpty()) {
+            return new ArrayList<>();
+        }
+        final List<TaskMetadata> result = new ArrayList<>(scope.size());
+        for (FileName<?> fileName : scope) {
+            final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(fileName);
+            if (reloadMode == ReloadMode.FORCE_RELOAD) {
+                result.add(new TaskMetadata(readerMetadata.file, readerMetadata.reader, null));
+            } else {
+                result.add(new TaskMetadata(readerMetadata.file, readerMetadata.reader, readerMetadata.fileStat));
+            }
+        }
+        return result;
+    }
+
+    private void reloadImpl(List<TaskResult> changedFiles, ReloadMode reloadMode) throws Exception {
         if (changedFiles.isEmpty()) {
-            logger.info("reloadImpl, changedFiles is empty");
             return;
         }
 
         final StepWatch stepWatch = StepWatch.createStarted("FileReloadMrg:reloadImpl");
-        final List<CompletableFuture<?>> futureList = new ArrayList<>(changedFiles.size());
-        for (TaskContext context : changedFiles) {
-            Objects.requireNonNull(context.fileStat);
-            futureList.add(CompletableFuture.runAsync(new ReadSingleFileTask(context), executor));
-        }
-        CompletableFuture.allOf(futureList.toArray(CompletableFuture[]::new))
-                .orTimeout(timeoutReadFiles, TimeUnit.MILLISECONDS)
-                .join();
-        stepWatch.logStep("join");
-
         // 合并文件读取结果
         final Map<FileName<?>, Object> fileDataMap = new IdentityHashMap<>(changedFiles.size());
-        for (TaskContext context : changedFiles) {
-            Objects.requireNonNull(context.fileData);
-            fileDataMap.put(context.reader.fileName(), context.fileData);
+        for (TaskResult taskResult : changedFiles) {
+            Objects.requireNonNull(taskResult.fileData);
+            fileDataMap.put(taskResult.taskMetadata.reader.fileName(), taskResult.fileData);
         }
 
         // 创建沙箱，在沙箱上进行模拟赋值和验证
@@ -264,12 +350,13 @@ public final class FileReloadMgr implements ExtensibleObject {
         }
 
         // 最后更新文件状态(这可以使得在前面发生异常后可以重试)
-        for (TaskContext context : changedFiles) {
-            final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(context.reader.fileName());
-            readerMetadata.fileStat = context.fileStat;
+        for (TaskResult taskResult : changedFiles) {
+            final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(taskResult.taskMetadata.reader.fileName());
+            readerMetadata.fileStat = taskResult.fileStat;
         }
         logger.info(stepWatch.getLog());
     }
+
 
     private void notifyListeners(Set<FileName<?>> allChangedFileNameSet) throws Exception {
         final Set<ListenerWrapper> notifiedListeners = Collections.newSetFromMap(new IdentityHashMap<>(20));
@@ -345,239 +432,13 @@ public final class FileReloadMgr implements ExtensibleObject {
         }
     }
 
-    /**
-     * 重新加载所有的配置文件中改变的文件
-     */
-    public void reloadAll() {
-        reloadScope(readerMetadataMap.keySet());
-    }
-
-    /**
-     * 重新加载指定的配置文件中改变的文件
-     *
-     * @param scope 检测范围
-     */
-    public void reloadScope(Set<FileName<?>> scope) {
-        logger.info("reloadScope started");
-        final StepWatch stepWatch = StepWatch.createStarted("FileReloadMrg:reloadScope");
-        try {
-            final List<TaskContext> changedFiles = findChangedFiles(scope);
-            // 打印发现日志
-            for (TaskContext context : changedFiles) {
-                logger.info("reloadScope, file stat changed, fileName {}", context.fileName());
-            }
-
-            // 执行热更新
-            reloadImpl(changedFiles, ReloadMode.RELOAD_SCOPE);
-
-            // 打印详细日志
-            for (TaskContext context : changedFiles) {
-                logger.info("reloadScope, reload file success, fileName {}", context.fileName());
-            }
-
-            // 打印总览日志
-            logger.info("reloadScope completed, fileNum {}, stepInfo {}", changedFiles.size(), stepWatch);
-        } catch (Throwable e) {
-            // 打印失败日志
-            logger.info("reloadScope failure, stepInfo {}", stepWatch);
-            throw new ReloadException(FutureUtils.unwrapCompletionException(e));
-        }
-    }
-
-    /**
-     * 重新加载指定的配置文件。
-     * 在指定文件的情况下，不论文件是否变化，都执行回调逻辑。
-     * <p>
-     * Q: 为何如此设计？
-     * A: 避免md5相等导致的无法更新问题（全部更新时某些逻辑失败了，无法再次更新的情况）。
-     * 另一种方式是稍微改动一点内容，导致md5改变，再热更新。
-     */
-    public void forceReload(Set<FileName<?>> fileNameSet) {
-        logger.info("forceReload started");
-        final StepWatch stepWatch = StepWatch.createStarted("FileReloadMrg:forceReload");
-        try {
-            final List<TaskContext> contextList = new ArrayList<>(fileNameSet.size());
-            for (FileName<?> fileName : fileNameSet) {
-                Objects.requireNonNull(fileName, "fileName");
-                final ReaderMetadata readerMetadata = readerMetadataMap.get(fileName);
-                if (readerMetadata == null) {
-                    throw new IllegalArgumentException("unknown fileName: " + fileName);
-                }
-                final TaskContext context = new TaskContext(readerMetadata.reader, readerMetadata.file, readerMetadata.fileStat);
-                contextList.add(context);
-            }
-
-            // 打印文件信息
-            for (TaskContext context : contextList) {
-                logger.info("forceReload, file changed, fileName {}", context.fileName());
-            }
-
-            // 统计文件状态（这里文件一般不多，主线程统计）
-            for (TaskContext context : contextList) {
-                context.fileStat = ReloadUtils.statOfFile(context.file, context.fileStat);
-            }
-            stepWatch.logStep("statOfFile");
-
-            // 执行热更新
-            reloadImpl(contextList, ReloadMode.FORCE_RELOAD);
-            stepWatch.logStep("reloadImpl");
-
-            // 打印详细日志
-            for (TaskContext context : contextList) {
-                logger.info("forceReload, reload file success, fileName {}", context.fileName());
-            }
-
-            // 打印总览日志
-            logger.info("forceReload completed, fileNum {}, stepInfo {}", contextList.size(), stepWatch);
-        } catch (Throwable e) {
-            // 打印失败日志
-            logger.warn("forceReload failure, stepInfo {}", stepWatch);
-            throw new ReloadException(FutureUtils.unwrapCompletionException(e));
-        }
-    }
-
-    /**
-     * 注册文件热更新回调
-     *
-     * @param fileNameSet 关注的文件名
-     * @param listener    监听器
-     */
-    public void registerListener(@Nonnull Set<FileName<?>> fileNameSet, @Nonnull FileReloadListener listener) throws IOException {
-        Objects.requireNonNull(fileNameSet, "fileNameSet");
-        Objects.requireNonNull(listener, "listener");
-
-        if (fileNameSet.isEmpty()) {
-            throw new IllegalArgumentException("fileNameSet is empty");
-        }
-
-        // 必须拷贝，该类的约定是不修改和引用外部传入的集合，这样更加可靠
-        fileNameSet = Set.copyOf(fileNameSet);
-        // 努力保证失败原子性，这里务必在拷贝的集合上检查
-        validateFileNameSet(fileNameSet);
-
-        final DefaultListenerWrapper listenerWrapper = new DefaultListenerWrapper(fileNameSet, listener);
-        for (FileName<?> fileName : fileNameSet) {
-            final ListenerWrapper existListenerWrapper = listenerWrapperMap.get(fileName);
-            if (null == existListenerWrapper) {
-                // 一般一个listener
-                listenerWrapperMap.put(fileName, listenerWrapper);
-                return;
-            }
-            if (existListenerWrapper instanceof CompositeListenerWrapper) {
-                // 超过两个listener
-                ((CompositeListenerWrapper) existListenerWrapper).addChild(listenerWrapper);
-            } else {
-                // 两个listener
-                listenerWrapperMap.put(fileName, new CompositeListenerWrapper(existListenerWrapper, listenerWrapper));
-            }
-        }
-    }
-
-    private void validateFileNameSet(@Nonnull Set<FileName<?>> fileNameSet) {
-        for (FileName<?> fileName : fileNameSet) {
-            Objects.requireNonNull(fileName, "fileName");
-            final ReaderMetadata<?> readerMetadata = readerMetadataMap.get(fileName);
-            if (null == readerMetadata) {
-                throw new IllegalArgumentException("unknown fileName: " + fileName);
-            }
-        }
-    }
-
-    public void unregisterListener(@Nonnull Set<FileName<?>> fileNameSet, FileReloadListener listener) {
-        Objects.requireNonNull(fileNameSet, "fileNameSet");
-        Objects.requireNonNull(listener, "listener");
-        validateFileNameSet(fileNameSet);
-
-        for (FileName<?> fileName : fileNameSet) {
-            final ListenerWrapper existListenerWrapper = listenerWrapperMap.get(fileName);
-            if (existListenerWrapper == null) {
-                continue;
-            }
-            if (existListenerWrapper instanceof DefaultListenerWrapper) {
-                if (((DefaultListenerWrapper) existListenerWrapper).reloadListener == listener) {
-                    listenerWrapperMap.remove(fileName);
-                }
-            } else {
-                final CompositeListenerWrapper compositeListenerWrapper = (CompositeListenerWrapper) existListenerWrapper;
-                compositeListenerWrapper.children.removeIf(e -> ((DefaultListenerWrapper) e).reloadListener == listener);
-                if (compositeListenerWrapper.children.isEmpty()) {
-                    listenerWrapperMap.remove(fileName);
-                }
-            }
-        }
-    }
-
-    // region 内部实现
-
-    private enum ReloadMode {
+    enum ReloadMode {
         START_SERVER,
         RELOAD_SCOPE,
         FORCE_RELOAD
     }
 
-    private static class TaskContext {
-
-        final FileReader<?> reader;
-        final File file;
-        final FileStat oldFileStat;
-
-        FileStat fileStat;
-        Object fileData;
-
-        TaskContext(FileReader<?> reader, File file, FileStat oldFileStat) {
-            this.reader = reader;
-            this.file = file;
-            this.oldFileStat = oldFileStat;
-        }
-
-        FileName<?> fileName() {
-            return reader.fileName();
-        }
-    }
-
-    /**
-     * 统计单个文件状态
-     */
-    private static class StatisticSingleFileStatTask implements Runnable {
-
-        final TaskContext context;
-
-        private StatisticSingleFileStatTask(TaskContext context) {
-            this.context = context;
-        }
-
-        @Override
-        public void run() {
-            try {
-                context.fileStat = ReloadUtils.statOfFile(context.file, context.oldFileStat);
-            } catch (Exception e) {
-                throw new RuntimeException("fileName: " + context.file.getName(), e);
-            }
-        }
-    }
-
-    /**
-     * 读取单个文件内容
-     */
-    private static class ReadSingleFileTask implements Runnable {
-
-        final TaskContext context;
-
-        private ReadSingleFileTask(TaskContext context) {
-            this.context = context;
-        }
-
-        @Override
-        public void run() {
-            try {
-                final Object fileData = context.reader.read(context.file);
-                Objects.requireNonNull(fileData, context.reader.getClass().getName());
-                context.fileData = fileData;
-            } catch (Exception e) {
-                throw new RuntimeException("fileName: " + context.file.getName(), e);
-            }
-        }
-    }
+    // 全部为静态内部类，避免引用错误的数据
 
     private static class ReaderMetadata<T> {
 
