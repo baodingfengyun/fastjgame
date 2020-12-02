@@ -26,6 +26,9 @@ import com.wjybxx.fastjgame.reload.mgr.ReloadUtils.FileStat;
 import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.util.misc.StepWatch;
 import com.wjybxx.fastjgame.util.time.TimeUtils;
+import com.wjybxx.fastjgame.util.timer.TimerHandle;
+import com.wjybxx.fastjgame.util.timer.TimerSystem;
+import com.wjybxx.fastjgame.util.timer.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 
 /**
@@ -53,9 +57,10 @@ public final class FileReloadMgr implements ExtensibleObject {
     private final Map<String, Object> blackboard = new HashMap<>();
 
     private final String projectResDir;
-    private final Executor executor;
     private final FileDataMgr fileDataMgr;
 
+    private final TimerSystem timerSystem;
+    private final Executor executor;
     private final long timeoutFindChangedFiles;
     private final long timeoutReadFiles;
 
@@ -65,13 +70,16 @@ public final class FileReloadMgr implements ExtensibleObject {
     private final Map<FileName<?>, ReaderMetadata<?>> readerMetadataMap = new IdentityHashMap<>(500);
     private final Map<Class<?>, BuilderMetadata<?>> builderMetadataMap = new IdentityHashMap<>(50);
 
-    public FileReloadMgr(String projectResDir, FileDataMgr fileDataMgr, Executor executor) {
-        this(projectResDir, fileDataMgr, executor, 5 * TimeUtils.SEC, TimeUtils.MIN);
+    private TimerHandle reloadTimerHandle;
+
+    public FileReloadMgr(String projectResDir, FileDataMgr fileDataMgr, TimerSystem timerSystem, Executor executor) {
+        this(projectResDir, fileDataMgr, timerSystem, executor, 5 * TimeUtils.SEC, TimeUtils.MIN);
     }
 
     /**
      * @param projectResDir           项目资源目录，所有的{@link FileName}都是相对于该目录的路径
      * @param fileDataMgr             应用自身管理数据的地方
+     * @param timerSystem             主线程的timer管理器，用于异步热更新时检查热更新进度
      * @param executor                用于并发读取文件的线程池。
      *                                如果是共享线程池，该线程池上不要有大量的阻塞任务即可。
      *                                如果独享，建议拒绝策略为{@link java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy}。
@@ -79,8 +87,9 @@ public final class FileReloadMgr implements ExtensibleObject {
      * @param timeoutReadFiles        读取文件内容的超时时间(毫秒)
      */
     public FileReloadMgr(String projectResDir, FileDataMgr fileDataMgr,
-                         Executor executor, long timeoutFindChangedFiles, long timeoutReadFiles) {
+                         TimerSystem timerSystem, Executor executor, long timeoutFindChangedFiles, long timeoutReadFiles) {
         this.projectResDir = Objects.requireNonNull(projectResDir, "projectResDir");
+        this.timerSystem = timerSystem;
         this.executor = Objects.requireNonNull(executor, "executor");
         this.fileDataMgr = Objects.requireNonNull(fileDataMgr, "fileDataMgr");
         this.timeoutFindChangedFiles = timeoutFindChangedFiles;
@@ -171,6 +180,7 @@ public final class FileReloadMgr implements ExtensibleObject {
      * 启服加载所有文件
      */
     public void loadAll() throws Exception {
+        assert reloadTimerHandle == null;
         logger.info("loadAll started");
         try {
             final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.START_SERVER);
@@ -202,6 +212,7 @@ public final class FileReloadMgr implements ExtensibleObject {
         try {
             final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.RELOAD_SCOPE);
             final CompletableFuture<List<TaskResult>> future = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles);
+            reloadTimerHandle = timerSystem.newFixedDelay(1000, 50, new ReloadTaskTracker(future, ReloadMode.RELOAD_SCOPE));
         } catch (Throwable e) {
             throw new ReloadException(FutureUtils.unwrapCompletionException(e));
         }
@@ -221,6 +232,7 @@ public final class FileReloadMgr implements ExtensibleObject {
         try {
             final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.FORCE_RELOAD);
             final CompletableFuture<List<TaskResult>> future = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles);
+            reloadTimerHandle = timerSystem.newFixedDelay(1000, 50, new ReloadTaskTracker(future, ReloadMode.FORCE_RELOAD));
         } catch (Throwable e) {
             throw new ReloadException(FutureUtils.unwrapCompletionException(e));
         }
@@ -436,6 +448,42 @@ public final class FileReloadMgr implements ExtensibleObject {
         START_SERVER,
         RELOAD_SCOPE,
         FORCE_RELOAD
+    }
+
+    private class ReloadTaskTracker implements TimerTask {
+
+        final CompletableFuture<List<TaskResult>> future;
+        final ReloadMode reloadMode;
+        final Thread thread;
+
+        ReloadTaskTracker(CompletableFuture<List<TaskResult>> future, ReloadMode reloadMode) {
+            this.future = future;
+            this.reloadMode = reloadMode;
+            this.thread = Thread.currentThread();
+        }
+
+        @Override
+        public void run(TimerHandle handle) throws Exception {
+            if (thread != Thread.currentThread()) {
+                throw new IllegalStateException("timer is running on the wrong thread");
+            }
+            if (reloadTimerHandle != handle) {
+                handle.close();
+                return;
+            }
+            if (!future.isDone()) {
+                return;
+            }
+
+            try {
+                reloadImpl(future.join(), reloadMode);
+            } catch (CompletionException e) {
+                final Throwable cause = FutureUtils.unwrapCompletionException(e);
+                logger.warn("reload failure, reloadMode {}", reloadMode, cause);
+            } finally {
+                reloadTimerHandle = null;
+            }
+        }
     }
 
     // 全部为静态内部类，避免引用错误的数据

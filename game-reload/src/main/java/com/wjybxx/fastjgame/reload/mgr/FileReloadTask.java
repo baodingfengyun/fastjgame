@@ -101,6 +101,7 @@ class FileReloadTask implements Runnable {
     public void run() {
         try {
             statisticFileStats()
+                    .thenRun(this::retainChangedFiles)
                     .thenCompose(aVoid -> readChangedFiles())
                     .whenComplete(this::finish);
         } catch (Throwable ex) {
@@ -117,7 +118,15 @@ class FileReloadTask implements Runnable {
                 .orTimeout(timeoutFindChangedFiles, TimeUnit.MILLISECONDS);
     }
 
+    private void retainChangedFiles() {
+        taskContextList.removeIf(taskContext -> taskContext.taskMetadata.oldFileStat == taskContext.fileStat);
+    }
+
     private CompletableFuture<Void> readChangedFiles() {
+        if (taskContextList.isEmpty()) {
+            return CompletableFuture.completedFuture(null);
+        }
+
         final List<CompletableFuture<?>> futureList = new ArrayList<>(taskContextList.size());
         for (TaskContext context : taskContextList) {
             Objects.requireNonNull(context.fileStat);

@@ -25,9 +25,13 @@ import com.wjybxx.fastjgame.reload.sheet.SkillParamTemplate;
 import com.wjybxx.fastjgame.reload.sheet.SkillTemplate;
 import com.wjybxx.fastjgame.util.ThreadUtils;
 import com.wjybxx.fastjgame.util.excel.DefaultCellValueParser;
+import com.wjybxx.fastjgame.util.time.TimeProviders;
 import com.wjybxx.fastjgame.util.time.TimeUtils;
+import com.wjybxx.fastjgame.util.timer.DefaultTimerSystem;
+import com.wjybxx.fastjgame.util.timer.TimerSystem;
 
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import static com.wjybxx.fastjgame.reload.FileReloadTest.PROJECT_RES_DIR;
 import static com.wjybxx.fastjgame.reload.FileReloadTest.newThreadPool;
@@ -42,9 +46,10 @@ public class ExcelReloadTest {
 
     public static void main(String[] args) throws Exception {
         final ReloadTestDataMgr testDataMgr = new ReloadTestDataMgr();
+        final TimerSystem timerSystem = new DefaultTimerSystem(TimeProviders.realtimeProvider());
         final ScanResult scanResult = ScanResult.valueOf(Set.of("com.wjybxx.fastjgame.reload.sheet"));
         // 初始化文件管理器相关
-        final FileReloadMgr fileReloadMgr = new FileReloadMgr(PROJECT_RES_DIR, testDataMgr, newThreadPool());
+        final FileReloadMgr fileReloadMgr = new FileReloadMgr(PROJECT_RES_DIR, testDataMgr, timerSystem, newThreadPool());
         fileReloadMgr.registerReaders(scanResult.fileReaders);
         fileReloadMgr.registerCacheBuilders(scanResult.fileCacheBuilders);
         // 初始化excel管理器相关
@@ -68,10 +73,18 @@ public class ExcelReloadTest {
                 new ReloadListener(testDataMgr));
 
         // 暂时懒得写一个改excel内容的实现了，手动改吧(可以文件打开的情况下，测试几波)
-        for (int index = 0; index < 6; index++) {
-            ThreadUtils.sleepQuietly(5 * TimeUtils.SEC);
+        IntStream.rangeClosed(1, 5).forEach(i -> {
+            // 给15S机会修改文件
+            ThreadUtils.sleepQuietly(15 * TimeUtils.SEC);
             excelReloadMgr.reloadAll();
-        }
+
+            // 给5秒机会等待异步热更新
+            IntStream.rangeClosed(1, 5).forEach(j -> {
+                // 异步等待热更新完成
+                ThreadUtils.sleepQuietly(TimeUtils.SEC);
+                timerSystem.tick();
+            });
+        });
     }
 
     private static class ReloadListener implements SheetReloadListener {
