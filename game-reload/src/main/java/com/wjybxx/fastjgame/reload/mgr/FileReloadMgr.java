@@ -65,24 +65,24 @@ public final class FileReloadMgr implements ExtensibleObject {
     private final Map<FileName<?>, ReaderMetadata<?>> readerMetadataMap = new IdentityHashMap<>(500);
     private final Map<Class<?>, BuilderMetadata<?>> builderMetadataMap = new IdentityHashMap<>(50);
 
-    public FileReloadMgr(String projectResDir, Executor executor, FileDataMgr fileDataMgr) {
-        this(projectResDir, executor, fileDataMgr, 5 * TimeUtils.SEC, TimeUtils.MIN);
+    public FileReloadMgr(String projectResDir, FileDataMgr fileDataMgr, Executor executor) {
+        this(projectResDir, fileDataMgr, executor, 5 * TimeUtils.SEC, TimeUtils.MIN);
     }
 
     /**
      * @param projectResDir           项目资源目录，所有的{@link FileName}都是相对于该目录的路径
+     * @param fileDataMgr             应用自身管理数据的地方
      * @param executor                用于并发读取文件的线程池。
      *                                如果是共享线程池，该线程池上不要有大量的阻塞任务即可。
      *                                如果独享，建议拒绝策略为{@link java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy}。
-     * @param fileDataMgr             应用自身管理数据的地方
      * @param timeoutFindChangedFiles 统计文件变化的超时时间(毫秒)
      * @param timeoutReadFiles        读取文件内容的超时时间(毫秒)
      */
-    public FileReloadMgr(String projectResDir, Executor executor, FileDataMgr fileDataMgr,
-                         long timeoutFindChangedFiles, long timeoutReadFiles) {
-        this.projectResDir = projectResDir;
-        this.executor = executor;
-        this.fileDataMgr = fileDataMgr;
+    public FileReloadMgr(String projectResDir, FileDataMgr fileDataMgr,
+                         Executor executor, long timeoutFindChangedFiles, long timeoutReadFiles) {
+        this.projectResDir = Objects.requireNonNull(projectResDir, "projectResDir");
+        this.executor = Objects.requireNonNull(executor, "executor");
+        this.fileDataMgr = Objects.requireNonNull(fileDataMgr, "fileDataMgr");
         this.timeoutFindChangedFiles = timeoutFindChangedFiles;
         this.timeoutReadFiles = timeoutReadFiles;
     }
@@ -205,7 +205,7 @@ public final class FileReloadMgr implements ExtensibleObject {
             }
 
             final TaskContext taskContext = new TaskContext(readerMetadata.reader, readerMetadata.file, readerMetadata.fileStat);
-            futureList.add(CompletableFuture.runAsync(new StatisticFileStatTask(taskContext), executor));
+            futureList.add(CompletableFuture.runAsync(new StatisticSingleFileStatTask(taskContext), executor));
             contextList.add(taskContext);
         }
 
@@ -228,7 +228,7 @@ public final class FileReloadMgr implements ExtensibleObject {
         final List<CompletableFuture<?>> futureList = new ArrayList<>(changedFiles.size());
         for (TaskContext context : changedFiles) {
             Objects.requireNonNull(context.fileStat);
-            futureList.add(CompletableFuture.runAsync(new ReadFileTask(context), executor));
+            futureList.add(CompletableFuture.runAsync(new ReadSingleFileTask(context), executor));
         }
         CompletableFuture.allOf(futureList.toArray(CompletableFuture[]::new))
                 .orTimeout(timeoutReadFiles, TimeUnit.MILLISECONDS)
@@ -509,25 +509,6 @@ public final class FileReloadMgr implements ExtensibleObject {
 
     // region 内部实现
 
-    static class FileDataProviderImpl implements FileCacheBuilder.FileDataProvider {
-
-        final FileDataContainer fileDataContainer;
-        final Set<FileName<?>> fileNameSet;
-
-        FileDataProviderImpl(FileDataContainer fileDataContainer, Set<FileName<?>> fileNameSet) {
-            this.fileDataContainer = fileDataContainer;
-            this.fileNameSet = fileNameSet;
-        }
-
-        @Override
-        public <T> T getFileData(@Nonnull FileName<T> fileName) {
-            if (fileNameSet.contains(fileName)) {
-                return fileDataContainer.getFileData(fileName);
-            }
-            throw new IllegalArgumentException("restricted filename: " + fileName);
-        }
-    }
-
     private enum ReloadMode {
         START_SERVER,
         RELOAD_SCOPE,
@@ -555,13 +536,13 @@ public final class FileReloadMgr implements ExtensibleObject {
     }
 
     /**
-     * 统计文件的状态
+     * 统计单个文件状态
      */
-    private static class StatisticFileStatTask implements Runnable {
+    private static class StatisticSingleFileStatTask implements Runnable {
 
         final TaskContext context;
 
-        private StatisticFileStatTask(TaskContext context) {
+        private StatisticSingleFileStatTask(TaskContext context) {
             this.context = context;
         }
 
@@ -576,13 +557,13 @@ public final class FileReloadMgr implements ExtensibleObject {
     }
 
     /**
-     * 读取文件内容
+     * 读取单个文件内容
      */
-    private static class ReadFileTask implements Runnable {
+    private static class ReadSingleFileTask implements Runnable {
 
         final TaskContext context;
 
-        private ReadFileTask(TaskContext context) {
+        private ReadSingleFileTask(TaskContext context) {
             this.context = context;
         }
 
@@ -619,6 +600,25 @@ public final class FileReloadMgr implements ExtensibleObject {
         BuilderMetadata(FileCacheBuilder<T> builder, Collection<FileName<?>> fileNameSet) {
             this.builder = Objects.requireNonNull(builder, "builder");
             this.fileNameSet = Set.copyOf(Objects.requireNonNull(fileNameSet, "fileNameSet"));
+        }
+    }
+
+    private static class FileDataProviderImpl implements FileCacheBuilder.FileDataProvider {
+
+        final FileDataContainer fileDataContainer;
+        final Set<FileName<?>> fileNameSet;
+
+        FileDataProviderImpl(FileDataContainer fileDataContainer, Set<FileName<?>> fileNameSet) {
+            this.fileDataContainer = fileDataContainer;
+            this.fileNameSet = fileNameSet;
+        }
+
+        @Override
+        public <T> T getFileData(@Nonnull FileName<T> fileName) {
+            if (fileNameSet.contains(fileName)) {
+                return fileDataContainer.getFileData(fileName);
+            }
+            throw new IllegalArgumentException("restricted filename: " + fileName);
         }
     }
 

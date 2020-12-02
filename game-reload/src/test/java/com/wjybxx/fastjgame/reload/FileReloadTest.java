@@ -46,7 +46,7 @@ public class FileReloadTest {
         initFile();
 
         final ReloadTestDataMgr testDataMgr = new ReloadTestDataMgr();
-        final FileReloadMgr fileReloadMgr = new FileReloadMgr(PROJECT_RES_DIR, newThreadPool(), testDataMgr);
+        final FileReloadMgr fileReloadMgr = new FileReloadMgr(PROJECT_RES_DIR, testDataMgr, newThreadPool());
         final ScanResult scanResult = ScanResult.valueOf(Set.of("com.wjybxx.fastjgame.reload.file"));
         fileReloadMgr.registerReaders(scanResult.fileReaders);
         fileReloadMgr.registerCacheBuilders(scanResult.fileCacheBuilders);

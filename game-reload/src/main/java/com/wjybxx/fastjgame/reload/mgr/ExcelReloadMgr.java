@@ -79,11 +79,11 @@ public class ExcelReloadMgr implements ExtensibleObject {
     public ExcelReloadMgr(String projectResDir, String configDirName,
                           FileReloadMgr fileReloadMgr, SheetDataMgr sheetDataMgr,
                           Supplier<CellValueParser> parserSupplier) {
-        this.projectResDir = projectResDir;
-        this.configDirName = configDirName;
-        this.fileReloadMgr = fileReloadMgr;
-        this.sheetDataMgr = sheetDataMgr;
-        this.parserSupplier = parserSupplier;
+        this.projectResDir = Objects.requireNonNull(projectResDir, "projectResDir");
+        this.configDirName = Objects.requireNonNull(configDirName, "configDirName");
+        this.fileReloadMgr = Objects.requireNonNull(fileReloadMgr, "fileReloadMgr");
+        this.sheetDataMgr = Objects.requireNonNull(sheetDataMgr, "sheetDataMgr");
+        this.parserSupplier = Objects.requireNonNull(parserSupplier, "parserSupplier");
     }
 
     /**
@@ -330,6 +330,10 @@ public class ExcelReloadMgr implements ExtensibleObject {
     // region 内部实现
 
     private void reloadImpl(Set<FileName<?>> changedFileNameSet, ReloadMode reloadMode) throws Exception {
+        if (changedFileNameSet.isEmpty()) {
+            return;
+        }
+
         final StepWatch stepWatch = StepWatch.createStarted("ExcelReloadMrg:reloadImpl");
         // 合并所有sheet读取结果
         final Map<SheetName<?>, Object> sheetDataMap = new IdentityHashMap<>(changedFileNameSet.size() * 3);
@@ -446,15 +450,6 @@ public class ExcelReloadMgr implements ExtensibleObject {
         FILE_CHANGED,
     }
 
-    private static class ReaderMetadata<T> {
-
-        final SheetReader<T> reader;
-
-        ReaderMetadata(SheetReader<T> reader) {
-            this.reader = reader;
-        }
-    }
-
     private static class ExcelFileData {
 
         final Map<SheetName<?>, Object> sheetDataMap;
@@ -526,9 +521,30 @@ public class ExcelReloadMgr implements ExtensibleObject {
 
     }
 
+    private static class ReaderMetadata<T> {
+
+        final SheetReader<T> reader;
+
+        ReaderMetadata(SheetReader<T> reader) {
+            this.reader = reader;
+        }
+    }
+
+    private static class BuilderMetadata<T> {
+
+        final SheetCacheBuilder<T> builder;
+        final Set<SheetName<?>> sheetNamSet;
+
+        BuilderMetadata(SheetCacheBuilder<T> builder, Collection<SheetName<?>> sheetNames) {
+            this.builder = Objects.requireNonNull(builder, "builder");
+            this.sheetNamSet = Set.copyOf(Objects.requireNonNull(sheetNames, "sheetNames"));
+        }
+    }
+
     private static class SheetDataProviderImpl implements SheetCacheBuilder.SheetDataProvider {
 
         final SheetDataContainer sheetDataContainer;
+
         final Set<SheetName<?>> sheetNamSet;
 
         SheetDataProviderImpl(SheetDataContainer sheetDataContainer, Set<SheetName<?>> sheetNamSet) {
@@ -543,17 +559,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
             }
             throw new IllegalArgumentException("restricted sheetName: " + sheetName);
         }
-    }
 
-    private static class BuilderMetadata<T> {
-
-        final SheetCacheBuilder<T> builder;
-        final Set<SheetName<?>> sheetNamSet;
-
-        BuilderMetadata(SheetCacheBuilder<T> builder, Collection<SheetName<?>> sheetNames) {
-            this.builder = Objects.requireNonNull(builder, "builder");
-            this.sheetNamSet = Set.copyOf(Objects.requireNonNull(sheetNames, "sheetNames"));
-        }
     }
 
     private interface ListenerWrapper {

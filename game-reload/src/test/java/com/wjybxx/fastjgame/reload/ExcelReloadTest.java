@@ -44,7 +44,7 @@ public class ExcelReloadTest {
         final ReloadTestDataMgr testDataMgr = new ReloadTestDataMgr();
         final ScanResult scanResult = ScanResult.valueOf(Set.of("com.wjybxx.fastjgame.reload.sheet"));
         // 初始化文件管理器相关
-        final FileReloadMgr fileReloadMgr = new FileReloadMgr(PROJECT_RES_DIR, newThreadPool(), testDataMgr);
+        final FileReloadMgr fileReloadMgr = new FileReloadMgr(PROJECT_RES_DIR, testDataMgr, newThreadPool());
         fileReloadMgr.registerReaders(scanResult.fileReaders);
         fileReloadMgr.registerCacheBuilders(scanResult.fileCacheBuilders);
         // 初始化excel管理器相关
