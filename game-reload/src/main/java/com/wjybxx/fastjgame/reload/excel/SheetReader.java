@@ -58,7 +58,7 @@ public interface SheetReader<T> {
      * @param sheet 对应的表格内容
      */
     @Nonnull
-    T read(Sheet sheet);
+    T read(Sheet sheet) throws Exception;
 
     /**
      * 将读取到的结果赋值到给定的{@link SheetDataMgr}。

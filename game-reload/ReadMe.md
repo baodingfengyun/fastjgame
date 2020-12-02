@@ -40,3 +40,74 @@ A: 自动更新最大的问题：**不受控制**。
 1. 我们还是尽量将相关的sheet放在同一个excel，只有当表格较大时，才考虑优化。
 2. 如果一个sheet较大，且同表的其它sheet与其依赖较小，则拆分出来单独成表，比如物品表。
 3. 如果一个excel中存在多个大型的sheet，考虑适当的拆表。
+
+#### 性能瓶颈
+性能瓶颈在解析Excel部分，即将Excel转换为{@link Sheet}的过程。
+Excel底层存储结构是XML，解析相当慢，占用CPU资源较多，因此属于计算密集型任务，分配的线程数不必太多。
+* 环境:
+cpu: i5-4570（4核）  
+内存: 16G  
+表格: 文件大小927k，3870行，49列，服务器读取列数35列。  
+JDK: Amazon Corretto - jdk11.0.7_10  
+
+* 读取单个文件：  
+Excel -> Sheet: 3200ms ~ 3800ms  
+Sheet -> 自定义结构: 80ms ~ 90ms  
+
+* 单线程读取500个文件:  
+Executor: DirectExecutor  
+加载文件耗时：约390s~400s（耗时太长，没频繁测试）  
+
+* 并发读取500个文件:  
+线程数：2 = 1+1(主线程)  
+Executor: ThreadPoolExecutor  
+加载文件耗时：约230~240s（耗时太长，没频繁测试）  
+
+* 并发读取500个文件:  
+线程数：5 = 4+1(主线程)  
+Executor: ThreadPoolExecutor  
+加载文件耗时：约130s（耗时太长，没频繁测试）  
+
+...
+
+    public static void main(String[] args) throws Exception {
+        final StepWatch stepWatch = StepWatch.createStarted("PerformanceTest:main");
+        final int poolSize = Runtime.getRuntime().availableProcessors();
+        final int fileNum = 500;
+        try {
+            copyFiles(fileNum);
+            stepWatch.logStep("copyFiles");
+
+            final TemplateMrg templateMrg = new TemplateMrg();
+            final FileReloadMgr fileReloadMgr = new FileReloadMgr(PROJECT_RES_DIR, newThreadPool(poolSize), templateMrg, 5 * TimeUtils.SEC, 2 * TimeUtils.MIN);
+            final ExcelReloadMgr excelReloadMgr = new ExcelReloadMgr(PROJECT_RES_DIR, CONFIG_DIR_NAME, fileReloadMgr, templateMrg, DefaultCellValueParser::new);
+
+            final List<GoodsReader> goodsReaderList = new ArrayList<>(fileNum);
+            for (int index = 0; index < fileNum; index++) {
+                goodsReaderList.add(new GoodsReader(index));
+            }
+            excelReloadMgr.registerReaders(goodsReaderList);
+            stepWatch.logStep("registerReaders");
+
+            // 准备就绪后加载文件(excel->sheet->自定义结构)
+            fileReloadMgr.loadAll();
+            stepWatch.logStep("loadFiles");
+
+            // 加载表格
+            excelReloadMgr.loadAll();
+            stepWatch.logStep("loadSheets");
+        } finally {
+            deleteCopiedFiles(fileNum);
+            // 输出详细信息
+            System.out.println(stepWatch);
+        }
+    }
+    
+...
+
+ * 日志输出：
+ > [2020-12-02 12:35:18,882][INFO,FileReloadMgr] loadAll started
+ > [2020-12-02 12:37:31,790][INFO,FileReloadMgr] StepWatch[FileReloadMrg:reloadImpl=132057ms][join=132055ms,buildSandbox=1ms,validateOther=1ms]
+ > [2020-12-02 12:37:31,792][INFO,FileReloadMgr] loadAll completed, stepInfo StepWatch[FileReloadMrg:loadAll=132907ms][findChangedFiles=848ms,reloadImpl=132058ms]
+ > [2020-12-02 12:37:31,794][INFO,ExcelReloadMgr] StepWatch[ExcelReloadMrg:reloadImpl=1ms][buildSandbox=1ms,validateOther=0ms]
+ > StepWatch[PerformanceTest:main=136597ms][copyFiles=2161ms,registerReaders=495ms,loadFiles=132910ms,loadSheets=2ms]

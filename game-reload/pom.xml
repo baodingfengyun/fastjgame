@@ -60,6 +60,15 @@
             <artifactId>game-utils</artifactId>
             <version>1.0</version>
         </dependency>
+
+        <!-- 测试用工具 -->
+        <dependency>
+            <groupId>org.jodd</groupId>
+            <artifactId>jodd-core</artifactId>
+            <version>5.0.13</version>
+            <scope>test</scope>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
 </project>

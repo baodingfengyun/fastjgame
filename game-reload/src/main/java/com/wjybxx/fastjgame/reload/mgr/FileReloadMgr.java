@@ -66,17 +66,17 @@ public final class FileReloadMgr implements ExtensibleObject {
     private final Map<Class<?>, BuilderMetadata<?>> builderMetadataMap = new IdentityHashMap<>(50);
 
     public FileReloadMgr(String projectResDir, Executor executor, FileDataMgr fileDataMgr) {
-        this(projectResDir, executor, fileDataMgr, TimeUtils.MIN, TimeUtils.MIN);
+        this(projectResDir, executor, fileDataMgr, 5 * TimeUtils.SEC, TimeUtils.MIN);
     }
 
     /**
-     * @param projectResDir             项目资源目录，所有的{@link FileName}都是相对于该目录的路径
-     * @param executor                  用于并发读取文件的线程池。
-     *                                  如果是共享线程池，该线程池上不要有大量的阻塞任务即可。
-     *                                  如果独享，建议拒绝策略为{@link java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy}。
-     * @param fileDataMgr               应用自身管理数据的地方
+     * @param projectResDir           项目资源目录，所有的{@link FileName}都是相对于该目录的路径
+     * @param executor                用于并发读取文件的线程池。
+     *                                如果是共享线程池，该线程池上不要有大量的阻塞任务即可。
+     *                                如果独享，建议拒绝策略为{@link java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy}。
+     * @param fileDataMgr             应用自身管理数据的地方
      * @param timeoutFindChangedFiles 统计文件变化的超时时间(毫秒)
-     * @param timeoutReadFiles          读取文件内容的超时时间(毫秒)
+     * @param timeoutReadFiles        读取文件内容的超时时间(毫秒)
      */
     public FileReloadMgr(String projectResDir, Executor executor, FileDataMgr fileDataMgr,
                          long timeoutFindChangedFiles, long timeoutReadFiles) {
@@ -175,7 +175,7 @@ public final class FileReloadMgr implements ExtensibleObject {
         final StepWatch stepWatch = StepWatch.createStarted("FileReloadMrg:loadAll");
         try {
             final List<TaskContext> changedFiles = findChangedFiles(readerMetadataMap.keySet());
-            stepWatch.logStep("findChangedFiles ");
+            stepWatch.logStep("findChangedFiles");
 
             reloadImpl(changedFiles, ReloadMode.START_SERVER);
             stepWatch.logStep("reloadImpl");
