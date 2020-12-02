@@ -37,21 +37,21 @@ import java.util.*;
 class SheetReader {
 
     private final String fileName;
+    private final String sheetName;
     private final int sheetIndex;
     private final CellValueParser parser;
 
     private final int totalRowCount;
-    private final String sheetName;
     private final Iterator<Row> rowItr;
 
-    SheetReader(String fileName, int sheetIndex, org.apache.poi.ss.usermodel.Sheet poiSheet, CellValueParser parser) {
+    SheetReader(String fileName, String sheetName, int sheetIndex, org.apache.poi.ss.usermodel.Sheet poiSheet, CellValueParser parser) {
         this.fileName = fileName;
+        this.sheetName = sheetName;
         this.sheetIndex = sheetIndex;
         this.parser = parser;
 
         // 避免使用错误，这里把依赖项全部提取
         totalRowCount = poiSheet.getLastRowNum();
-        sheetName = poiSheet.getSheetName();
         rowItr = poiSheet.rowIterator();
     }
 

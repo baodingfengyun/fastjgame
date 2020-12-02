@@ -16,11 +16,8 @@
 
 package com.wjybxx.fastjgame.util.excel;
 
-import com.wjybxx.fastjgame.util.function.FunctionUtils;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -33,27 +30,22 @@ import java.util.function.Predicate;
  */
 public final class ExcelUtils {
 
+    public static final int DEFAULT_BUFFER_SIZE = 16 * 1024;
+
     private ExcelUtils() {
     }
 
     /**
-     * 读取一个excel页签
-     *
-     * @param file excel文件
-     * @return
+     * 读取excel的所有页签
      */
-    public static Map<String, Sheet> readExcel(File file, CellValueParser parser, Predicate<String> sheetNameFilter) throws Exception {
-        return readExcel(file, parser, sheetNameFilter, 16 * 1024);
+    public static Map<String, Sheet> readExcel(File file, CellValueParser parser, Predicate<String> sheetNameFilter) throws IOException {
+        return readExcel(file, parser, sheetNameFilter, DEFAULT_BUFFER_SIZE);
     }
 
     /**
-     * 读取一个excel页签
-     *
-     * @param file       excel文件
-     * @param bufferSize 缓冲区大小
-     * @return
+     * 读取excel的所有页签
      */
-    public static Map<String, Sheet> readExcel(File file, CellValueParser parser, Predicate<String> sheetNameFilter, int bufferSize) throws Exception {
+    public static Map<String, Sheet> readExcel(File file, CellValueParser parser, Predicate<String> sheetNameFilter, int bufferSize) throws IOException {
         try (final ExcelReader reader = new ExcelReader(file, parser, sheetNameFilter, bufferSize)) {
             return reader.readSheets();
         }
@@ -70,20 +62,24 @@ public final class ExcelUtils {
         return ExcelReader.readExcelSheetNames(file, sheetNameFilter);
     }
 
-    public static void main(String[] args) throws Exception {
-        // 测试表格放在了config目录下
-        final String path = "./res/config/test.xlsx";
-        final File file = new File(path);
-        final Map<String, Sheet> sheetMap = readExcel(file, new DefaultCellValueParser(), FunctionUtils.alwaysTrue());
-        System.out.println(sheetMap);
+    /**
+     * 只读取excel的第一个sheet，且使用文件的简单名作为sheetName。
+     * simpleName: 文件名去掉类型后缀，比如：bag.xlsx，则sheetName为bag
+     * <p>
+     * 部分项目excel只有一个sheet，且sheet是没有名称的，是通过文件名区分的，需要这种方式读取。
+     */
+    public static Sheet readSheetUseFileSimpleName(File file, CellValueParser parser) throws IOException {
+        return ExcelReader.readSheetUseFileSimpleName(file, parser, DEFAULT_BUFFER_SIZE);
+    }
 
-        final Sheet skillParam = sheetMap.get("TestParam");
-        skillParam.getSheetContent().asParamSheetContent().valueCells()
-                .forEach(System.out::println);
-
-        System.out.println("----------------------------------");
-        System.out.println(Arrays.toString(skillParam.getValueCell("ONE_DIMENSIONAL_ARRAY").readAsArray(int[].class)));
-        System.out.println(Arrays.deepToString(skillParam.getValueCell("TWO_DIMENSIONAL_ARRAY").readAsArray(int[][].class)));
+    /**
+     * 只读取excel的第一个sheet，且使用文件的简单名作为sheetName。
+     * simpleName: 文件名去掉类型后缀，比如：bag.xlsx，则sheetName为bag
+     * <p>
+     * 部分项目excel只有一个sheet，且sheet是没有名称的，是通过文件名区分的，需要这种方式读取。
+     */
+    public static Sheet readSheetUseFileSimpleName(File file, CellValueParser parser, int bufferSize) throws IOException {
+        return ExcelReader.readSheetUseFileSimpleName(file, parser, bufferSize);
     }
 
 }

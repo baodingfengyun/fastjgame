@@ -16,7 +16,6 @@
 package com.wjybxx.fastjgame.util.excel;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Excel表的一页
@@ -91,26 +90,17 @@ public final class Sheet {
     }
 
     /**
-     * param表使用这种方法读取每一个字段
-     *
-     * @param name 参数的名字
-     * @return 参数对应的值
+     * 普通表格获取内容
      */
-    public ValueCell getValueCell(String name) {
-        if (sheetContent instanceof ParamSheetContent) {
-            return ((ParamSheetContent) sheetContent).getCell(name);
-        }
-        throw notParamSheetException();
+    public DefaultSheetContent getContentAsDefaultSheet() {
+        return sheetContent.asDefaultSheetContent();
     }
 
     /**
-     * param表使用这种方式获取所有的键值对信息
+     * param表使用这种方法读取每一个字段
      */
-    public Map<String, ValueCell> getName2CellMap() {
-        if (sheetContent instanceof ParamSheetContent) {
-            return ((ParamSheetContent) sheetContent).getName2CellMap();
-        }
-        throw notParamSheetException();
+    public ParamSheetContent getContentAsParamSheet() {
+        return sheetContent.asParamSheetContent();
     }
 
     /**

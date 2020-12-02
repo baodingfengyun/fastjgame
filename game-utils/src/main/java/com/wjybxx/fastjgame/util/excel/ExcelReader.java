@@ -1,17 +1,17 @@
 /*
- * Copyright 2019 wjybxx
+ *  Copyright 2019 wjybxx
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to iBn writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.wjybxx.fastjgame.util.excel;
@@ -66,6 +66,53 @@ class ExcelReader implements AutoCloseable {
                 .open(file);
     }
 
+    Map<String, Sheet> readSheets() {
+        final int numberOfSheets = workbook.getNumberOfSheets();
+        final Map<String, Sheet> result = Maps.newLinkedHashMapWithExpectedSize(numberOfSheets);
+        for (int sheetIndex = 0; sheetIndex < numberOfSheets; sheetIndex++) {
+            final org.apache.poi.ss.usermodel.Sheet poiSheet = workbook.getSheetAt(sheetIndex);
+            final String sheetName = poiSheet.getSheetName();
+
+            if (isSheetNameSkippable(sheetName, sheetNameFilter)) {
+                // 无意义的命名，跳过
+                logger.info("skip sheet, sheetName is invalid, fileName {}, sheetName {}", file.getName(), sheetName);
+                continue;
+            }
+
+            try {
+                if (result.containsKey(sheetName)) {
+                    final String msg = String.format("sheetName is duplicate, sheetName: %s", sheetName);
+                    throw new IllegalStateException(msg);
+                }
+
+                final Sheet appSheet = new SheetReader(file.getName(), sheetName, sheetIndex, poiSheet, parser).read();
+                if (appSheet == null) {
+                    // 可能没需要读取的字段
+                    logger.info("skip sheet, appSheet is null, fileName {}, sheetName {}", file.getName(), sheetName);
+                    continue;
+                }
+
+                result.put(sheetName, appSheet);
+            } catch (Exception e) {
+                throw new ReadSheetException(file.getName(), sheetName, sheetIndex, e);
+            }
+        }
+        return result;
+    }
+
+    private static boolean isSheetNameSkippable(String sheetName, Predicate<String> sheetNameFilter) {
+        return StringUtils.isBlank(sheetName)
+                || sheetName.startsWith("Sheet")
+                || sheetName.startsWith("sheet")
+                || !sheetNameFilter.test(sheetName)
+                || !PATTERN.matcher(sheetName).matches();
+    }
+
+    @Override
+    public void close() throws IOException {
+        CloseableUtils.closeSafely(workbook);
+    }
+
     static List<String> readExcelSheetNames(File file, Predicate<String> sheetNameFilter) throws IOException {
         try (final Workbook workbook = StreamingReader.builder()
                 .rowCacheSize(10)
@@ -87,50 +134,26 @@ class ExcelReader implements AutoCloseable {
         }
     }
 
-    private static boolean isSheetNameSkippable(String sheetName, Predicate<String> sheetNameFilter) {
-        return StringUtils.isBlank(sheetName)
-                || sheetName.startsWith("Sheet")
-                || sheetName.startsWith("sheet")
-                || !sheetNameFilter.test(sheetName)
-                || !PATTERN.matcher(sheetName).matches();
-    }
 
-    Map<String, Sheet> readSheets() {
-        final int numberOfSheets = workbook.getNumberOfSheets();
-        final Map<String, Sheet> result = Maps.newLinkedHashMapWithExpectedSize(numberOfSheets);
-        for (int sheetIndex = 0; sheetIndex < numberOfSheets; sheetIndex++) {
+    static Sheet readSheetUseFileSimpleName(File file, CellValueParser parser, int bufferSize) throws IOException {
+        try (final Workbook workbook = StreamingReader.builder()
+                .rowCacheSize(200)
+                .bufferSize(bufferSize)
+                .open(file)) {
+
+            // sheetName使用excel文件的名字
+            final String fileName = file.getName();
+            final String sheetName = fileName.substring(0, fileName.lastIndexOf('.'));
+            final int sheetIndex = 0;
+
             final org.apache.poi.ss.usermodel.Sheet poiSheet = workbook.getSheetAt(sheetIndex);
-            final String sheetName = poiSheet.getSheetName();
-
-            if (isSheetNameSkippable(sheetName, sheetNameFilter)) {
-                // 无意义的命名，跳过
-                logger.info("skip sheet, sheetName is invalid, fileName{}, sheetName {}", file.getName(), sheetName);
-                continue;
+            final Sheet appSheet = new SheetReader(fileName, sheetName, sheetIndex, poiSheet, parser).read();
+            if (appSheet == null) {
+                // 内容不合法
+                throw new ReadSheetException(file.getName(), sheetName, sheetIndex, "sheetContent error");
             }
-
-            try {
-                if (result.containsKey(sheetName)) {
-                    final String msg = String.format("sheetName is duplicate, sheetName: %s", sheetName);
-                    throw new IllegalStateException(msg);
-                }
-
-                final Sheet appSheet = new SheetReader(file.getName(), sheetIndex, poiSheet, parser).read();
-                if (appSheet == null) {
-                    // 可能没需要读取的字段
-                    logger.info("skip sheet, appSheet is null, fileName{}, sheetName {}", file.getName(), sheetName);
-                    continue;
-                }
-
-                result.put(sheetName, appSheet);
-            } catch (Exception e) {
-                throw new ReadSheetException(file.getName(), sheetName, sheetIndex, e);
-            }
+            return appSheet;
         }
-        return result;
     }
 
-    @Override
-    public void close() throws Exception {
-        CloseableUtils.closeSafely(workbook);
-    }
 }

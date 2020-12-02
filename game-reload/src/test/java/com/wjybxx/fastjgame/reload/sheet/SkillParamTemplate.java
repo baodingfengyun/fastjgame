@@ -20,6 +20,7 @@ import com.wjybxx.fastjgame.reload.ReloadTestDataMgr;
 import com.wjybxx.fastjgame.reload.excel.SheetName;
 import com.wjybxx.fastjgame.reload.excel.SheetReader;
 import com.wjybxx.fastjgame.reload.mgr.SheetDataMgr;
+import com.wjybxx.fastjgame.util.excel.ParamSheetContent;
 import com.wjybxx.fastjgame.util.excel.Sheet;
 
 import javax.annotation.Nonnull;
@@ -38,8 +39,9 @@ public class SkillParamTemplate {
     public final float DEFAULT_CRIT_RATE;
 
     private SkillParamTemplate(Sheet sheet) {
-        DEFAULT_HIT_RATE = sheet.getValueCell("DEFAULT_HIT_RATE").readAsFloat();
-        DEFAULT_CRIT_RATE = sheet.getValueCell("DEFAULT_CRIT_RATE").readAsFloat();
+        final ParamSheetContent paramSheet = sheet.getContentAsParamSheet();
+        DEFAULT_HIT_RATE = paramSheet.readAsFloat("DEFAULT_HIT_RATE");
+        DEFAULT_CRIT_RATE = paramSheet.readAsFloat("DEFAULT_CRIT_RATE");
     }
 
     @Override
