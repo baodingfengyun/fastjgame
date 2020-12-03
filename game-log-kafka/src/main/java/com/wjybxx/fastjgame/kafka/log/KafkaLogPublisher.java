@@ -124,7 +124,7 @@ public class KafkaLogPublisher<T extends GameLog> extends DisruptorEventLoop imp
                 final ProducerRecord<String, String> producerRecord = new ProducerRecord<>(logRecord.topic(), PARTITION_ID,
                         null, logRecord.data());
                 producer.send(producerRecord);
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 logger.warn("publish caught exception, builder {}", gameLog, e);
             }
         }

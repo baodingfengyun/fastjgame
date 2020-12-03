@@ -74,13 +74,10 @@ abstract class AbstractTimerHandle implements TimerHandle {
     private int nextExecuteFrameThreshold;
 
     AbstractTimerHandle(DefaultTimerSystem timerSystem, TimerTask timerTask) {
-        Objects.requireNonNull(timerSystem, "timerSystem");
-        Objects.requireNonNull(timerTask, "timerTask");
-
-        this.timerSystem = timerSystem;
+        this.timerSystem = Objects.requireNonNull(timerSystem, "timerSystem");
+        this.timerTask = Objects.requireNonNull(timerTask, "timerTask");
         this.timerId = timerSystem.nextTimerId();
         this.createTimeMs = timerSystem.curTimeMillis();
-        this.timerTask = timerTask;
     }
 
     @Override

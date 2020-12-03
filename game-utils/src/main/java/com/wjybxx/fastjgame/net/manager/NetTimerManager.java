@@ -39,7 +39,7 @@ public class NetTimerManager implements TimerSystem {
 
     @Inject
     public NetTimerManager(NetTimeManager netTimeManager) {
-        timerSystem = new DefaultTimerSystem(INIT_TIMER_CAPACITY, netTimeManager);
+        timerSystem = new DefaultTimerSystem(netTimeManager, INIT_TIMER_CAPACITY);
     }
 
     @Override

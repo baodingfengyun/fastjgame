@@ -37,9 +37,6 @@ class FixedDelayHandleImp extends AbstractPeriodicTimerHandle implements FixedDe
         setNextExecuteTimeMs(lastExecuteTimeMs + period());
     }
 
-    /**
-     * 更新下一次的执行时间
-     */
     @Override
     protected final void adjustNextExecuteTime() {
         if (executedTimes() > 0) {

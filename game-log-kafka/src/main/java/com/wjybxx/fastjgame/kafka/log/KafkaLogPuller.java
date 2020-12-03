@@ -155,13 +155,9 @@ public class KafkaLogPuller<T extends GameLog> extends DisruptorEventLoop implem
     }
 
     private void consumeSafely(ConsumerRecord<String, String> consumerRecord) {
-        try {
-            final T record = decoder.decode(new DefaultLogRecord(consumerRecord.topic(), consumerRecord.value()));
-            final LogConsumer<T> logConsumer = logConsumerMap.get(consumerRecord.topic());
-            LogConsumerUtils.consumeSafely(logConsumer, record);
-        } catch (Throwable e) {
-            logger.warn("consume caught exception, record {}", consumerRecord, e);
-        }
+        final T record = decoder.decode(new DefaultLogRecord(consumerRecord.topic(), consumerRecord.value()));
+        final LogConsumer<T> logConsumer = logConsumerMap.get(consumerRecord.topic());
+        LogConsumerUtils.consumeSafely(logConsumer, record);
     }
 
     @Override

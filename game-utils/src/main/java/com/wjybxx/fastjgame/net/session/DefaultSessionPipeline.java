@@ -55,7 +55,7 @@ class DefaultSessionPipeline implements SessionPipeline {
 
     DefaultSessionPipeline(Session session, TimeProvider timeProvider) {
         this.session = session;
-        this.timerSystem = new DefaultTimerSystem(TIMER_SYSTEM_CAPACITY, timeProvider);
+        this.timerSystem = new DefaultTimerSystem(timeProvider, TIMER_SYSTEM_CAPACITY);
         this.tail = new TailContext(this);
         this.head = new HeadContext(this);
 

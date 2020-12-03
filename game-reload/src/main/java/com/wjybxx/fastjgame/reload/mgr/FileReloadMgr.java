@@ -510,7 +510,7 @@ public final class FileReloadMgr implements ExtensibleObject {
                 if (callback != null) {
                     callback.onCompleted(changedFiles, null);
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 final Throwable cause = FutureUtils.unwrapCompletionException(e);
                 logger.warn("reload failure, reloadMode {}", reloadMode, cause);
                 if (callback != null) {

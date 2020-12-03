@@ -49,7 +49,7 @@ public class OneWayProcessTask implements RpcProcessContext, ProcessTask {
         try {
             // 直接忽略结果，这避免了返回不必要的结果给远程调用方
             session.config().processor().process(this, (RpcMethodSpec) message);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             // 直接抛出，交给执行者处理
             ExceptionUtils.rethrow(e);
         }

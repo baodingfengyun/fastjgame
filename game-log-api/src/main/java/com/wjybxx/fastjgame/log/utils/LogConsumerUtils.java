@@ -43,7 +43,7 @@ public class LogConsumerUtils {
             } else {
                 appEventLoop.execute(new ConsumeTask<>(consumer, record));
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             logger.warn("consumer.consume caught exception", e);
         }
     }
@@ -62,7 +62,7 @@ public class LogConsumerUtils {
         public void run() {
             try {
                 consumer.consume(record);
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 ExceptionUtils.rethrow(e);
             }
         }

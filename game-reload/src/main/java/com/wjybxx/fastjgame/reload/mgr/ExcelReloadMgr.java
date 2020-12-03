@@ -280,7 +280,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
      */
     public void forceReload(@Nonnull Set<String> excelNameSet, @Nullable FileReloadCallback callback) throws Exception {
         final Map<String, FileName<ExcelFileData>> stringFileNameMap = excelReaderMap.values().stream()
-                .collect(Collectors.toMap(excelReader -> excelReader.simpleFileName, excelReader -> excelReader.fileName));
+                .collect(Collectors.toMap(excelReader -> excelReader.stringFileName, excelReader -> excelReader.fileName));
         // 转换类型
         final Set<FileName<?>> scope = Sets.newHashSetWithExpectedSize(excelNameSet.size());
         for (String excelName : excelNameSet) {
@@ -470,16 +470,16 @@ public class ExcelReloadMgr implements ExtensibleObject {
 
     private static class ExcelReader implements FileReader<ExcelFileData> {
 
-        final String simpleFileName;
+        final String stringFileName;
         final FileName<ExcelFileData> fileName;
         final Map<String, SheetReader<?>> sheetReaderMap;
         final Supplier<CellValueParser> parserSupplier;
 
-        ExcelReader(String simpleFileName,
+        ExcelReader(String stringFileName,
                     FileName<ExcelFileData> fileName,
                     Map<String, SheetReader<?>> sheetReaderMap,
                     Supplier<CellValueParser> parserSupplier) {
-            this.simpleFileName = simpleFileName;
+            this.stringFileName = stringFileName;
             this.fileName = fileName;
             this.sheetReaderMap = sheetReaderMap;
             this.parserSupplier = parserSupplier;

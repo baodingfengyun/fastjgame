@@ -75,17 +75,17 @@ public class DefaultTimerSystem implements TimerSystem {
     private int curTickFrame = 0;
 
     /**
-     * @see DefaultTimerSystem#DefaultTimerSystem(int, TimeProvider)
+     * @see DefaultTimerSystem#DefaultTimerSystem(TimeProvider, int)
      */
     public DefaultTimerSystem(TimeProvider timeProvider) {
-        this(DEFAULT_INITIAL_CAPACITY, timeProvider);
+        this(timeProvider, DEFAULT_INITIAL_CAPACITY);
     }
 
     /**
-     * @param initCapacity 初始timer空间，当你能预见timer的空间大小时，指定空间大小能提高性能和空间利用率
      * @param timeProvider 时间提供函数
+     * @param initCapacity 初始timer空间，当你能预见timer的空间大小时，指定空间大小能提高性能和空间利用率
      */
-    public DefaultTimerSystem(int initCapacity, TimeProvider timeProvider) {
+    public DefaultTimerSystem(TimeProvider timeProvider, int initCapacity) {
         this.timeProvider = Objects.requireNonNull(timeProvider, "timeProvider");
         timerQueue = new PriorityQueue<>(initCapacity, AbstractTimerHandle.timerComparator);
     }
@@ -228,12 +228,12 @@ public class DefaultTimerSystem implements TimerSystem {
         timerHandle.beforeExecuteOnce();
         try {
             timerHandle.run();
-        } catch (final Throwable cause) {
+        } catch (Exception e) {
             if (timerHandle.isAutoCloseOnExceptionCaught()) {
                 // 出现异常时关闭timer
                 timerHandle.closeWithoutRemove();
             }
-            logger.warn("timerHandle.run caught exception!", cause);
+            logger.warn("timerHandle.run caught exception!", e);
         }
 
         if (!timerHandle.isClosed()) {

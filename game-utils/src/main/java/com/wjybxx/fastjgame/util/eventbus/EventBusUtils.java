@@ -62,7 +62,7 @@ public class EventBusUtils {
     public static <T> void invokeHandlerSafely(@Nonnull T event, @Nonnull EventHandler<? super T> handler) {
         try {
             handler.onEvent(event);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             final String handlerName = handler.getClass().getName();
             final String eventName = event.getClass().getName();
             logger.warn("handlerName: " + handlerName + ", eventName: " + eventName, e);
