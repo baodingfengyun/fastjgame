@@ -16,10 +16,8 @@
 
 package com.wjybxx.fastjgame.reload.mgr;
 
-import com.wjybxx.fastjgame.reload.file.FileCacheBuilder;
-import com.wjybxx.fastjgame.reload.file.FileName;
-import com.wjybxx.fastjgame.reload.file.FileReader;
-import com.wjybxx.fastjgame.reload.file.FileReloadListener;
+import com.google.common.collect.Sets;
+import com.wjybxx.fastjgame.reload.file.*;
 import com.wjybxx.fastjgame.reload.mgr.FileReloadTask.TaskMetadata;
 import com.wjybxx.fastjgame.reload.mgr.FileReloadTask.TaskResult;
 import com.wjybxx.fastjgame.reload.mgr.ReloadUtils.FileStat;
@@ -33,11 +31,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 /**
  * 文件热更管理器。
@@ -62,6 +63,7 @@ public final class FileReloadMgr implements ExtensibleObject {
     private final Executor executor;
     private final long timeoutFindChangedFiles;
     private final long timeoutReadFiles;
+    private final long autoReloadInterval;
 
     private final FileDataContainer fileDataContainer = new FileDataContainer();
     private final Map<FileName<?>, ListenerWrapper> listenerWrapperMap = new IdentityHashMap<>(50);
@@ -69,10 +71,11 @@ public final class FileReloadMgr implements ExtensibleObject {
     private final Map<FileName<?>, ReaderMetadata<?>> readerMetadataMap = new IdentityHashMap<>(500);
     private final Map<Class<?>, BuilderMetadata<?>> builderMetadataMap = new IdentityHashMap<>(50);
 
+    private TimerHandle autoReloadTimerHandle;
     private TimerHandle reloadTimerHandle;
 
     public FileReloadMgr(String projectResDir, FileDataMgr fileDataMgr, TimerSystem timerSystem, Executor executor) {
-        this(projectResDir, fileDataMgr, timerSystem, executor, 5 * TimeUtils.SEC, TimeUtils.MIN);
+        this(projectResDir, fileDataMgr, timerSystem, executor, 30 * TimeUtils.SEC, 5 * TimeUtils.SEC, TimeUtils.MIN);
     }
 
     /**
@@ -82,15 +85,18 @@ public final class FileReloadMgr implements ExtensibleObject {
      * @param executor                用于并发读取文件的线程池。
      *                                如果是共享线程池，该线程池上不要有大量的阻塞任务即可。
      *                                如果独享，建议拒绝策略为{@link java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy}。
+     * @param autoReloadInterval      后台自动更新检查间隔(毫秒)
      * @param timeoutFindChangedFiles 统计文件变化的超时时间(毫秒)
      * @param timeoutReadFiles        读取文件内容的超时时间(毫秒)
      */
     public FileReloadMgr(String projectResDir, FileDataMgr fileDataMgr,
-                         TimerSystem timerSystem, Executor executor, long timeoutFindChangedFiles, long timeoutReadFiles) {
+                         TimerSystem timerSystem, Executor executor,
+                         long autoReloadInterval, long timeoutFindChangedFiles, long timeoutReadFiles) {
         this.projectResDir = Objects.requireNonNull(projectResDir, "projectResDir");
         this.timerSystem = timerSystem;
         this.executor = Objects.requireNonNull(executor, "executor");
         this.fileDataMgr = Objects.requireNonNull(fileDataMgr, "fileDataMgr");
+        this.autoReloadInterval = autoReloadInterval;
         this.timeoutFindChangedFiles = timeoutFindChangedFiles;
         this.timeoutReadFiles = timeoutReadFiles;
     }
@@ -179,42 +185,50 @@ public final class FileReloadMgr implements ExtensibleObject {
      * 启服加载所有文件
      */
     public void loadAll() throws Exception {
-        assert reloadTimerHandle == null;
+        if (autoReloadTimerHandle != null || reloadTimerHandle != null) {
+            throw new IllegalStateException();
+        }
+        autoReloadTimerHandle = timerSystem.newFixedDelay(autoReloadInterval, autoReloadInterval, new AutoReloadTask());
+
         logger.info("loadAll started");
+        final StepWatch stepWatch = StepWatch.createStarted("FileReloadMgr:loadAll");
         try {
             final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.START_SERVER);
             final List<TaskResult> taskResultList = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles)
                     .join();
+            stepWatch.logStep("join");
+
             reloadImpl(taskResultList, ReloadMode.START_SERVER);
-            logger.info("loadAll completed, fileNum {}", readerMetadataMap.size());
+            stepWatch.logStep("reloadImpl");
+
+            logger.info("loadAll completed, fileNum {}, stepInfo {}", readerMetadataMap.size(), stepWatch);
         } catch (Exception e) {
-            logger.info("loadAll failure, fileNum {}}", readerMetadataMap.size());
+            logger.info("loadAll failure, fileNum {}},  stepInfo {}", readerMetadataMap.size(), stepWatch);
             throw new ReloadException(FutureUtils.unwrapCompletionException(e));
         }
     }
 
     /**
      * 重新加载所有的配置文件中改变的文件
+     *
+     * @param callback 用于监听回调完成事件，可以为null。如果
      */
-    public void reloadAll() {
-        reloadScope(readerMetadataMap.keySet());
+    public void reloadAll(@Nullable FileReloadCallback callback) {
+        reloadScope(readerMetadataMap.keySet(), callback);
     }
 
     /**
      * 重新加载指定的配置文件中改变的文件
      *
-     * @param scope 检测范围
+     * @param scope    检测范围
+     * @param callback
      */
-    public void reloadScope(Set<FileName<?>> scope) {
+    public void reloadScope(@Nonnull Set<FileName<?>> scope, @Nullable FileReloadCallback callback) {
         Objects.requireNonNull(scope, "scope");
         ensureFileReaderExist(scope);
-        try {
-            final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.RELOAD_SCOPE);
-            final CompletableFuture<List<TaskResult>> future = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles);
-            reloadTimerHandle = timerSystem.newFixedDelay(1000, 50, new ReloadTaskTracker(future, ReloadMode.RELOAD_SCOPE));
-        } catch (Exception e) {
-            throw new ReloadException(FutureUtils.unwrapCompletionException(e));
-        }
+        final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.RELOAD_SCOPE);
+        final CompletableFuture<List<TaskResult>> future = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles);
+        reloadTimerHandle = timerSystem.newFixedDelay(1000, 50, new ReloadTaskTracker(future, ReloadMode.RELOAD_SCOPE, callback));
     }
 
     /**
@@ -225,16 +239,12 @@ public final class FileReloadMgr implements ExtensibleObject {
      * A: 避免md5相等导致的无法更新问题（全部更新时某些逻辑失败了，无法再次更新的情况）。
      * 另一种方式是稍微改动一点内容，导致md5改变，再热更新。
      */
-    public void forceReload(Set<FileName<?>> scope) {
+    public void forceReload(Set<FileName<?>> scope, FileReloadCallback callback) {
         Objects.requireNonNull(scope, "scope");
         ensureFileReaderExist(scope);
-        try {
-            final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.FORCE_RELOAD);
-            final CompletableFuture<List<TaskResult>> future = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles);
-            reloadTimerHandle = timerSystem.newFixedDelay(1000, 50, new ReloadTaskTracker(future, ReloadMode.FORCE_RELOAD));
-        } catch (Throwable e) {
-            throw new ReloadException(FutureUtils.unwrapCompletionException(e));
-        }
+        final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.FORCE_RELOAD);
+        final CompletableFuture<List<TaskResult>> future = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles);
+        reloadTimerHandle = timerSystem.newFixedDelay(1000, 50, new ReloadTaskTracker(future, ReloadMode.FORCE_RELOAD, callback));
     }
 
     /**
@@ -453,11 +463,14 @@ public final class FileReloadMgr implements ExtensibleObject {
 
         final CompletableFuture<List<TaskResult>> future;
         final ReloadMode reloadMode;
+        final FileReloadCallback callback;
         final Thread thread;
 
-        ReloadTaskTracker(CompletableFuture<List<TaskResult>> future, ReloadMode reloadMode) {
+        ReloadTaskTracker(CompletableFuture<List<TaskResult>> future, ReloadMode reloadMode,
+                          @Nullable FileReloadCallback callback) {
             this.future = future;
             this.reloadMode = reloadMode;
+            this.callback = callback;
             this.thread = Thread.currentThread();
         }
 
@@ -466,10 +479,16 @@ public final class FileReloadMgr implements ExtensibleObject {
             if (thread != Thread.currentThread()) {
                 throw new IllegalStateException("timer is running on the wrong thread");
             }
+
             if (reloadTimerHandle != handle) {
                 handle.close();
+                logger.info("reload cancelled, reloadMode {}", reloadMode);
+                if (callback != null) {
+                    callback.onCompleted(new HashSet<>(), new CancellationException());
+                }
                 return;
             }
+
             if (!future.isDone()) {
                 return;
             }
@@ -477,18 +496,47 @@ public final class FileReloadMgr implements ExtensibleObject {
             try {
                 // 检查是否还满足热更新条件
                 final List<TaskResult> resultList = future.join();
+                final Set<FileName<?>> changedFiles = Sets.newHashSetWithExpectedSize(resultList.size());
                 for (TaskResult taskResult : resultList) {
                     final FileName<?> fileName = taskResult.taskMetadata.reader.fileName();
                     if (readerMetadataMap.get(fileName) == null) {
                         throw new IllegalStateException("the state of fileReloadMgr has changed, fileName: " + fileName);
                     }
+                    changedFiles.add(fileName);
                 }
                 // 执行热更新
                 reloadImpl(resultList, reloadMode);
-            } catch (Exception e) {
-                throw new ReloadException(FutureUtils.unwrapCompletionException(e));
+                logger.warn("reload completed, reloadMode {}, fileNum {}", reloadMode, resultList.size());
+                if (callback != null) {
+                    callback.onCompleted(changedFiles, null);
+                }
+            } catch (Throwable e) {
+                final Throwable cause = FutureUtils.unwrapCompletionException(e);
+                logger.warn("reload failure, reloadMode {}", reloadMode, cause);
+                if (callback != null) {
+                    callback.onCompleted(new HashSet<>(), cause);
+                }
             } finally {
+                handle.close();
                 reloadTimerHandle = null;
+            }
+        }
+    }
+
+    private class AutoReloadTask implements TimerTask {
+
+        @Override
+        public void run(TimerHandle handle) throws Exception {
+            if (reloadTimerHandle != null) {
+                // 有正在执行的任务
+                return;
+            }
+            final Set<FileName<?>> scope = readerMetadataMap.values().stream()
+                    .filter(readerMetadata -> readerMetadata.reader.autoReloadable())
+                    .map(readerMetadata -> readerMetadata.reader.fileName())
+                    .collect(Collectors.toSet());
+            if (!scope.isEmpty()) {
+                reloadScope(scope, null);
             }
         }
     }

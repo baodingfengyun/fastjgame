@@ -33,6 +33,7 @@ import java.util.List;
 public class ReloadTestDataMgr implements FileDataMgr, SheetDataMgr {
 
     public List<String> whiteList;
+    public List<String> blackList;
 
     public SkillParamTemplate skillParamTemplate;
     public Int2ObjectMap<SkillTemplate> skillTemplateMap;

@@ -33,8 +33,8 @@ import com.wjybxx.fastjgame.util.timer.TimerSystem;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static com.wjybxx.fastjgame.reload.FileReloadTest.PROJECT_RES_DIR;
-import static com.wjybxx.fastjgame.reload.FileReloadTest.newThreadPool;
+import static com.wjybxx.fastjgame.reload.ReloadTestUtils.PROJECT_RES_DIR;
+import static com.wjybxx.fastjgame.reload.ReloadTestUtils.newThreadPool;
 
 /**
  * @author wjybxx
@@ -63,7 +63,6 @@ public class ExcelReloadTest {
         // 加载表格
         excelReloadMgr.loadAll();
 
-
         // 先输出一次基本内容
         System.out.println(testDataMgr.skillTemplateMap);
         System.out.println(testDataMgr.skillParamTemplate);
@@ -76,7 +75,7 @@ public class ExcelReloadTest {
         IntStream.rangeClosed(1, 5).forEach(i -> {
             // 给15S机会修改文件
             ThreadUtils.sleepQuietly(15 * TimeUtils.SEC);
-            excelReloadMgr.reloadAll();
+            excelReloadMgr.reloadAll(null);
 
             // 给5秒机会等待异步热更新
             IntStream.rangeClosed(1, 5).forEach(j -> {

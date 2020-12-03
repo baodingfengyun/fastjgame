@@ -1,4 +1,4 @@
-﻿# Compiled class file
+# Compiled class file
 *.class
 
 # Log file
@@ -46,3 +46,4 @@ Thumbs.db
 # 专用ignore文件夹
 *ignorefiles/
 _obstacleInfo.txt
+res/txt/BlackList.txt

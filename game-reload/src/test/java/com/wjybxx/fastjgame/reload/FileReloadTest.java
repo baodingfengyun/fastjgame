@@ -18,24 +18,14 @@ package com.wjybxx.fastjgame.reload;
 
 import com.wjybxx.fastjgame.reload.file.WhiteListReader;
 import com.wjybxx.fastjgame.reload.mgr.FileReloadMgr;
-import com.wjybxx.fastjgame.reload.mgr.ScanResult;
 import com.wjybxx.fastjgame.util.ThreadUtils;
-import com.wjybxx.fastjgame.util.concurrent.DefaultThreadFactory;
 import com.wjybxx.fastjgame.util.time.TimeProviders;
 import com.wjybxx.fastjgame.util.timer.DefaultTimerSystem;
 import com.wjybxx.fastjgame.util.timer.TimerSystem;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -46,24 +36,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class FileReloadTest {
 
-    public static final String PROJECT_RES_DIR = "./res";
-
     public static void main(String[] args) throws Exception {
         initFile();
 
         final ReloadTestDataMgr testDataMgr = new ReloadTestDataMgr();
         final TimerSystem timerSystem = new DefaultTimerSystem(TimeProviders.realtimeProvider());
-        final FileReloadMgr fileReloadMgr = new FileReloadMgr(PROJECT_RES_DIR, testDataMgr, timerSystem, newThreadPool());
-        final ScanResult scanResult = ScanResult.valueOf(Set.of("com.wjybxx.fastjgame.reload.file"));
-        fileReloadMgr.registerReaders(scanResult.fileReaders);
-        fileReloadMgr.registerCacheBuilders(scanResult.fileCacheBuilders);
-
-        final AtomicBoolean stoped = new AtomicBoolean(false);
+        final FileReloadMgr fileReloadMgr = new FileReloadMgr(ReloadTestUtils.PROJECT_RES_DIR, testDataMgr, timerSystem, ReloadTestUtils.newThreadPool());
+        fileReloadMgr.registerReaders(Collections.singleton(new WhiteListReader()));
 
         fileReloadMgr.registerListener(Collections.singleton(WhiteListReader.FILE_NAME), (fileNameSet, changedFileNameSet) -> {
             System.out.println("whiteList changed");
             System.out.println(testDataMgr.whiteList);
-            stoped.set(true);
         });
 
         // 准备就绪后加载文件
@@ -74,9 +57,12 @@ public class FileReloadTest {
         changeFile();
 
         // 热更新
-        fileReloadMgr.reloadAll();
+        final AtomicBoolean stopped = new AtomicBoolean(false);
+        fileReloadMgr.reloadAll((set, throwable) -> {
+            stopped.set(true);
+        });
 
-        while (!stoped.get()) {
+        while (!stopped.get()) {
             timerSystem.tick();
             ThreadUtils.sleepQuietly(50);
         }
@@ -84,36 +70,13 @@ public class FileReloadTest {
 
     private static void initFile() throws IOException {
         final String relativePath = WhiteListReader.FILE_NAME.getRelativePath();
-        final File file = new File(PROJECT_RES_DIR + "/" + relativePath);
-        if (file.exists()) {
-            file.delete();
-            file.createNewFile();
-        }
+        ReloadTestUtils.recreateFile(relativePath);
     }
 
     private static void changeFile() throws Exception {
         final List<String> whiteList = List.of("wjybxx", "qswy");
         final String relativePath = WhiteListReader.FILE_NAME.getRelativePath();
-        final File file = new File(PROJECT_RES_DIR + "/" + relativePath);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (int i = 0; i < whiteList.size(); i++) {
-                String account = whiteList.get(i);
-                writer.write(account);
-                if (i < whiteList.size() - 1) {
-                    writer.newLine();
-                }
-            }
-        }
+        ReloadTestUtils.writeStringList(relativePath, whiteList);
     }
 
-    public static Executor newThreadPool() {
-        final int poolSize = 4;
-        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(poolSize, poolSize,
-                1, TimeUnit.MINUTES,
-                new ArrayBlockingQueue<>(poolSize * 64),
-                new DefaultThreadFactory("COMMON_POOL", true),
-                new ThreadPoolExecutor.CallerRunsPolicy());
-        threadPoolExecutor.allowCoreThreadTimeOut(true);
-        return threadPoolExecutor;
-    }
 }

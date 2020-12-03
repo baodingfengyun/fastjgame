@@ -24,6 +24,7 @@ import com.wjybxx.fastjgame.reload.excel.SheetReader;
 import com.wjybxx.fastjgame.reload.excel.SheetReloadListener;
 import com.wjybxx.fastjgame.reload.file.FileName;
 import com.wjybxx.fastjgame.reload.file.FileReader;
+import com.wjybxx.fastjgame.reload.file.FileReloadCallback;
 import com.wjybxx.fastjgame.reload.file.FileReloadListener;
 import com.wjybxx.fastjgame.util.excel.CellValueParser;
 import com.wjybxx.fastjgame.util.excel.ExcelUtils;
@@ -33,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -240,6 +242,17 @@ public class ExcelReloadMgr implements ExtensibleObject {
         return sheetDataContainer.getCacheData(builderType);
     }
 
+    public Set<SheetName<?>> getSheetNames(Set<FileName<?>> fileNames) {
+        Objects.requireNonNull(fileNames, "fileNames");
+        return fileNames.stream()
+                .filter(Objects::nonNull)
+                .map(excelReaderMap::get)
+                .filter(Objects::nonNull)
+                .flatMap(excelReader -> excelReader.sheetReaderMap.values().stream())
+                .map(SheetReader::sheetName)
+                .collect(Collectors.toSet());
+    }
+
     /**
      * 启服加载所有表格
      * 注意：需要先调用{@link FileReloadMgr#loadAll()}
@@ -251,8 +264,8 @@ public class ExcelReloadMgr implements ExtensibleObject {
     /**
      * 加载所有变化的表格
      */
-    public void reloadAll() {
-        fileReloadMgr.reloadScope(excelReaderMap.keySet());
+    public void reloadAll(@Nullable FileReloadCallback callback) {
+        fileReloadMgr.reloadScope(excelReaderMap.keySet(), callback);
     }
 
     /**
@@ -265,7 +278,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
      *
      * @param excelNameSet 要更新的excel名字
      */
-    public void forceReload(@Nonnull Set<String> excelNameSet) throws Exception {
+    public void forceReload(@Nonnull Set<String> excelNameSet, @Nullable FileReloadCallback callback) throws Exception {
         final Map<String, FileName<ExcelFileData>> stringFileNameMap = excelReaderMap.values().stream()
                 .collect(Collectors.toMap(excelReader -> excelReader.simpleFileName, excelReader -> excelReader.fileName));
         // 转换类型
@@ -278,7 +291,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
             scope.add(fileName);
         }
         // 执行热更新
-        fileReloadMgr.reloadScope(scope);
+        fileReloadMgr.reloadScope(scope, callback);
     }
 
     /**
@@ -462,7 +475,8 @@ public class ExcelReloadMgr implements ExtensibleObject {
         final Map<String, SheetReader<?>> sheetReaderMap;
         final Supplier<CellValueParser> parserSupplier;
 
-        ExcelReader(String simpleFileName, FileName<ExcelFileData> fileName,
+        ExcelReader(String simpleFileName,
+                    FileName<ExcelFileData> fileName,
                     Map<String, SheetReader<?>> sheetReaderMap,
                     Supplier<CellValueParser> parserSupplier) {
             this.simpleFileName = simpleFileName;

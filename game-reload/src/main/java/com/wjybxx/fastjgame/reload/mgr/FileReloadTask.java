@@ -18,6 +18,9 @@ package com.wjybxx.fastjgame.reload.mgr;
 
 import com.wjybxx.fastjgame.reload.file.FileReader;
 import com.wjybxx.fastjgame.reload.mgr.ReloadUtils.FileStat;
+import com.wjybxx.fastjgame.util.misc.StepWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,11 +37,15 @@ import java.util.concurrent.TimeUnit;
  */
 class FileReloadTask implements Runnable {
 
+    private static final Logger logger = LoggerFactory.getLogger(FileReloadTask.class);
+
     private final List<TaskContext> taskContextList;
     private final Executor executor;
     private final long timeoutFindChangedFiles;
     private final long timeoutReadFiles;
     private final CompletableFuture<List<TaskResult>> future;
+
+    private final StepWatch stepWatch;
 
     private FileReloadTask(List<TaskContext> taskContextList,
                            Executor executor, long timeoutFindChangedFiles, long timeoutReadFiles,
@@ -49,6 +56,7 @@ class FileReloadTask implements Runnable {
         this.timeoutFindChangedFiles = timeoutFindChangedFiles;
         this.timeoutReadFiles = timeoutReadFiles;
         this.future = future;
+        this.stepWatch =  new StepWatch("FileReloadTask");
     }
 
     static CompletableFuture<List<TaskResult>> runAsync(List<TaskMetadata> taskMetadataList,
@@ -100,6 +108,7 @@ class FileReloadTask implements Runnable {
     @Override
     public void run() {
         try {
+            stepWatch.start();
             statisticFileStats()
                     .thenRun(this::retainChangedFiles)
                     .thenCompose(aVoid -> readChangedFiles())
@@ -119,6 +128,7 @@ class FileReloadTask implements Runnable {
     }
 
     private void retainChangedFiles() {
+        stepWatch.logStep("statisticFileStats");
         taskContextList.removeIf(taskContext -> taskContext.taskMetadata.oldFileStat == taskContext.fileStat);
     }
 
@@ -137,6 +147,7 @@ class FileReloadTask implements Runnable {
     }
 
     private void finish(Void aVoid, Throwable throwable) {
+        stepWatch.logStep("readChangedFiles");
         if (throwable != null) {
             future.completeExceptionally(throwable);
         } else {
@@ -146,6 +157,7 @@ class FileReloadTask implements Runnable {
             }
             future.complete(resultBeanList);
         }
+        logger.info("run completed, stepInfo {}", stepWatch);
     }
 
     private static class TaskContext {
