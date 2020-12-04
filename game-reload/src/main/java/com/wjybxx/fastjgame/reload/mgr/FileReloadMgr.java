@@ -211,7 +211,7 @@ public final class FileReloadMgr implements ExtensibleObject {
     /**
      * 重新加载所有的配置文件中改变的文件
      *
-     * @param callback 用于监听回调完成事件，可以为null。如果
+     * @param callback 用于监听回调完成事件，可以为null。
      */
     public void reloadAll(@Nullable FileReloadCallback callback) {
         reloadScope(readerMetadataMap.keySet(), callback);
@@ -221,12 +221,12 @@ public final class FileReloadMgr implements ExtensibleObject {
      * 重新加载指定的配置文件中改变的文件
      *
      * @param scope    检测范围
-     * @param callback
+     * @param callback 用于监听回调完成事件，可以为null。
      */
     public void reloadScope(@Nonnull Set<FileName<?>> scope, @Nullable FileReloadCallback callback) {
         Objects.requireNonNull(scope, "scope");
         ensureFileReaderExist(scope);
-        final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.RELOAD_SCOPE);
+        final List<TaskMetadata> taskMetadataList = createTaskMetadata(scope, ReloadMode.RELOAD_SCOPE);
         final CompletableFuture<List<TaskResult>> future = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles);
         reloadTimerHandle = timerSystem.newFixedDelay(1000, 50, new ReloadTaskTracker(future, ReloadMode.RELOAD_SCOPE, callback));
     }
@@ -239,10 +239,10 @@ public final class FileReloadMgr implements ExtensibleObject {
      * A: 避免md5相等导致的无法更新问题（全部更新时某些逻辑失败了，无法再次更新的情况）。
      * 另一种方式是稍微改动一点内容，导致md5改变，再热更新。
      */
-    public void forceReload(Set<FileName<?>> scope, FileReloadCallback callback) {
+    public void forceReload(@Nonnull Set<FileName<?>> scope, @Nullable FileReloadCallback callback) {
         Objects.requireNonNull(scope, "scope");
         ensureFileReaderExist(scope);
-        final List<TaskMetadata> taskMetadataList = createTaskMetadata(readerMetadataMap.keySet(), ReloadMode.FORCE_RELOAD);
+        final List<TaskMetadata> taskMetadataList = createTaskMetadata(scope, ReloadMode.FORCE_RELOAD);
         final CompletableFuture<List<TaskResult>> future = FileReloadTask.runAsync(taskMetadataList, executor, timeoutFindChangedFiles, timeoutReadFiles);
         reloadTimerHandle = timerSystem.newFixedDelay(1000, 50, new ReloadTaskTracker(future, ReloadMode.FORCE_RELOAD, callback));
     }
