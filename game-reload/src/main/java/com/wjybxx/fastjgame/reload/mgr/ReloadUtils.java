@@ -131,8 +131,9 @@ class ReloadUtils {
         }
 
         final File[] children = dir.listFiles(file -> {
-            if (file.getName().startsWith("~$")) {
-                // 临时文件
+            final String fileName = file.getName();
+            if (fileName.startsWith(".") || fileName.startsWith("~$")) {
+                // 隐藏文件和临时文件
                 return false;
             } else {
                 return file.isDirectory() || null == filter || filter.test(file);

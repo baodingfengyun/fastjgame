@@ -44,11 +44,13 @@ A: 自动更新最大的问题：**不受控制**。
 #### 性能瓶颈
 性能瓶颈在解析Excel部分，即将Excel转换为{@link Sheet}的过程。
 Excel底层存储结构是XML，解析相当慢，占用CPU资源较多，因此属于计算密集型任务，分配的线程数不必太多。
+
 * 环境:
 cpu: i5-4570（4核）  
-内存: 16G  
-表格: 文件大小927k，3870行，49列，服务器读取列数35列。  
+机器内存: 16G  
 JDK: Amazon Corretto - jdk11.0.7_10  
+启动参数: -server -ea -Xms2048M -Xmx2048m
+表格: 文件大小927k，3870行，49列，服务器读取列数35列。  
 
 * 读取单个文件：  
 Excel -> Sheet: 3200ms ~ 3800ms  
@@ -56,19 +58,18 @@ Sheet -> 自定义结构: 80ms ~ 90ms
 
 * 单线程读取500个文件:  
 Executor: DirectExecutor  
-加载文件耗时：约390s~400s（耗时太长，没频繁测试）  
+加载文件耗时：约360s~370s
 
 * 并发读取500个文件:  
-线程数：2 = 1+1(主线程)  
+线程数：2  
 Executor: ThreadPoolExecutor  
-加载文件耗时：约230~240s（耗时太长，没频繁测试）  
+加载文件耗时：约190s~200s
 
 * 并发读取500个文件:  
-线程数：5 = 4+1(主线程)  
+线程数：4
 Executor: ThreadPoolExecutor  
-加载文件耗时：约130s（耗时太长，没频繁测试）  
+加载文件耗时：约120s~130s
 
-...
 
     public static void main(String[] args) throws Exception {
         final StepWatch stepWatch = StepWatch.createStarted("PerformanceTest:main");
@@ -79,7 +80,9 @@ Executor: ThreadPoolExecutor
             stepWatch.logStep("copyFiles");
 
             final TemplateMrg templateMrg = new TemplateMrg();
-            final FileReloadMgr fileReloadMgr = new FileReloadMgr(PROJECT_RES_DIR, newThreadPool(poolSize), templateMrg, 5 * TimeUtils.SEC, 2 * TimeUtils.MIN);
+            final TimerSystem timerSystem = new DefaultTimerSystem(TimeProviders.realtimeProvider());
+            final FileReloadMgr fileReloadMgr = new FileReloadMgr(PROJECT_RES_DIR, templateMrg, timerSystem, newThreadPool(poolSize),
+                    30 * TimeUtils.SEC, 5 * TimeUtils.SEC, 2 * TimeUtils.MIN);
             final ExcelReloadMgr excelReloadMgr = new ExcelReloadMgr(PROJECT_RES_DIR, CONFIG_DIR_NAME, fileReloadMgr, templateMrg, DefaultCellValueParser::new);
 
             final List<GoodsReader> goodsReaderList = new ArrayList<>(fileNum);
@@ -101,13 +104,52 @@ Executor: ThreadPoolExecutor
             // 输出详细信息
             System.out.println(stepWatch);
         }
-    }
-    
-...
+    }   
 
- * 日志输出：
- > [2020-12-02 12:35:18,882][INFO,FileReloadMgr] loadAll started
- > [2020-12-02 12:37:31,790][INFO,FileReloadMgr] StepWatch[FileReloadMrg:reloadImpl=132057ms][join=132055ms,buildSandbox=1ms,validateOther=1ms]
- > [2020-12-02 12:37:31,792][INFO,FileReloadMgr] loadAll completed, stepInfo StepWatch[FileReloadMrg:loadAll=132907ms][findChangedFiles=848ms,reloadImpl=132058ms]
- > [2020-12-02 12:37:31,794][INFO,ExcelReloadMgr] StepWatch[ExcelReloadMrg:reloadImpl=1ms][buildSandbox=1ms,validateOther=0ms]
- > StepWatch[PerformanceTest:main=136597ms][copyFiles=2161ms,registerReaders=495ms,loadFiles=132910ms,loadSheets=2ms]
+部分日志：  
+单线程
+
+[2020-12-03 15:59:40,718][INFO,FileReloadMgr] loadAll started
+[2020-12-03 16:05:49,107][INFO,FileReloadTask] run completed, stepInfo StepWatch[FileReloadTask=368372ms][statisticFileStats=2423ms,readChangedFiles=365947ms]
+[2020-12-03 16:05:49,109][INFO,FileReloadMgr] StepWatch[FileReloadMrg:reloadImpl=2ms][buildSandbox=1ms,validateOther=1ms]
+[2020-12-03 16:05:49,109][INFO,FileReloadMgr] loadAll completed, fileNum 500, stepInfo StepWatch[FileReloadMgr:loadAll=368387ms][join=368384ms,reloadImpl=3ms]
+[2020-12-03 16:05:49,111][INFO,ExcelReloadMgr] StepWatch[ExcelReloadMrg:reloadImpl=1ms][buildSandbox=1ms,validateOther=0ms]
+StepWatch[PerformanceTest:main=371634ms][copyFiles=2042ms,registerReaders=480ms,loadFiles=368391ms,loadSheets=2ms]
+
+[2020-12-03 16:12:50,948][INFO,FileReloadMgr] loadAll started
+[2020-12-03 16:18:53,463][INFO,FileReloadTask] run completed, stepInfo StepWatch[FileReloadTask=362498ms][statisticFileStats=2357ms,readChangedFiles=360139ms]
+[2020-12-03 16:18:53,465][INFO,FileReloadMgr] StepWatch[FileReloadMrg:reloadImpl=2ms][buildSandbox=1ms,validateOther=0ms]
+[2020-12-03 16:18:53,465][INFO,FileReloadMgr] loadAll completed, fileNum 500, stepInfo StepWatch[FileReloadMgr:loadAll=362514ms][join=362511ms,reloadImpl=3ms]
+[2020-12-03 16:18:53,467][INFO,ExcelReloadMgr] StepWatch[ExcelReloadMrg:reloadImpl=1ms][buildSandbox=1ms,validateOther=0ms]
+StepWatch[PerformanceTest:main=365592ms][copyFiles=1921ms,registerReaders=428ms,loadFiles=362517ms,loadSheets=2ms]
+
+2线程
+
+[2020-12-03 16:19:16,545][INFO,FileReloadMgr] loadAll started
+[2020-12-03 16:22:30,432][INFO,FileReloadTask] run completed, stepInfo StepWatch[FileReloadTask=193870ms][statisticFileStats=1182ms,readChangedFiles=192686ms]
+[2020-12-03 16:22:30,434][INFO,FileReloadMgr] StepWatch[FileReloadMrg:reloadImpl=2ms][buildSandbox=1ms,validateOther=0ms]
+[2020-12-03 16:22:30,434][INFO,FileReloadMgr] loadAll completed, fileNum 500, stepInfo StepWatch[FileReloadMgr:loadAll=193887ms][join=193884ms,reloadImpl=3ms]
+[2020-12-03 16:22:30,436][INFO,ExcelReloadMgr] StepWatch[ExcelReloadMrg:reloadImpl=1ms][buildSandbox=1ms,validateOther=0ms]
+StepWatch[PerformanceTest:main=197003ms][copyFiles=1948ms,registerReaders=428ms,loadFiles=193891ms,loadSheets=3ms]
+
+[2020-12-03 16:24:13,466][INFO,FileReloadMgr] loadAll started
+[2020-12-03 16:27:29,628][INFO,FileReloadTask] run completed, stepInfo StepWatch[FileReloadTask=196146ms][statisticFileStats=1173ms,readChangedFiles=194972ms]
+[2020-12-03 16:27:29,629][INFO,FileReloadMgr] StepWatch[FileReloadMrg:reloadImpl=3ms][buildSandbox=1ms,validateOther=0ms]
+[2020-12-03 16:27:29,629][INFO,FileReloadMgr] loadAll completed, fileNum 500, stepInfo StepWatch[FileReloadMgr:loadAll=196161ms][join=196158ms,reloadImpl=3ms]
+[2020-12-03 16:27:29,631][INFO,ExcelReloadMgr] StepWatch[ExcelReloadMrg:reloadImpl=1ms][buildSandbox=1ms,validateOther=0ms]
+StepWatch[PerformanceTest:main=199315ms][copyFiles=2002ms,registerReaders=420ms,loadFiles=196164ms,loadSheets=2ms]
+
+4线程
+
+[2020-12-03 15:55:15,922][INFO,FileReloadTask] run completed, stepInfo StepWatch[FileReloadTask=128338ms][statisticFileStats=723ms,readChangedFiles=127614ms]
+[2020-12-03 15:55:15,923][INFO,FileReloadMgr] StepWatch[FileReloadMrg:reloadImpl=1ms][buildSandbox=1ms,validateOther=0ms]
+[2020-12-03 15:55:15,923][INFO,FileReloadMgr] loadAll completed, fileNum 500, stepInfo StepWatch[FileReloadMgr:loadAll=128361ms][join=128359ms,reloadImpl=1ms]
+[2020-12-03 15:55:15,925][INFO,ExcelReloadMgr] StepWatch[ExcelReloadMrg:reloadImpl=1ms][buildSandbox=1ms,validateOther=0ms]
+StepWatch[PerformanceTest:main=131534ms][copyFiles=1962ms,registerReaders=442ms,loadFiles=128364ms,loadSheets=2ms]
+
+[2020-12-03 15:56:33,969][INFO,FileReloadMgr] loadAll started
+[2020-12-03 15:58:36,651][INFO,FileReloadTask] run completed, stepInfo StepWatch[FileReloadTask=122655ms][statisticFileStats=898ms,readChangedFiles=121756ms]
+[2020-12-03 15:58:36,651][INFO,FileReloadMgr] StepWatch[FileReloadMrg:reloadImpl=1ms][buildSandbox=0ms,validateOther=1ms]
+[2020-12-03 15:58:36,651][INFO,FileReloadMgr] loadAll completed, fileNum 500, stepInfo StepWatch[FileReloadMgr:loadAll=122681ms][join=122679ms,reloadImpl=2ms]
+[2020-12-03 15:58:36,653][INFO,ExcelReloadMgr] StepWatch[ExcelReloadMrg:reloadImpl=1ms][buildSandbox=1ms,validateOther=0ms]
+StepWatch[PerformanceTest:main=126065ms][copyFiles=2233ms,registerReaders=441ms,loadFiles=122685ms,loadSheets=2ms]
