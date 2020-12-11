@@ -73,7 +73,7 @@ public final class FileName<T> extends AbstractConstant<FileName<T>> {
      * @throws IllegalArgumentException 如果文件名对应的常量不存在，则抛出异常
      */
     @SuppressWarnings("unchecked")
-    public static <T> FileName<T> forNameThrowable(String relativePath) {
+    public static <T> FileName<T> checkedForName(String relativePath) {
         Objects.requireNonNull(relativePath, "relativePath");
         return (FileName<T>) POOL.getOrThrow(relativePath);
     }

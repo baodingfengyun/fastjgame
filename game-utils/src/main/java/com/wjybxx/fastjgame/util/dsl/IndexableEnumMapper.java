@@ -43,4 +43,19 @@ public interface IndexableEnumMapper<T extends IndexableEnum> {
      */
     List<T> values();
 
+    /**
+     * 通过数字找到对应的枚举
+     *
+     * @param number 枚举的唯一编号
+     * @return T number对应的枚举
+     * @throws IllegalArgumentException 如果number对应的枚举不存在，则抛出异常
+     */
+    @Nullable
+    default T checkedForName(int number) {
+        final T result = forNumber(number);
+        if (null == result) {
+            throw new IllegalArgumentException("number: " + number);
+        }
+        return result;
+    }
 }

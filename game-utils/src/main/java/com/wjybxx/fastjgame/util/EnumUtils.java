@@ -151,6 +151,14 @@ public class EnumUtils {
     }
 
     /**
+     * 检查枚举中的number是否存在重复
+     * 暂时先不做优化。
+     */
+    public static <T extends IndexableEnum> void checkNumberDuplicate(T[] values) {
+        checkNumberDuplicate(values, IndexableEnum::getNumber);
+    }
+
+    /**
      * 检查枚举中的某个值是否重复
      */
     public static <T, R> void checkFieldDuplicate(T[] values, Function<T, R> func) {
@@ -166,6 +174,14 @@ public class EnumUtils {
                 throw new IllegalArgumentException(msg);
             }
         }
+    }
+
+    /**
+     * 检查枚举中的number是否连续
+     * 暂时先不做优化。
+     */
+    public static <T extends IndexableEnum> void checkNumberContinuity(final T[] values) {
+        checkNumberContinuity(values, IndexableEnum::getNumber);
     }
 
     /**

@@ -226,7 +226,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
                     throw new IllegalStateException(msg);
                 }
             }
-            builderMetadataMap.put(builderType, new BuilderMetadata<>(builder, builder.sheetNames()));
+            builderMetadataMap.put(builderType, new BuilderMetadata<>(builder, builderSheetNames));
         }
     }
 

@@ -50,7 +50,7 @@ public final class SheetName<T> extends AbstractConstant<SheetName<T>> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> SheetName<T> forNameThrowable(String name) {
+    public static <T> SheetName<T> checkedForName(String name) {
         return (SheetName<T>) POOL.getOrThrow(name);
     }
 

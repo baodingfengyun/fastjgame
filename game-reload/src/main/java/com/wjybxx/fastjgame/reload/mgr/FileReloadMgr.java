@@ -158,7 +158,7 @@ public final class FileReloadMgr implements ExtensibleObject {
                     throw new IllegalStateException(msg);
                 }
             }
-            builderMetadataMap.put(builderType, new BuilderMetadata<>(builder, builder.fileNames()));
+            builderMetadataMap.put(builderType, new BuilderMetadata<>(builder, builderFileNames));
         }
     }
 
@@ -183,8 +183,10 @@ public final class FileReloadMgr implements ExtensibleObject {
 
     /**
      * 启服加载所有文件
+     *
+     * @return 文件加载耗时信息
      */
-    public void loadAll() throws Exception {
+    public Map<FileName<?>, Long> loadAll() throws Exception {
         if (autoReloadTimerHandle != null || reloadTimerHandle != null) {
             throw new IllegalStateException();
         }
@@ -202,6 +204,9 @@ public final class FileReloadMgr implements ExtensibleObject {
             stepWatch.logStep("reloadImpl");
 
             logger.info("loadAll completed, fileNum {}, stepInfo {}", readerMetadataMap.size(), stepWatch);
+
+            return taskResultList.stream()
+                    .collect(Collectors.toMap(t -> t.taskMetadata.reader.fileName(), t -> t.readFileCostTime));
         } catch (Exception e) {
             logger.info("loadAll failure, fileNum {}},  stepInfo {}", readerMetadataMap.size(), stepWatch);
             throw new ReloadException(FutureUtils.unwrapCompletionException(e));
@@ -493,6 +498,9 @@ public final class FileReloadMgr implements ExtensibleObject {
                 return;
             }
 
+            reloadTimerHandle = null;
+            handle.close();
+
             try {
                 // 检查是否还满足热更新条件
                 final List<TaskResult> resultList = future.join();
@@ -516,9 +524,6 @@ public final class FileReloadMgr implements ExtensibleObject {
                 if (callback != null) {
                     callback.onCompleted(new HashSet<>(), cause);
                 }
-            } finally {
-                handle.close();
-                reloadTimerHandle = null;
             }
         }
     }

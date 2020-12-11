@@ -56,7 +56,7 @@ class FileReloadTask implements Runnable {
         this.timeoutFindChangedFiles = timeoutFindChangedFiles;
         this.timeoutReadFiles = timeoutReadFiles;
         this.future = future;
-        this.stepWatch =  new StepWatch("FileReloadTask");
+        this.stepWatch = new StepWatch("FileReloadTask");
     }
 
     static CompletableFuture<List<TaskResult>> runAsync(List<TaskMetadata> taskMetadataList,
@@ -95,11 +95,13 @@ class FileReloadTask implements Runnable {
         final TaskMetadata taskMetadata;
         final FileStat fileStat;
         final Object fileData;
+        final long readFileCostTime;
 
-        TaskResult(TaskMetadata taskMetadata, FileStat fileStat, Object fileData) {
+        TaskResult(TaskMetadata taskMetadata, FileStat fileStat, Object fileData, long readFileCostTime) {
             this.taskMetadata = taskMetadata;
             this.fileStat = fileStat;
             this.fileData = fileData;
+            this.readFileCostTime = readFileCostTime;
         }
     }
 
@@ -153,7 +155,7 @@ class FileReloadTask implements Runnable {
         } else {
             final List<TaskResult> resultBeanList = new ArrayList<>(taskContextList.size());
             for (TaskContext taskContext : taskContextList) {
-                resultBeanList.add(new TaskResult(taskContext.taskMetadata, taskContext.fileStat, taskContext.fileData));
+                resultBeanList.add(new TaskResult(taskContext.taskMetadata, taskContext.fileStat, taskContext.fileData, taskContext.readFileCostTime));
             }
             future.complete(resultBeanList);
         }
@@ -166,6 +168,7 @@ class FileReloadTask implements Runnable {
 
         FileStat fileStat;
         Object fileData;
+        long readFileCostTime;
 
         TaskContext(TaskMetadata taskMetadata) {
             this.taskMetadata = taskMetadata;
@@ -220,9 +223,11 @@ class FileReloadTask implements Runnable {
         @Override
         public void run() {
             try {
+                final long startTime = System.currentTimeMillis();
                 final Object fileData = context.getReader().read(context.getFile());
                 Objects.requireNonNull(fileData, context.getReader().getClass().getName());
                 context.fileData = fileData;
+                context.readFileCostTime = System.currentTimeMillis() - startTime;
             } catch (Exception e) {
                 throw new RuntimeException("fileName: " + context.getFile().getName(), e);
             }
