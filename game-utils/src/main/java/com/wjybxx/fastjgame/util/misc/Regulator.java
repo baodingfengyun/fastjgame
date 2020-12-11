@@ -85,7 +85,7 @@ public class Regulator {
      */
     public boolean isReady(long curTimeMillis) {
         if (curTimeMillis <= 0) {
-            throw new IllegalArgumentException("curTimeMillis: " + curTimeMillis);
+            return false;
         }
 
         if (lastUpdateTimeMs <= 0) {

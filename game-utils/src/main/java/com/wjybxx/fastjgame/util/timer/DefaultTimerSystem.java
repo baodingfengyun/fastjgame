@@ -206,10 +206,8 @@ public class DefaultTimerSystem implements TimerSystem {
             // 先弹出队列，并记录正在执行
             runningTimer = timerQueue.poll();
 
-            do {
-                callbackSafely(timerHandle, curTimeMillis);
-                // 可能由于延迟导致需要执行多次(可以避免在当前轮反复压入弹出)，也可能在执行回调之后被取消了。
-            } while (!timerHandle.isClosed() && curTimeMillis >= timerHandle.getNextExecuteTimeMs());
+            // 执行一次回调
+            callbackSafely(timerHandle, curTimeMillis);
 
             if (!timerHandle.isClosed()) {
                 // 如果未取消的话，压入队列稍后执行

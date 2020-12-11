@@ -16,7 +16,9 @@
 
 package com.wjybxx.fastjgame.util;
 
-import com.wjybxx.fastjgame.util.config.*;
+import com.wjybxx.fastjgame.util.config.DefaultParams;
+import com.wjybxx.fastjgame.util.config.DefaultValueParser;
+import com.wjybxx.fastjgame.util.config.Params;
 
 /**
  * 系统属性工具类
