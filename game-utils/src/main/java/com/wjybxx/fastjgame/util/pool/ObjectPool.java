@@ -21,17 +21,38 @@ import java.util.Collection;
 import java.util.function.Supplier;
 
 /**
- * 对象缓存池
+ * 对象池
  *
  * @param <T>
  */
-public interface Pool<T> extends Supplier<T> {
+public interface ObjectPool<T> extends Supplier<T> {
 
     /**
      * @return 如果池中有可用的对象，则返回缓存的对象，否则返回一个新的对象
      */
     @Override
     T get();
+
+    /**
+     * 将指定的对象放入池中，使其符合{@link #get()}返回的条件。
+     * 如果池中已包含{@link #maxCount()}数量的空闲对象，指定的对象将会被重置，但不会被添加到的池中。
+     * <p>
+     * 如果{@code object}实现了{@link PoolableObject}接口，那么它的{@link PoolableObject#resetPoolable()}方法将被调用。
+     *
+     * @param object 要回收的对象
+     */
+    void returnOne(T object);
+
+    /**
+     * 将指定的对象放入池中，集合中的空对象被静默忽略。
+     * 注意：该方法并不会调用集合的{@code clear}方法。
+     * <p>
+     * Q: 为什么不调用集合的{@code clear}方法？
+     * A: 因为不能保证调用成功，可能就是个不可变集合。
+     *
+     * @param objects 要回收的对象
+     */
+    void returnAll(Collection<? extends T> objects);
 
     /**
      * @return 缓存池缓存对象数量上限
@@ -44,26 +65,8 @@ public interface Pool<T> extends Supplier<T> {
     int freeCount();
 
     /**
-     * 将指定的对象放入池中，使其符合{@link #get()}返回的条件。
-     * 如果池中已包含{@link #maxCount()}数量的空虚对象，指定的对象将会被重置，但不会被添加到的池中。
-     *
-     * @param object 要回收的对象
-     */
-    void free(T object);
-
-    /**
-     * 将指定的对象放入池中，集合中的空对象被静默忽略。
-     * 注意：该方法并不会调用集合的{@code clear}方法。
-     * <p>
-     * Q: 为什么不调用集合的{@code clear}方法？
-     * A: 因为不能保证调用成功，可能就是个不可变集合。
-     *
-     * @param objects 要回收的对象
-     */
-    void freeAll(Collection<? extends T> objects);
-
-    /**
      * 删除此池中的所有可用对象
      */
     void clear();
+
 }

@@ -26,20 +26,20 @@ import java.util.Collection;
  * @param <T> 池中对象类型
  */
 @NotThreadSafe
-public abstract class AbstractPool<T> implements Pool<T> {
+public abstract class AbstractObjectPool<T> implements ObjectPool<T> {
 
     private final ArrayList<T> freeObjects;
     private final int maxCapacity;
 
-    public AbstractPool() {
+    public AbstractObjectPool() {
         this(16, Integer.MAX_VALUE);
     }
 
-    public AbstractPool(int initialCapacity) {
+    public AbstractObjectPool(int initialCapacity) {
         this(initialCapacity, Integer.MAX_VALUE);
     }
 
-    public AbstractPool(int initialCapacity, int maxCapacity) {
+    public AbstractObjectPool(int initialCapacity, int maxCapacity) {
         this.freeObjects = new ArrayList<>(initialCapacity);
         this.maxCapacity = maxCapacity;
     }
@@ -53,17 +53,7 @@ public abstract class AbstractPool<T> implements Pool<T> {
     }
 
     @Override
-    public int maxCount() {
-        return maxCapacity;
-    }
-
-    @Override
-    public int freeCount() {
-        return freeObjects.size();
-    }
-
-    @Override
-    public void free(T object) {
+    public void returnOne(T object) {
         if (object == null) {
             throw new IllegalArgumentException("object cannot be null.");
         }
@@ -77,11 +67,11 @@ public abstract class AbstractPool<T> implements Pool<T> {
     }
 
     protected void reset(T object) {
-        if (object instanceof Poolable) ((Poolable) object).reset();
+        if (object instanceof PoolableObject) ((PoolableObject) object).resetPoolable();
     }
 
     @Override
-    public void freeAll(Collection<? extends T> objects) {
+    public void returnAll(Collection<? extends T> objects) {
         if (objects == null) {
             throw new IllegalArgumentException("objects cannot be null.");
         }
@@ -100,6 +90,16 @@ public abstract class AbstractPool<T> implements Pool<T> {
                 freeObjects.add(e);
             }
         }
+    }
+
+    @Override
+    public int maxCount() {
+        return maxCapacity;
+    }
+
+    @Override
+    public int freeCount() {
+        return freeObjects.size();
     }
 
     @Override

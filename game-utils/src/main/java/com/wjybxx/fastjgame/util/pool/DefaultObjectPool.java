@@ -28,21 +28,21 @@ import java.util.function.Supplier;
  * github - https://github.com/hl845740757
  */
 @NotThreadSafe
-public class DefaultPool<T> extends AbstractPool<T> {
+public class DefaultObjectPool<T> extends AbstractObjectPool<T> {
 
     private final Supplier<T> factory;
 
-    public DefaultPool(Supplier<T> factory) {
+    public DefaultObjectPool(Supplier<T> factory) {
         super();
         this.factory = Objects.requireNonNull(factory, "factory");
     }
 
-    public DefaultPool(Supplier<T> factory, int initialCapacity) {
+    public DefaultObjectPool(Supplier<T> factory, int initialCapacity) {
         super(initialCapacity);
         this.factory = Objects.requireNonNull(factory, "factory");
     }
 
-    public DefaultPool(Supplier<T> factory, int initialCapacity, int maxCapacity) {
+    public DefaultObjectPool(Supplier<T> factory, int initialCapacity, int maxCapacity) {
         super(initialCapacity, maxCapacity);
         this.factory = Objects.requireNonNull(factory, "factory");
     }
