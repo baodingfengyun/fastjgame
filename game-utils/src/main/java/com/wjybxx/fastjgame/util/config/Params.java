@@ -139,6 +139,11 @@ public abstract class Params {
 
     // region 获取为数组类型
 
+    public List<String> getAsStringArray(String key) {
+        final String value = Objects.requireNonNull(getAsString(key));
+        return parseList(value);
+    }
+
     public IntList getAsIntArray(String key) {
         final String value = Objects.requireNonNull(getAsString(key));
         final List<String> stringArray = parseList(value);
