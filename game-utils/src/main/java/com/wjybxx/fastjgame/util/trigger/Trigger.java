@@ -26,7 +26,7 @@ public final class Trigger {
 
     private final int triggerId;
     private final long timeCreateMillis;
-    private final TriggerHandler handler;
+    private TriggerHandler handler;
 
     private boolean removed = false;
     private boolean active = true;
@@ -52,6 +52,10 @@ public final class Trigger {
 
     public TriggerHandler getHandler() {
         return handler;
+    }
+
+    void setHandler(TriggerHandler handler) {
+        this.handler = handler;
     }
 
     /**

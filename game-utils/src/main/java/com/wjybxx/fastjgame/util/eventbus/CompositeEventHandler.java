@@ -49,6 +49,7 @@ class CompositeEventHandler<T> implements EventHandler<T> {
         final int index = children.indexOf(handler);
         if (index >= 0) {
             children.set(index, null);
+            containsNull = true;
         }
     }
 
@@ -57,10 +58,10 @@ class CompositeEventHandler<T> implements EventHandler<T> {
         recursionDepth++;
         try {
             // 必须使用最新的size，因为在迭代的过程中可能增删，不过我们是延迟删除的
+            // 删除的可能是已遍历过的元素，因此即便这里迭代的时候没有遇见null，最终也是可能遇见null的
             for (int i = 0; i < children.size(); i++) {
                 EventHandler<? super T> handler = children.get(i);
                 if (null == handler) {
-                    this.containsNull = true;
                     continue;
                 }
                 EventBusUtils.invokeHandlerSafely(event, handler);

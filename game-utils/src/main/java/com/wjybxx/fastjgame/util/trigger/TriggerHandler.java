@@ -17,7 +17,7 @@
 package com.wjybxx.fastjgame.util.trigger;
 
 /**
- * 该接口用于将{@link Trigger}中的部分数据于接口分离，方便管理。
+ * 该接口用于将{@link Trigger}中的部分数据与接口分离，方便管理。
  * handler可以通过操作{@link Trigger}实现生命周期管理
  */
 public interface TriggerHandler {

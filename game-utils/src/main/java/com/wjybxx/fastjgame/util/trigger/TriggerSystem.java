@@ -96,8 +96,10 @@ public class TriggerSystem {
         for (ObjectIterator<Trigger> iterator = triggerMap.values().iterator(); iterator.hasNext(); ) {
             Trigger trigger = iterator.next();
             if (trigger.isRemoved()) {
+                // 延迟删除，自动清理handler - 避免不经意间的内存泄漏（忘记释放trigger的引用导致handler无法释放）
+                trigger.setHandler(null);
                 iterator.remove();
-                continue; // 延迟删除
+                continue;
             }
 
             try {
@@ -112,6 +114,7 @@ public class TriggerSystem {
             }
 
             if (trigger.isRemoved()) {
+                trigger.setHandler(null);
                 iterator.remove();
             }
         }
