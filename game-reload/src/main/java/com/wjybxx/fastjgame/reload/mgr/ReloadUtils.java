@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.reload.mgr;
 
 import com.wjybxx.fastjgame.util.CaseMode;
 import com.wjybxx.fastjgame.util.CodecUtils;
+import com.wjybxx.fastjgame.util.constant.BadImplementationException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,6 +35,13 @@ import java.util.function.Predicate;
  * github - https://github.com/hl845740757
  */
 class ReloadUtils {
+
+    static <T> void ensureSameType(T protoType, T cloned) {
+        if (protoType.getClass() != cloned.getClass()) {
+            final String msg = String.format("protoType: %s, cloned: %s", protoType.getClass().getName(), cloned.getClass().getName());
+            throw new BadImplementationException(msg);
+        }
+    }
 
     static byte[] readBytes(File file) throws IOException {
         try (final FileInputStream inputStream = new FileInputStream(file)) {

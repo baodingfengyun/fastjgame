@@ -35,6 +35,10 @@ import java.util.function.*;
  * A: 最近在项目里实现了一套流式监听回调机制(单线程版)，参考了{@link CompletableFuture}的函数式语法实现，发现太强了，用着真的上瘾，
  * 尤其是{@link CompletionStage#thenCompose(Function)}方法，可以消除嵌套回调，可以非常好的表达业务，而简单的{@code addListener}则差太多了。
  * 于是我决定回归JDK的{@link CompletableFuture}。
+ * <p>
+ * Q: 为什么在底层自动记录异常日志了？
+ * A: 发现如果靠写业务的时候保证不丢失异常信息，十分危险，如果疏忽将导致异常信息丢失，异常信息十分重要，不可丢失。
+ * 主要是使用Rpc等工具的地方太多了，每一处都得异常，会带来很大的心里负担。
  *
  * @author wjybxx
  * @version 1.0

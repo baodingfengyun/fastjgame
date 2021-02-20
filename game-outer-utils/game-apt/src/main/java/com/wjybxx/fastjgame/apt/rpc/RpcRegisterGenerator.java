@@ -42,8 +42,6 @@ import java.util.List;
  */
 class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
-    private static final TypeName AptReflectUtilsTypeName = TypeName.get(AptReflectUtils.class);
-
     private static final String registry = "registry";
     private static final String instance = "instance";
 
@@ -119,7 +117,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * {@code
      * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
      * 		    registry.register(10001, (context, methodParams) -> {
-     * 		        return instance.method2(methodParams.get(0), methodParams.get(1));
+     * 		        return instance.method10001(methodParams.get(0), methodParams.get(1));
      *         }
      *     }
      * }
@@ -129,7 +127,7 @@ class RpcRegisterGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * {@code
      * 		private static void registerGetMethod2(RpcFunctionRegistry registry, T instance) {
      * 		    registry.register(10002, (context, methodParams) -> {
-     * 		        instance.method1(methodParams.get(0), methodParams.get(1), promise);
+     * 		        instance.method10002(methodParams.get(0), methodParams.get(1));
      * 		        return null;
      *            }
      *     }

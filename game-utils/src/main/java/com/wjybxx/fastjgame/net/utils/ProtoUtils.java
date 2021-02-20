@@ -41,6 +41,7 @@ public class ProtoUtils {
     public static <T extends MessageLite> Parser<T> findParser(@Nonnull Class<T> clazz) {
         Objects.requireNonNull(clazz);
         try {
+            // 这个写法兼容2和3
             final Method method = clazz.getDeclaredMethod("getDefaultInstance");
             method.setAccessible(true);
             final Message instance = (Message) method.invoke(null);

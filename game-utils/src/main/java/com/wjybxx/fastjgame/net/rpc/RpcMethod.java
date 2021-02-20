@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * 该注解表示该方法是一个Rpc调用。
  *
  * <h3>代理方法的返回值</h3>
- * 1. 当返回值为void时，代理方法的返回值类型为通配符。
+ * 1. 当返回值为void时，代理方法的返回值类型为Void。
  * 2. 如果方法的返回值为{@link FluentFuture}，则会捕获{@code Future}的泛型参数作为返回值类型。
  * 3. 其它普通方法，其返回值类型就是代理方法的返回值类型。
  *

@@ -16,8 +16,7 @@
 
 package com.wjybxx.fastjgame.util;
 
-import com.wjybxx.fastjgame.util.function.FunctionUtils;
-
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -51,22 +50,24 @@ public final class CollectionUtils {
      * @param <E>        元素的类型。注意：不可以是{@link Map.Entry}
      * @return 返回删除成功的元素
      */
-    public static <E> int removeIfAndThen(Collection<E> collection, Predicate<E> filter, Consumer<E> then) {
+    public static <E> int removeIfAndThen(final Collection<E> collection, final Predicate<E> filter, @Nullable final Consumer<E> then) {
         if (collection.size() == 0) {
             return 0;
         }
-        Iterator<E> iterator = collection.iterator();
+
+        int removed = 0;
         E e;
-        int removeNum = 0;
-        while (iterator.hasNext()) {
+        for (Iterator<E> iterator = collection.iterator(); iterator.hasNext(); ) {
             e = iterator.next();
             if (filter.test(e)) {
                 iterator.remove();
-                removeNum++;
-                then.accept(e);
+                removed++;
+                if (null != then) {
+                    then.accept(e);
+                }
             }
         }
-        return removeNum;
+        return removed;
     }
 
     /**
@@ -79,29 +80,30 @@ public final class CollectionUtils {
      * @param <V>       the type of value
      * @return 删除的元素数量
      */
-    public static <K, V> int removeIfAndThen(final Map<K, V> map, final BiPredicate<? super K, ? super V> predicate, BiConsumer<K, V> then) {
+    public static <K, V> int removeIfAndThen(final Map<K, V> map, final BiPredicate<? super K, ? super V> predicate,
+                                             @Nullable final BiConsumer<K, V> then) {
         if (map.size() == 0) {
             return 0;
         }
 
-        int removeNum = 0;
+        int removed = 0;
         // entry在调用remove之后不可再访问,因此需要将key-value保存下来
         Map.Entry<K, V> kvEntry;
         K k;
         V v;
-        Iterator<Map.Entry<K, V>> itr = map.entrySet().iterator();
-        while (itr.hasNext()) {
+        for (Iterator<Map.Entry<K, V>> itr = map.entrySet().iterator(); itr.hasNext(); ) {
             kvEntry = itr.next();
             k = kvEntry.getKey();
             v = kvEntry.getValue();
-
             if (predicate.test(k, v)) {
                 itr.remove();
-                removeNum++;
-                then.accept(k, v);
+                removed++;
+                if (null != then) {
+                    then.accept(k, v);
+                }
             }
         }
-        return removeNum;
+        return removed;
     }
 
     /**
@@ -114,7 +116,7 @@ public final class CollectionUtils {
      * @return 删除的元素数量
      */
     public static <K, V> int removeIf(final Map<K, V> map, final BiPredicate<? super K, ? super V> predicate) {
-        return removeIfAndThen(map, predicate, FunctionUtils.emptyBiConsumer());
+        return removeIfAndThen(map, predicate, null);
     }
 
     /**
@@ -129,10 +131,9 @@ public final class CollectionUtils {
         if (collection.size() == 0) {
             return false;
         }
-        Iterator<E> iterator = collection.iterator();
-        while (iterator.hasNext()) {
-            if (predicate.test(iterator.next())) {
-                iterator.remove();
+        for (Iterator<E> itr = collection.iterator(); itr.hasNext(); ) {
+            if (predicate.test(itr.next())) {
+                itr.remove();
                 return true;
             }
         }
@@ -143,11 +144,11 @@ public final class CollectionUtils {
 
     public static <K, V> void requireNotContains(Map<K, V> map, K key, String property) {
         if (map.containsKey(key)) {
-            throwContainsException(key, property);
+            throwDuplicateException(key, property);
         }
     }
 
-    static void throwContainsException(Object key, String property) {
+    static <K> void throwDuplicateException(K key, String property) {
         throw new IllegalArgumentException(property + " " + key + " is duplicate");
     }
 
@@ -158,7 +159,7 @@ public final class CollectionUtils {
     }
 
     static <K> void throwNotContainsException(K key, String property) {
-        throw new IllegalArgumentException(property + " " + key + " is nonexistent");
+        throw new IllegalArgumentException(property + " " + key + " is not existent");
     }
 
     //////////////////////////////////////////////////////////////////////////////////////

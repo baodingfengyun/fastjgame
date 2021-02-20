@@ -65,7 +65,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
     private static final String SERVICE_ID_METHOD_NAME = "serviceId";
     private static final String METHOD_ID_METHOD_NAME = "methodId";
 
-    WildcardType wildcardType;
+    TypeMirror voidBoxTypeMirror;
 
     private DeclaredType contextDeclaredType;
     private DeclaredType futureDeclaredType;
@@ -99,7 +99,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
             // 已初始化
             return;
         }
-        wildcardType = typeUtils.getWildcardType(null, null);
+        voidBoxTypeMirror = typeUtils.getDeclaredType(elementUtils.getTypeElement(Void.class.getCanonicalName()));
 
         rpcServiceElement = elementUtils.getTypeElement(RPC_SERVICE_CANONICAL_NAME);
         rpcServiceDeclaredType = typeUtils.getDeclaredType(rpcServiceElement);
@@ -193,6 +193,7 @@ public class RpcServiceProcessor extends MyAbstractProcessor {
             if (!methodIdSet.add(methodId)) {
                 // 同一个类中的方法id不可以重复 - 它保证了本模块中方法id不会重复
                 messager.printMessage(Diagnostic.Kind.ERROR, " methodId " + methodId + " is duplicate!", method);
+                continue;
             }
 
             checkParameters(method);

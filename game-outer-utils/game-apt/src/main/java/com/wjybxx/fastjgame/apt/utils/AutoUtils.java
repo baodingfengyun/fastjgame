@@ -73,6 +73,7 @@ public class AutoUtils {
      * 生成的代码的源码版本
      */
     public static final SourceVersion SOURCE_VERSION = SourceVersion.RELEASE_11;
+    public static final Modifier[] PUBLIC_STATIC_FINAL = {Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL};
     /**
      * 由于生成的代码不能很好的处理泛型等信息，因此需要抑制警告
      */

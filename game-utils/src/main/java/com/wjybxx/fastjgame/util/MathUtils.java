@@ -47,7 +47,7 @@ public class MathUtils {
      * float类型可忽略误差值
      * 当两个float的差值小于该值的时候，我们可以认为两个float相等
      */
-    public static final float FLOAT_DEVIATION = 0.0001f;
+    public static final float FLOAT_DEVIATION = 0.00001f;
     /**
      * double类型可忽略误差值
      * 当两个double的差值小于该值的时候，我们可以认为两个double相等
@@ -56,6 +56,25 @@ public class MathUtils {
 
     private MathUtils() {
 
+    }
+
+    public static void checkIndex(int index, int length) {
+        if (index < 0 || index >= length) {
+            throw new IndexOutOfBoundsException(String.format("Index %d out of bounds for length %d", index, length));
+        }
+    }
+
+    /**
+     * Checks that fromIndex ... toIndex is a valid range of bit indices.
+     */
+    private static void checkRange(int fromIndex, int toIndex) {
+        if (fromIndex < 0)
+            throw new IndexOutOfBoundsException("fromIndex < 0: " + fromIndex);
+        if (toIndex < 0)
+            throw new IndexOutOfBoundsException("toIndex < 0: " + toIndex);
+        if (fromIndex > toIndex)
+            throw new IndexOutOfBoundsException("fromIndex: " + fromIndex +
+                    " > toIndex: " + toIndex);
     }
 
     public static int roundToPowerOfTwo(int value) {

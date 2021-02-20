@@ -17,6 +17,8 @@
 package com.wjybxx.fastjgame.util.concurrent;
 
 import com.wjybxx.fastjgame.util.time.TimeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandles;
@@ -52,6 +54,9 @@ import static com.wjybxx.fastjgame.util.ThreadUtils.recoveryInterrupted;
  * date - 2020/3/6
  */
 abstract class AbstractPromise<V> implements Promise<V> {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractPromise.class);
+
     /**
      * 1毫秒多少纳秒
      */
@@ -190,15 +195,37 @@ abstract class AbstractPromise<V> implements Promise<V> {
 
     /**
      * 如果一个{@link Completion}在计算中出现异常，则使用该方法使目标进入完成状态。
+     * (出现新的异常)
      */
     final boolean completeThrowable(@Nonnull Throwable x) {
-        return internalComplete(new AltResult(x));
+        logCause(x);
+        return internalComplete(encodeThrowable(x));
+    }
+
+    private static void logCause(Throwable x) {
+        if (!(x instanceof NoLogRequiredException)) {
+            logger.warn("future completed with exception", x);
+        }
+    }
+
+    private static AltResult encodeThrowable(Throwable x) {
+        return new AltResult((x instanceof CompletionException) ? x :
+                new CompletionException(x));
     }
 
     /**
      * 使用依赖项的结果进入完成状态，通常表示当前{@link Completion}只是一个简单的中继。
      */
     final boolean completeRelay(Object r) {
+        return internalComplete(r);
+    }
+
+    /**
+     * 使用依赖项的异常结果进入完成状态，通常表示当前{@link Completion}只是一个简单的中继。
+     * 在已知依赖项异常完成的时候可以调用该方法，减少开销。
+     * 这里实现和{@link CompletableFuture}不同，这里保留原始结果，不强制将异常转换为{@link CompletionException}。
+     */
+    final boolean completeRelayThrowable(AltResult r) {
         return internalComplete(r);
     }
 

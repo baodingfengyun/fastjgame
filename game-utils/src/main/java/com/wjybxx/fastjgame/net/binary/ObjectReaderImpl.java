@@ -16,10 +16,8 @@
 
 package com.wjybxx.fastjgame.net.binary;
 
-import com.google.protobuf.Internal;
 import com.google.protobuf.MessageLite;
 import com.google.protobuf.Parser;
-import com.google.protobuf.ProtocolMessageEnum;
 import com.wjybxx.fastjgame.net.serialization.TypeId;
 import com.wjybxx.fastjgame.net.serialization.TypeIdMapper;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -215,7 +213,7 @@ public class ObjectReaderImpl implements ObjectReader {
                 return readMessageImpl();
 
             case OBJECT:
-                return readPojo(this::readAnyPojo);
+                return readPojo(this::readyPojoObject);
             default:
                 throw new IOException("unexpected valueType : " + valueType);
         }
@@ -250,7 +248,7 @@ public class ObjectReaderImpl implements ObjectReader {
 
     }
 
-    private Object readAnyPojo(TypeId typeId) throws Exception {
+    private Object readyPojoObject(TypeId typeId) throws Exception {
         final Class<?> type = serializer.typeIdMapper.ofId(typeId);
         if (type == null) {
             return readAnyPojoById(typeId);
@@ -262,68 +260,6 @@ public class ObjectReaderImpl implements ObjectReader {
         } else {
             return readAnyPojoByType(type);
         }
-    }
-
-    private Object readAnyPojoByType(Class<?> type) throws Exception {
-        // 集合
-        if (Collection.class.isAssignableFrom(type)) {
-            final Supplier<? extends Collection<Object>> factory = getCollectionFactory(type);
-            if (factory != null) {
-                return readCollectionImpl(factory);
-            }
-            if (Set.class.isAssignableFrom(type)) {
-                return readAsDefaultSet();
-            }
-            return readAsDefaultList();
-        }
-
-        // map
-        if (Map.class.isAssignableFrom(type)) {
-            final Supplier<? extends Map<Object, Object>> factory = getMapFactory(type);
-            if (factory != null) {
-                return readMapImpl(factory);
-            }
-            return readAsDefaultMap();
-        }
-
-        // 数组
-        if (type.isArray()) {
-            return readArrayImpl(type.getComponentType());
-        }
-
-        // protoBuf枚举
-        if (ProtocolMessageEnum.class.isAssignableFrom(type)) {
-            final Internal.EnumLiteMap<?> enumLiteMap = serializer.protocolEnumMap.get(type);
-            if (enumLiteMap == null) {
-                throw new NullPointerException(type.getName() + " enumLiteMap is null");
-            }
-            return readProtoEnumImpl(enumLiteMap);
-        }
-
-        // 其实可以读取到一个List，但暂时不这么做
-        throw new IOException("Unknown type " + type);
-    }
-
-    private Object readAsDefaultSet() throws Exception {
-        return readCollectionImpl(LinkedHashSet::new);
-    }
-
-    private Object readAsDefaultList() throws Exception {
-        return readCollectionImpl(ArrayList::new);
-    }
-
-    private Object readAsDefaultMap() throws Exception {
-        return readMapImpl(LinkedHashMap::new);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Supplier<? extends Collection<Object>> getCollectionFactory(Class<?> type) {
-        return (Supplier<? extends Collection<Object>>) serializer.collectionFactoryMap.get(type);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Supplier<? extends Map<Object, Object>> getMapFactory(Class<?> type) {
-        return (Supplier<? extends Map<Object, Object>>) serializer.mapFactoryMap.get(type);
     }
 
     private Object readAnyPojoById(TypeId typeId) throws Exception {
@@ -344,6 +280,56 @@ public class ObjectReaderImpl implements ObjectReader {
         }
         // 其实可以读取到一个List，但暂时不这么做
         throw new IOException("Unknown typeId " + typeId);
+    }
+
+    private Object readAsDefaultSet() throws Exception {
+        return readCollectionImpl(LinkedHashSet::new);
+    }
+
+    private Object readAsDefaultList() throws Exception {
+        return readCollectionImpl(ArrayList::new);
+    }
+
+    private Object readAsDefaultMap() throws Exception {
+        return readMapImpl(LinkedHashMap::new);
+    }
+
+    private Object readAnyPojoByType(Class<?> type) throws Exception {
+        // 集合
+        if (Collection.class.isAssignableFrom(type)) {
+            final Supplier<? extends Collection<Object>> factory = getCollectionFactory(type);
+            if (factory != null) {
+                return readCollectionImpl(factory);
+            }
+            if (Set.class.isAssignableFrom(type)) {
+                return readAsDefaultSet();
+            }
+            return readAsDefaultList();
+        }
+        // map
+        if (Map.class.isAssignableFrom(type)) {
+            final Supplier<? extends Map<Object, Object>> factory = getMapFactory(type);
+            if (factory != null) {
+                return readMapImpl(factory);
+            }
+            return readAsDefaultMap();
+        }
+        // 数组
+        if (type.isArray()) {
+            return readArrayImpl(type.getComponentType());
+        }
+        // 其实可以读取到一个List，但暂时不这么做
+        throw new IOException("Unknown type " + type);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Supplier<? extends Collection<Object>> getCollectionFactory(Class<?> type) {
+        return (Supplier<? extends Collection<Object>>) serializer.collectionFactoryMap.get(type);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Supplier<? extends Map<Object, Object>> getMapFactory(Class<?> type) {
+        return (Supplier<? extends Map<Object, Object>>) serializer.mapFactoryMap.get(type);
     }
 
     @Nullable
@@ -409,11 +395,6 @@ public class ObjectReaderImpl implements ObjectReader {
         return result;
     }
 
-    private Object readProtoEnumImpl(Internal.EnumLiteMap<?> enumLiteMap) throws Exception {
-        // 需要按照POJO的方式，必须调用其它基本值方法
-        final int number = readInt();
-        return enumLiteMap.findValueByNumber(number);
-    }
     // ------------------------------------------ 数组/集合等多态处理 ------------------------------------------
 
     private <T> T readNullablePojo(final BinaryValueType currentValueType, ContainerReader<T> reader) throws Exception {

@@ -75,7 +75,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
     /**
      * 为客户端生成代理方法
      * <pre>{@code
-     * 		public static RpcBuilder<String> method1(int id, String param) {
+     * 		public static RpcMethodSpec<String> method1(int id, String param) {
      * 			List<Object> methodParams = new ArrayList<>(2);
      * 			methodParams.add(id);
      * 			methodParams.add(param);
@@ -85,7 +85,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
      * </pre>
      */
     private MethodSpec genClientMethodProxy(ExecutableElement method) {
-        // 工具方法 public static RpcBuilder<V>
+        // 工具方法 public static RpcMethodSpec<V>
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(method.getSimpleName().toString())
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
 
@@ -231,7 +231,7 @@ class RpcProxyGenerator extends AbstractGenerator<RpcServiceProcessor> {
 
     private TypeMirror getNonPrimitiveReturnType(ExecutableElement method) {
         if (method.getReturnType().getKind() == TypeKind.VOID) {
-            return processor.wildcardType;
+            return processor.voidBoxTypeMirror;
         }
 
         if (method.getReturnType().getKind().isPrimitive()) {

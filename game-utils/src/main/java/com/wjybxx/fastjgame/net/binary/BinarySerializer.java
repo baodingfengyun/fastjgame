@@ -116,7 +116,10 @@ public class BinarySerializer implements Serializer {
     public Object readObject(ByteBuf data) throws Exception {
         if (data.nioBufferCount() == 1) {
             final CodedDataInputStream codedDataInputStream = CodedDataInputStream.newInstance(data);
-            return decodeObject(codedDataInputStream);
+            final Object result = decodeObject(codedDataInputStream);
+            // 更新读索引
+            data.readerIndex(data.readerIndex() + codedDataInputStream.getTotalBytesRead());
+            return result;
         } else {
             final byte[] localBuffer = BufferPool.allocateBuffer();
             try {
@@ -126,7 +129,10 @@ public class BinarySerializer implements Serializer {
 
                 // 解析对象
                 final CodedDataInputStream inputStream = CodedDataInputStream.newInstance(localBuffer, 0, readableBytes);
-                return decodeObject(inputStream);
+                final Object result = decodeObject(inputStream);
+                // 更新读索引
+                data.readerIndex(data.readerIndex() + inputStream.getTotalBytesRead());
+                return result;
             } finally {
                 BufferPool.releaseBuffer(localBuffer);
             }

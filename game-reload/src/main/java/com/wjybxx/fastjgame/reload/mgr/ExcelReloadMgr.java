@@ -380,6 +380,7 @@ public class ExcelReloadMgr implements ExtensibleObject {
     private SandBox createSandBox(SheetDataMgr dataMgrProtoType, SheetDataContainer containerPrototype) {
         // 重建SheetDataMgr和SheetDataContainer
         final SheetDataMgr sandBoxSheetDataMgr = dataMgrProtoType.newInstance();
+        ReloadUtils.ensureSameType(dataMgrProtoType, sandBoxSheetDataMgr);
         final SheetDataContainer sandBoxSheetDataContainer = new SheetDataContainer();
         assignSheetData(containerPrototype.getAllSheetData(), sandBoxSheetDataMgr, sandBoxSheetDataContainer);
         assignCacheData(containerPrototype.getAllCacheData(), sandBoxSheetDataMgr, sandBoxSheetDataContainer);

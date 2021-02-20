@@ -18,6 +18,7 @@ package com.wjybxx.fastjgame.net.rpc;
 import com.wjybxx.fastjgame.util.concurrent.FutureUtils;
 import com.wjybxx.fastjgame.util.concurrent.ListenableFuture;
 import com.wjybxx.fastjgame.util.concurrent.Promise;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
  * rpc请求提交任务
@@ -66,6 +67,8 @@ public class RpcRequestProcessTask implements ProcessTask {
             castPromise.trySuccess(result);
         } catch (Throwable e) {
             promise.tryFailure(e);
+            // 虽然rpc调用可以捕获异常，但在处理之后应该重新抛出异常信息，避免异常丢失
+            ExceptionUtils.rethrow(e);
         }
     }
 

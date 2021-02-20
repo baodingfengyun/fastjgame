@@ -430,6 +430,7 @@ public final class FileReloadMgr implements ExtensibleObject {
 
     private SandBox createSandbox(FileDataMgr fileDataMgProtoType, FileDataContainer containerProtoType) {
         final FileDataMgr sandboxFileDataMgr = fileDataMgProtoType.newInstance();
+        ReloadUtils.ensureSameType(fileDataMgProtoType, sandboxFileDataMgr);
         final FileDataContainer sandBoxFileDataContainer = new FileDataContainer();
         assignFileData(containerProtoType.getAllFileData(), sandboxFileDataMgr, sandBoxFileDataContainer);
         assignCacheData(containerProtoType.getAllCacheData(), sandboxFileDataMgr, sandBoxFileDataContainer);

@@ -17,19 +17,20 @@
 package com.wjybxx.fastjgame.net.serialization;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * 类型映射器。
- * 一个类型{@link Class}的名字和唯一标识应尽量是稳定的，否则在持久化和序列化方面会面临问题。
- * <p>
- * 子类实现必须是不可变的，方便安全的共享，避免产生不必要的竞争。
+ * 注意：
+ * 1. 必须保证同一个类在所有机器上的映射结果是相同的，这意味着你应该基于名字映射，而不能直接使用class对象的hash值。
+ * 2. 一个类型{@link Class}的名字和唯一标识应尽量是稳定的，即同一个类的映射值在不同版本之间是相同的。
+ * 3. 子类必须是线程安全的，建议优先实现为不可变对象。不可变对象可以安全的共享，且没有额外的竞争。
  *
  * @author wjybxx
  * @version 1.0
  * date - 2020/4/20
  */
-@Immutable
+@ThreadSafe
 public interface TypeIdMapper {
 
     /**
