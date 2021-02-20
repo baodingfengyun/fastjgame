@@ -19,20 +19,20 @@ package com.wjybxx.fastjgame.util.eventbus;
 import javax.annotation.Nonnull;
 
 /**
- * 事件处理器。
- *
- * @author wjybxx
- * @version 1.1
- * date - 2019/12/18
- * github - https://github.com/hl845740757
+ * 动态子键的事件
+ * <p>
+ * Q: 该设计为了解决什么问题？
+ * A: 一般情况下，我们只以事件的类型作为事件派发过程中的键。但有时我们期望能结合事件中的某个属性再次分发一次，这时便需要额外的键。
  */
-public interface EventHandler<T> {
+public interface DynamicChildEvent {
 
     /**
-     * 当订阅的事件产生时该方法将被调用。
+     * Q: 子键为什么是Object？
+     * A: 如果我们将子键限制为某一类型，我们将不能使用既有类型，如int/string等进行分发。
      *
-     * @param event 事件
+     * @return 子键
      */
-    void onEvent(@Nonnull T event) throws Exception;
+    @Nonnull
+    Object childKey();
 
 }

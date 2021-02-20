@@ -17,6 +17,7 @@
 package com.wjybxx.fastjgame.util.pool;
 
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Supplier;
 
@@ -34,25 +35,20 @@ public interface ObjectPool<T> extends Supplier<T> {
     T get();
 
     /**
-     * 将指定的对象放入池中，使其符合{@link #get()}返回的条件。
-     * 如果池中已包含{@link #maxCount()}数量的空闲对象，指定的对象将会被重置，但不会被添加到的池中。
-     * <p>
-     * 如果{@code object}实现了{@link PoolableObject}接口，那么它的{@link PoolableObject#resetPoolable()}方法将被调用。
+     * 将指定的对象放入池中 - 重置策略却决于{@link ResetPolicy}。
      *
      * @param object 要回收的对象
      */
     void returnOne(T object);
 
     /**
-     * 将指定的对象放入池中，集合中的空对象被静默忽略。
-     * 注意：该方法并不会调用集合的{@code clear}方法。
-     * <p>
-     * Q: 为什么不调用集合的{@code clear}方法？
-     * A: 因为不能保证调用成功，可能就是个不可变集合。
+     * 将指定的对象放入池中 - 重置策略却决于{@link ResetPolicy}。
      *
      * @param objects 要回收的对象
      */
     void returnAll(Collection<? extends T> objects);
+
+    void returnAll(ArrayList<? extends T> objects);
 
     /**
      * @return 缓存池缓存对象数量上限
@@ -60,9 +56,9 @@ public interface ObjectPool<T> extends Supplier<T> {
     int maxCount();
 
     /**
-     * @return 返回当前池中的对象数
+     * @return 当前池中可用对象数
      */
-    int freeCount();
+    int idleCount();
 
     /**
      * 删除此池中的所有可用对象

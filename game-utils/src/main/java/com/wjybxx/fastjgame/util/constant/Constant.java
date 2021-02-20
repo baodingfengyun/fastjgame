@@ -1,17 +1,17 @@
 /*
- *  Copyright 2019 wjybxx
+ * Copyright 2019 wjybxx
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to iBn writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.wjybxx.fastjgame.util.constant;
@@ -42,7 +42,7 @@ public interface Constant<T extends Constant<T>> extends Comparable<T> {
      * 注意：
      * 1. 该id仅仅在其所属的{@link ConstantPool}下唯一。
      * 2. 如果常量的创建存在竞争，那么其id可能并不稳定，也就不能保证连续。
-     * 3. 如果常量的创建是无竞争的，那么常量之间的id应是连续的，且起始id为1。
+     * 3. 如果常量的创建是无竞争的，那么常量之间的id应是连续的。
      *
      * @return 常量的数字id。
      */

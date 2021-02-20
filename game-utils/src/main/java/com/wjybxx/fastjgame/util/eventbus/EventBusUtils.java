@@ -34,10 +34,11 @@ public class EventBusUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(EventBusUtils.class);
 
-    /**
-     * 默认事件数大小
-     */
     public static final int DEFAULT_EXPECTED_SIZE = 64;
+    /**
+     * 递归限制 - 避免死循环
+     */
+    public static final int RECURSION_LIMIT = 16;
 
     private EventBusUtils() {
 
@@ -56,6 +57,7 @@ public class EventBusUtils {
         if (null == handler) {
             return;
         }
+
         invokeHandlerSafely(event, handler);
     }
 
@@ -91,4 +93,18 @@ public class EventBusUtils {
         }
     }
 
+    public static <K, T> void removeHandlerImp(Map<K, EventHandler<?>> handlerMap, @Nonnull K eventKey, @Nonnull EventHandler<? super T> handler) {
+        @SuppressWarnings("unchecked") final EventHandler<? super T> existHandler = (EventHandler<? super T>) handlerMap.get(eventKey);
+        if (null == existHandler) {
+            return;
+        }
+        if (existHandler instanceof CompositeEventHandler) {
+            @SuppressWarnings("unchecked") final CompositeEventHandler<T> compositeEventHandler = (CompositeEventHandler<T>) existHandler;
+            compositeEventHandler.removeHandler(handler);
+        } else {
+            handlerMap.remove(eventKey);
+        }
+    }
+
 }
+

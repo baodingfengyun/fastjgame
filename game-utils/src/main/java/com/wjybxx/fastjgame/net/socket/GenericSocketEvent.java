@@ -30,18 +30,24 @@ import javax.annotation.Nonnull;
  */
 public class GenericSocketEvent<T extends SocketEvent> implements GenericEvent<T> {
 
-    private final T child;
+    private final T socketEvent;
     private final boolean forAcceptor;
 
-    public GenericSocketEvent(T child, boolean forAcceptor) {
-        this.child = child;
+    public GenericSocketEvent(T socketEvent, boolean forAcceptor) {
+        this.socketEvent = socketEvent;
         this.forAcceptor = forAcceptor;
     }
 
     @Nonnull
-    @Override
     public T child() {
-        return child;
+        return socketEvent;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nonnull
+    @Override
+    public Class<T> childKey() {
+        return (Class<T>) socketEvent.getClass();
     }
 
     public boolean isForAcceptor() {
@@ -51,7 +57,7 @@ public class GenericSocketEvent<T extends SocketEvent> implements GenericEvent<T
     @Override
     public String toString() {
         return "GenericSocketEvent{" +
-                "child=" + child +
+                "child=" + socketEvent +
                 ", forAcceptor=" + forAcceptor +
                 '}';
     }

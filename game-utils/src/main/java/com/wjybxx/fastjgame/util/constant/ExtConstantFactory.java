@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package com.wjybxx.fastjgame.util.eventbus;
+package com.wjybxx.fastjgame.util.constant;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * 事件处理器。
- *
- * @author wjybxx
- * @version 1.1
- * date - 2019/12/18
- * github - https://github.com/hl845740757
+ * 可使用外部额外数据创建常量对象的工厂，
  */
-public interface EventHandler<T> {
+public interface ExtConstantFactory<T> {
 
     /**
-     * 当订阅的事件产生时该方法将被调用。
-     *
-     * @param event 事件
+     * @param id      常量的数字id
+     * @param name    常量的名字
+     * @param extInfo 扩展信息。
+     *                请注意，如果使用该特性，请确保创建的常量对象仍然是不可变的
+     * @return 具体的常量对象
      */
-    void onEvent(@Nonnull T event) throws Exception;
+    @Nonnull
+    T newConstant(int id, String name, @Nullable Object extInfo);
 
 }

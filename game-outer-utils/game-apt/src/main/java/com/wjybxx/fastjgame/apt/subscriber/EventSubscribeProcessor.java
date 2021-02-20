@@ -1,17 +1,17 @@
 /*
- *  Copyright 2019 wjybxx
+ * Copyright 2019 wjybxx
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to iBn writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.wjybxx.fastjgame.apt.subscriber;
@@ -124,12 +124,12 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
 
             if (method.getModifiers().contains(Modifier.STATIC)) {
                 // 不可以是静态方法
-                messager.printMessage(Diagnostic.Kind.ERROR, "Subscribe method can't be static！", method);
+                messager.printMessage(Diagnostic.Kind.ERROR, "Subscribe method can't be static!", method);
                 continue;
             }
             if (method.getModifiers().contains(Modifier.PRIVATE)) {
                 // 访问权限不可以是private - 由于生成的类和该类属于同一个包，因此不必public，只要不是private即可
-                messager.printMessage(Diagnostic.Kind.ERROR, "Subscribe method can't be private！", method);
+                messager.printMessage(Diagnostic.Kind.ERROR, "Subscribe method can't be private!", method);
                 continue;
             }
 
@@ -176,19 +176,24 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
     private void registerGenericHandlers(MethodSpec.Builder builder, ExecutableElement method) {
         final VariableElement eventParameter = method.getParameters().get(0);
         final TypeName parentEventRawTypeName = TypeName.get(erasure(eventParameter.asType()));
+        final AnnotationMirror annotationMirror = AutoUtils.findAnnotation(typeUtils, method, subscribeDeclaredType)
+                .orElseThrow();
+        final String customData = AutoUtils.getAnnotationValueValueWithDefaults(elementUtils, annotationMirror, "customData");
 
         if (isTypeParameterWildCard(eventParameter)) {
             // 泛型参数为通配符，当作普通事件注册
-            builder.addStatement("registry.register($T.class, event -> instance.$L(event))",
+            builder.addStatement("registry.register($T.class, $S, event -> instance.$L(event))",
                     parentEventRawTypeName,
+                    customData,
                     method.getSimpleName().toString());
         } else {
             // 泛型参数不是通配符，搜集具体类型注册
-            final Set<TypeMirror> eventTypes = collectEventTypes(method, getGenericEventTypeArgument(eventParameter));
+            final Set<TypeMirror> eventTypes = collectEventTypes(method, getGenericEventTypeArgument(eventParameter), annotationMirror);
             for (TypeMirror typeMirror : eventTypes) {
-                builder.addStatement("registry.register($T.class, $T.class, event -> instance.$L(event))",
+                builder.addStatement("registry.register($T.class, $T.class, $S, event -> instance.$L(event))",
                         parentEventRawTypeName,
                         TypeName.get(erasure(typeMirror)),
+                        customData,
                         method.getSimpleName().toString());
             }
         }
@@ -200,18 +205,23 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
     private void registerNormalHandlers(MethodSpec.Builder builder, ExecutableElement method) {
         final VariableElement eventParameter = method.getParameters().get(0);
         final TypeName parentEventRawTypeName = TypeName.get(erasure(eventParameter.asType()));
-        final Set<TypeMirror> eventTypes = collectEventTypes(method, eventParameter.asType());
+        final AnnotationMirror annotationMirror = AutoUtils.findAnnotation(typeUtils, method, subscribeDeclaredType)
+                .orElseThrow();
+        final String customData = AutoUtils.getAnnotationValueValueWithDefaults(elementUtils, annotationMirror, "customData");
 
+        final Set<TypeMirror> eventTypes = collectEventTypes(method, eventParameter.asType(), annotationMirror);
         for (TypeMirror typeMirror : eventTypes) {
             if (isSameTypeIgnoreTypeParameter(typeMirror, eventParameter.asType())) {
                 // 声明类型
-                builder.addStatement("registry.register($T.class, event -> instance.$L(event))",
+                builder.addStatement("registry.register($T.class, $S, event -> instance.$L(event))",
                         parentEventRawTypeName,
+                        customData,
                         method.getSimpleName().toString());
             } else {
                 // 子类型需要显示转为超类型 - 否则可能导致重载问题
-                builder.addStatement("registry.register($T.class, event -> instance.$L(($T) event))",
+                builder.addStatement("registry.register($T.class, $S, event -> instance.$L(($T) event))",
                         TypeName.get(erasure(typeMirror)),
+                        customData,
                         method.getSimpleName().toString(),
                         parentEventRawTypeName);
             }
@@ -229,10 +239,7 @@ public class EventSubscribeProcessor extends MyAbstractProcessor {
      * 搜集types属性对应的事件类型
      * 注意查看{@link AnnotationValue}的类文档
      */
-    private Set<TypeMirror> collectEventTypes(final ExecutableElement method, final TypeMirror parentTypeMirror) {
-        final AnnotationMirror annotationMirror = AutoUtils.findAnnotation(typeUtils, method, subscribeDeclaredType)
-                .orElseThrow();
-
+    private Set<TypeMirror> collectEventTypes(final ExecutableElement method, final TypeMirror parentTypeMirror, AnnotationMirror annotationMirror) {
         final Set<TypeMirror> result = new HashSet<>();
         if (!isOnlySubEvents(annotationMirror)) {
             result.add(parentTypeMirror);

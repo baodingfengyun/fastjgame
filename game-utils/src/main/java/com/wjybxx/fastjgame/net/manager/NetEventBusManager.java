@@ -18,12 +18,13 @@ package com.wjybxx.fastjgame.net.manager;
 
 import com.google.inject.Inject;
 import com.wjybxx.fastjgame.util.concurrent.EventLoopUtils;
+import com.wjybxx.fastjgame.util.eventbus.DynamicChildEvent;
 import com.wjybxx.fastjgame.util.eventbus.EventBus;
 import com.wjybxx.fastjgame.util.eventbus.EventHandler;
-import com.wjybxx.fastjgame.util.eventbus.GenericEvent;
 import com.wjybxx.fastjgame.util.eventbus.IdentityEventBus;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * @author wjybxx
@@ -47,16 +48,27 @@ public class NetEventBusManager implements EventBus {
     }
 
     @Override
-    public <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
+    public <T> boolean register(@Nonnull Class<T> eventType, @Nullable String customData, @Nonnull EventHandler<? super T> handler) {
         // 避免在错误的时间调用
         EventLoopUtils.ensureInEventLoop(eventLoopManager.getEventLoop());
-        eventBus.register(eventType, handler);
+        return eventBus.register(eventType, customData, handler);
     }
 
     @Override
-    public <T extends GenericEvent<?>> void register(@Nonnull Class<T> parentType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
+    public <T extends DynamicChildEvent> boolean register(@Nonnull Class<T> parentType, @Nonnull Object childKey, @Nullable String customData, @Nonnull EventHandler<? super T> handler) {
+        // 避免在错误的时间调用
         EventLoopUtils.ensureInEventLoop(eventLoopManager.getEventLoop());
-        eventBus.register(parentType, childType, handler);
+        return eventBus.register(parentType, childKey, customData, handler);
+    }
+
+    @Override
+    public <T> void deregister(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
+        eventBus.deregister(eventType, handler);
+    }
+
+    @Override
+    public <T extends DynamicChildEvent> void deregister(@Nonnull Class<T> parentType, @Nonnull Object childKey, @Nonnull EventHandler<? super T> handler) {
+        eventBus.deregister(parentType, childKey, handler);
     }
 
     @Override

@@ -19,6 +19,7 @@ package com.wjybxx.fastjgame.util.eventbus;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 复合事件处理器，为同一个事件的多个处理器提供一个单一的视图。
@@ -31,6 +32,8 @@ import java.util.List;
 class CompositeEventHandler<T> implements EventHandler<T> {
 
     private final List<EventHandler<? super T>> children = new ArrayList<>(4);
+    private int recursionDepth;
+    private boolean containsNull;
 
     CompositeEventHandler(@Nonnull EventHandler<? super T> first,
                           @Nonnull EventHandler<? super T> second) {
@@ -42,10 +45,32 @@ class CompositeEventHandler<T> implements EventHandler<T> {
         children.add(handler);
     }
 
+    void removeHandler(EventHandler<? super T> handler) {
+        final int index = children.indexOf(handler);
+        if (index >= 0) {
+            children.set(index, null);
+        }
+    }
+
     @Override
     public void onEvent(@Nonnull T event) throws Exception {
-        for (EventHandler<? super T> handler : children) {
-            EventBusUtils.invokeHandlerSafely(event, handler);
+        recursionDepth++;
+        try {
+            // 必须使用最新的size，因为在迭代的过程中可能增删，不过我们是延迟删除的
+            for (int i = 0; i < children.size(); i++) {
+                EventHandler<? super T> handler = children.get(i);
+                if (null == handler) {
+                    this.containsNull = true;
+                    continue;
+                }
+                EventBusUtils.invokeHandlerSafely(event, handler);
+            }
+        } finally {
+            recursionDepth--;
+            if (recursionDepth == 0 && this.containsNull) {
+                this.containsNull = false;
+                children.removeIf(Objects::isNull);
+            }
         }
     }
 }

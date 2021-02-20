@@ -19,20 +19,16 @@ package com.wjybxx.fastjgame.util.eventbus;
 import javax.annotation.Nonnull;
 
 /**
- * 事件处理器。
- *
- * @author wjybxx
- * @version 1.1
- * date - 2019/12/18
- * github - https://github.com/hl845740757
+ * 动态泛型事件 - 通{@link GenericEventType}限定
+ * <p>
+ * Q: 为什么称为动态泛型事件？
+ * A: 我们通过变量{@link GenericEventType}来限定内部动态数据的类型，而不是类型{@link Class} - 即使用对象代替类型。
+ * （这其实也是一种模式 - 类型对象模式）
  */
-public interface EventHandler<T> {
+public interface DynamicGenericEvent<T> extends DynamicChildEvent {
 
-    /**
-     * 当订阅的事件产生时该方法将被调用。
-     *
-     * @param event 事件
-     */
-    void onEvent(@Nonnull T event) throws Exception;
+    @Nonnull
+    @Override
+    GenericEventType<T> childKey();
 
 }

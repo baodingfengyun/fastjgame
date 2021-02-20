@@ -16,7 +16,6 @@
 
 package com.wjybxx.fastjgame.util.eventbus;
 
-import com.wjybxx.fastjgame.util.example.SubscriberExample;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -33,10 +32,9 @@ import java.lang.annotation.Target;
  * 5. 如果期望订阅多个事件，请使用{@link #subEvents()}声明关注的其它事件。
  * 6. 方法不能是private - 至少是包级访问权限。
  * <p>
- * eg: {@link SubscriberExample#genericEventInt(SubscriberExample.TestGenericEvent)} {@link SubscriberExample#onEvent(String)}
- * <p>
  * 注解处理器会为拥有{@link Subscribe}方法的类生成一个代理文件，需要手动调用生成的register方法注册到{@link EventHandlerRegistry}。
- * 生成的代理类为 XXXBusRegister 。
+ * 生成的代理类为 XXXBusRegister。
+ * 注意：在使用注解之后，需要先编译一次，生成对应的文件，这样你可以引用到对应的类，后续不必多编译一次。
  * <p>
  * Q: 如果想使用多个EventBus，如果避免订阅方法注册到不该注册的地方？
  * A: 有两种选择，一：使用带过滤器的EventBus，这样可以筛选掉不期望的事件类型。
@@ -53,9 +51,9 @@ import java.lang.annotation.Target;
 public @interface Subscribe {
 
     /**
-     * 是否只订阅子事件类型
+     * 是否只订阅子事件类型。
      * 如果为true，则表示不为方法参数生成事件注册方法，只为{@link #subEvents()}中的事件生成注册方法。
-     * 默认为false。
+     * 注意：一般只在你使用了{@link #subEvents()}时才需要设置该属性。
      */
     boolean onlySubEvents() default false;
 
@@ -65,4 +63,18 @@ public @interface Subscribe {
      */
     Class[] subEvents() default {};
 
+    /**
+     * 用于特定{@link EventBus}的特定数据。
+     * <p>
+     * Q: 它的作用？
+     * A: 告诉特定的事件处理器以实现一些特定的横切面处理，比如：控制频率。
+     * <p>
+     * 由于是注解处理器，因此不能定义对象，所以建议使用Json，尽量保持可读。
+     */
+    String customData() default "";
+
+    /**
+     * 注释文档
+     */
+    String comment() default "";
 }

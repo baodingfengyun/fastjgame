@@ -18,24 +18,28 @@ package com.wjybxx.fastjgame.util.eventbus;
 
 import com.google.common.collect.Maps;
 import com.wjybxx.fastjgame.util.function.FunctionUtils;
+import com.wjybxx.fastjgame.util.pool.ObjectPool;
+import com.wjybxx.fastjgame.util.pool.SingleObjectPool;
 
 import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
  * EventBus的一个简单实现，它默认支持所有的普通事件和所有的泛型事件，并不对事件做任何要求。
  * <h3>NOTES</h3>
  * 1. 它并不是一个线程安全的对象。
- * 2. 它也不是一个标准的EventBus实现，比如就没有取消注册的接口，也没有单独的dispatcher、Registry
- * 3. 它也没有对继承体系进行完整的支持（监听接口或抽象类），主要考虑到性能可能不好。
+ * 2. 它也没有对继承体系进行完整的支持（监听接口或抽象类），主要考虑到性能可能不好。
  * <h3>如何分发</h3>
- * 先以{@code event}的类型直接分发一次，如果事件为{@link GenericEvent}的子类型，再<b>联合</b>{@link GenericEvent#child()}的类型分发一次。
+ * 先以{@code event}的类型直接分发一次，如果事件为{@link GenericEvent}的子类型，再<b>联合</b>{@link GenericEvent#childKey()}分发一次。
  * <p>
- * Q: 为何{@link GenericEvent}也以它的类型直接分发一次？
+ * Q: 为何要以{@link GenericEvent}的类型分发一次?
  * A: 这允许监听者监听某一类事件，而不是某一个具体事件。
+ * <p>
+ * 注意：新增的监听器可能立即响应事件。
  *
  * @author wjybxx
  * @version 1.0
@@ -47,11 +51,16 @@ public class DefaultEventBus implements EventBus {
 
     /**
      * eventKey -> handler
-     * eventKey：{@link Class} 或 {@link GenericEventKey}
+     * eventKey：{@link Class} 或 {@link ComposeEventKey}
      */
     private final Map<Object, EventHandler<?>> handlerMap;
     private final Predicate<Class<?>> filter;
-    private final Predicate<Class<? extends GenericEvent<?>>> genericFilter;
+    private final Predicate<Class<? extends DynamicChildEvent>> genericFilter;
+
+    /** 暂时先使用{@link SingleObjectPool}，考虑到递归的情况较少，单个缓存就足以减少许多对象创建 */
+    private final ObjectPool<ComposeEventKey> keyPool = new SingleObjectPool<>(ComposeEventKey::new, ComposeEventKey::reset);
+    /** 递归深度 - 防止死循环 */
+    private int recursionDepth;
 
     public DefaultEventBus() {
         this(EventBusUtils.DEFAULT_EXPECTED_SIZE);
@@ -61,7 +70,7 @@ public class DefaultEventBus implements EventBus {
         this(expectedSize, FunctionUtils.alwaysTrue(), FunctionUtils.alwaysTrue());
     }
 
-    public DefaultEventBus(int expectedSize, Predicate<Class<?>> filter, Predicate<Class<? extends GenericEvent<?>>> genericFilter) {
+    public DefaultEventBus(int expectedSize, Predicate<Class<?>> filter, Predicate<Class<? extends DynamicChildEvent>> genericFilter) {
         this.handlerMap = Maps.newHashMapWithExpectedSize(expectedSize);
         this.filter = filter;
         this.genericFilter = genericFilter;
@@ -69,28 +78,61 @@ public class DefaultEventBus implements EventBus {
 
     @Override
     public final void post(@Nonnull Object event) {
-        postEventImp(event, event.getClass());
-
-        if (event instanceof GenericEvent) {
-            postEventImp(event, newGenericEventKey((GenericEvent<?>) event));
+        if (recursionDepth >= EventBusUtils.RECURSION_LIMIT) {
+            throw new IllegalStateException("event had too many levels of nesting");
+        }
+        recursionDepth++;
+        try {
+            // 先以对象的类型分发一次
+            postImp(event, event.getClass());
+            // 再联合子键分发一次
+            if (event instanceof DynamicChildEvent) {
+                final ObjectPool<ComposeEventKey> keyPool = this.keyPool;
+                final ComposeEventKey composeEventKey = keyPool.get();
+                composeEventKey.init(event.getClass(), ((DynamicChildEvent) event).childKey());
+                postImp(event, composeEventKey);
+                keyPool.returnOne(composeEventKey);
+            }
+        } finally {
+            recursionDepth--;
         }
     }
 
-    private void postEventImp(final @Nonnull Object event, final @Nonnull Object eventKey) {
+    private void postImp(final @Nonnull Object event, final @Nonnull Object eventKey) {
         EventBusUtils.postEventImp(handlerMap, event, eventKey);
     }
 
     @Override
-    public final <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
+    public final <T> boolean register(@Nonnull Class<T> eventType, @Nullable String customData, @Nonnull EventHandler<? super T> handler) {
         if (filter.test(eventType)) {
             addHandlerImp(eventType, handler);
+            return true;
+        } else {
+            return false;
         }
     }
 
     @Override
-    public final <T extends GenericEvent<?>> void register(@Nonnull Class<T> parentType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler) {
+    public final <T extends DynamicChildEvent> boolean register(@Nonnull Class<T> parentType, @Nonnull Object childKey, @Nullable String customData, @Nonnull EventHandler<? super T> handler) {
         if (genericFilter.test(parentType)) {
-            addHandlerImp(newGenericEventKey(parentType, childType), handler);
+            addHandlerImp(newComposeEventKey(parentType, childKey), handler);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public <T> void deregister(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler) {
+        if (filter.test(eventType)) {
+            removeHandlerImp(eventType, handler);
+        }
+    }
+
+    @Override
+    public <T extends DynamicChildEvent> void deregister(@Nonnull Class<T> parentType, @Nonnull Object childKey, @Nonnull EventHandler<? super T> handler) {
+        if (genericFilter.test(parentType)) {
+            removeHandlerImp(newComposeEventKey(parentType, childKey), handler);
         }
     }
 
@@ -98,45 +140,49 @@ public class DefaultEventBus implements EventBus {
         EventBusUtils.addHandlerImp(handlerMap, eventKey, handler);
     }
 
+    private <T> void removeHandlerImp(Object key, @Nonnull EventHandler<? super T> handler) {
+        EventBusUtils.removeHandlerImp(handlerMap, key, handler);
+    }
+
     @Override
     public final void release() {
         handlerMap.clear();
     }
 
-    /**
-     * 为泛型事件创建一个key
-     *
-     * @param genericEvent 泛型事件
-     * @return 用于定位handler的key
-     */
-    @Nonnull
-    private static Object newGenericEventKey(GenericEvent<?> genericEvent) {
-        return new GenericEventKey(genericEvent.getClass(), genericEvent.child().getClass());
+    private static ComposeEventKey newComposeEventKey(@Nonnull DynamicChildEvent event) {
+        return new ComposeEventKey();
     }
 
-    /**
-     * 为泛型事件创建一个key
-     *
-     * @param parentType 父事件类型
-     * @param childType  子事件类型
-     * @return 用于定位handler的key
-     */
-    private static Object newGenericEventKey(Class<? extends GenericEvent<?>> parentType, Class<?> childType) {
-        return new GenericEventKey(parentType, childType);
+    private static Object newComposeEventKey(Class<?> masterKey, Object childKey) {
+        Objects.requireNonNull(masterKey, "masterKey");
+        Objects.requireNonNull(childKey, "childKey");
+        return new ComposeEventKey(masterKey, childKey);
     }
 
     /**
      * 泛型事件使用的key
      */
-    @Immutable
-    private static final class GenericEventKey {
+    private static final class ComposeEventKey {
 
-        private final Class<?> parentType;
-        private final Class<?> childType;
+        private Class<?> masterKey;
+        private Object childKey;
 
-        GenericEventKey(@Nonnull Class<?> parentType, @Nonnull Class<?> childType) {
-            this.parentType = parentType;
-            this.childType = childType;
+        ComposeEventKey() {
+        }
+
+        ComposeEventKey(@Nonnull Class<?> masterKey, @Nonnull Object childKey) {
+            this.masterKey = masterKey;
+            this.childKey = childKey;
+        }
+
+        void init(@Nonnull Class<?> masterKey, @Nonnull Object childKey) {
+            this.masterKey = masterKey;
+            this.childKey = childKey;
+        }
+
+        void reset() {
+            this.masterKey = null;
+            this.childKey = null;
         }
 
         @Override
@@ -145,24 +191,29 @@ public class DefaultEventBus implements EventBus {
                 return true;
             }
 
-            if (o == null || o.getClass() != GenericEventKey.class) {
+            if (o == null || o.getClass() != ComposeEventKey.class) {
                 return false;
             }
 
-            final GenericEventKey that = (GenericEventKey) o;
-            return parentType == that.parentType && childType == that.childType;
+            final ComposeEventKey that = (ComposeEventKey) o;
+            if (masterKey != that.masterKey) {
+                return false;
+            }
+
+            // 这里冗余了一次引用相等测试 - 在多数情况下都是有利的
+            return childKey == that.childKey || childKey.equals(that.childKey);
         }
 
         @Override
         public int hashCode() {
-            return 31 * parentType.hashCode() + childType.hashCode();
+            return 31 * masterKey.hashCode() + childKey.hashCode();
         }
 
         @Override
         public String toString() {
-            return "GenericEventKey{" +
-                    "parentType=" + parentType +
-                    ", childType=" + childType +
+            return "ComposeEventKey{" +
+                    "parentType=" + masterKey +
+                    ", childType=" + childKey +
                     '}';
         }
     }

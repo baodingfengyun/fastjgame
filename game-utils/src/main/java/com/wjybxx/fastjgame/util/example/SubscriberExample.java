@@ -17,8 +17,8 @@
 package com.wjybxx.fastjgame.util.example;
 
 import com.wjybxx.fastjgame.util.concurrent.DefaultThreadFactory;
+import com.wjybxx.fastjgame.util.eventbus.DefaultEventBus;
 import com.wjybxx.fastjgame.util.eventbus.EventBus;
-import com.wjybxx.fastjgame.util.eventbus.FastEventBus;
 import com.wjybxx.fastjgame.util.eventbus.GenericEvent;
 import com.wjybxx.fastjgame.util.eventbus.Subscribe;
 
@@ -102,7 +102,7 @@ public class SubscriberExample {
     }
 
     public static void main(String[] args) {
-        final EventBus bus = FastEventBus.newBuilder().build();
+        final EventBus bus = new DefaultEventBus();
         SubscriberExampleBusRegister.register(bus, new SubscriberExample());
         SubscribeInnerExampleBusRegister.register(bus, new SubscribeInnerExample());
 
@@ -154,10 +154,11 @@ public class SubscriberExample {
             this.child = child;
         }
 
+        @SuppressWarnings("unchecked")
         @Nonnull
         @Override
-        public T child() {
-            return child;
+        public Class<T> childKey() {
+            return (Class<T>) child.getClass();
         }
 
         @Override

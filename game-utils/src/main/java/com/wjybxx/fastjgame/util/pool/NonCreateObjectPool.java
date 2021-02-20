@@ -16,44 +16,34 @@
 
 package com.wjybxx.fastjgame.util.pool;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 /**
- * 对象池的默认实现
+ * 一个只缓存对象，不创建对象的池
  *
- * @author wjybxx
- * date - 2020/12/11
- * github - https://github.com/hl845740757
+ * @param <T>
  */
-@NotThreadSafe
-public class DefaultObjectPool<T> extends AbstractObjectPool<T> {
+public class NonCreateObjectPool<T> extends AbstractObjectPool<T> {
 
-    private final Supplier<T> factory;
     private final ResetPolicy<T> resetPolicy;
 
-    public DefaultObjectPool(Supplier<T> factory, ResetPolicy<T> resetPolicy) {
-        super();
-        this.factory = Objects.requireNonNull(factory, "factory");
+    public NonCreateObjectPool(ResetPolicy<T> resetPolicy) {
         this.resetPolicy = Objects.requireNonNull(resetPolicy, "resetPolicy");
     }
 
-    public DefaultObjectPool(Supplier<T> factory, ResetPolicy<T> resetPolicy, int initialCapacity) {
+    public NonCreateObjectPool(ResetPolicy<T> resetPolicy, int initialCapacity) {
         super(initialCapacity);
-        this.factory = Objects.requireNonNull(factory, "factory");
         this.resetPolicy = Objects.requireNonNull(resetPolicy, "resetPolicy");
     }
 
-    public DefaultObjectPool(Supplier<T> factory, ResetPolicy<T> resetPolicy, int initialCapacity, int maxCapacity) {
+    public NonCreateObjectPool(ResetPolicy<T> resetPolicy, int initialCapacity, int maxCapacity) {
         super(initialCapacity, maxCapacity);
-        this.factory = Objects.requireNonNull(factory, "factory");
         this.resetPolicy = Objects.requireNonNull(resetPolicy, "resetPolicy");
     }
 
     @Override
     protected T newObject() {
-        return factory.get();
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -40,20 +40,25 @@ public abstract class AbstractObjectPool<T> implements ObjectPool<T> {
     }
 
     public AbstractObjectPool(int initialCapacity, int maxCapacity) {
+        if (maxCapacity <= 0 || initialCapacity > maxCapacity) {
+            throw new IllegalArgumentException("initialCapacity: " + initialCapacity + ", maxCapacity: " + maxCapacity);
+        }
         this.freeObjects = new ArrayList<>(initialCapacity);
         this.maxCapacity = maxCapacity;
     }
 
     protected abstract T newObject();
 
+    protected abstract void reset(T object);
+
     @Override
-    public T get() {
+    public final T get() {
         // 从最后一个开始删除可避免复制
         return freeObjects.size() == 0 ? newObject() : freeObjects.remove(freeObjects.size() - 1);
     }
 
     @Override
-    public void returnOne(T object) {
+    public final void returnOne(T object) {
         if (object == null) {
             throw new IllegalArgumentException("object cannot be null.");
         }
@@ -66,19 +71,36 @@ public abstract class AbstractObjectPool<T> implements ObjectPool<T> {
         }
     }
 
-    protected void reset(T object) {
-        if (object instanceof PoolableObject) ((PoolableObject) object).resetPoolable();
-    }
-
     @Override
-    public void returnAll(Collection<? extends T> objects) {
+    public final void returnAll(ArrayList<? extends T> objects) {
         if (objects == null) {
             throw new IllegalArgumentException("objects cannot be null.");
         }
 
         final ArrayList<T> freeObjects = this.freeObjects;
         final int maxCapacity = this.maxCapacity;
+        for (int i = 0, n = objects.size(); i < n; i++) {
+            T e = objects.get(i);
+            if (null == e) {
+                continue;
+            }
 
+            reset(e);
+
+            if (freeObjects.size() < maxCapacity) {
+                freeObjects.add(e);
+            }
+        }
+    }
+
+    @Override
+    public final void returnAll(Collection<? extends T> objects) {
+        if (objects == null) {
+            throw new IllegalArgumentException("objects cannot be null.");
+        }
+
+        final ArrayList<T> freeObjects = this.freeObjects;
+        final int maxCapacity = this.maxCapacity;
         for (T e : objects) {
             if (null == e) {
                 continue;
@@ -93,17 +115,17 @@ public abstract class AbstractObjectPool<T> implements ObjectPool<T> {
     }
 
     @Override
-    public int maxCount() {
+    public final int maxCount() {
         return maxCapacity;
     }
 
     @Override
-    public int freeCount() {
+    public final int idleCount() {
         return freeObjects.size();
     }
 
     @Override
-    public void clear() {
+    public final void clear() {
         freeObjects.clear();
     }
 }

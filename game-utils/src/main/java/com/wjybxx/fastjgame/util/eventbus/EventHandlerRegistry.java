@@ -17,9 +17,10 @@
 package com.wjybxx.fastjgame.util.eventbus;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * 事件处理器注册表
+ * 事件处理器注册表。
  *
  * @author wjybxx
  * @version 1.0
@@ -32,24 +33,32 @@ public interface EventHandlerRegistry {
      * 注册一个事件的观察者。
      * 正常情况下，该方法由生成的代码调用。当然也可以手动注册一些事件，即不使用注解处理器。
      *
-     * @param eventType 关注的事件类型
-     * @param handler   事件处理器
-     * @param <T>       事件的类型
+     * @param <T>        事件的类型
+     * @param eventType  关注的事件类型
+     * @param customData 自定义数据
+     * @param handler    事件处理器
+     * @return 注册成功则返回true
      */
-    <T> void register(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler);
+    <T> boolean register(@Nonnull Class<T> eventType, @Nullable String customData, @Nonnull EventHandler<? super T> handler);
 
     /**
      * 注册一个泛型事件的观察者。
      * 正常情况下，该方法由生成的代码调用。当然也可以手动注册一些事件，即不使用注解处理器。
      *
      * @param parentType 父事件类型
-     * @param childType  子事件类型
+     * @param childKey   子事件key
+     * @param customData 自定义数据
      * @param handler    事件处理器
+     * @return 注册成功则返回true
      */
-    <T extends GenericEvent<?>> void register(@Nonnull Class<T> parentType, @Nonnull Class<?> childType, @Nonnull EventHandler<? super T> handler);
+    <T extends DynamicChildEvent> boolean register(@Nonnull Class<T> parentType, @Nonnull Object childKey, @Nullable String customData, @Nonnull EventHandler<? super T> handler);
+
+    <T> void deregister(@Nonnull Class<T> eventType, @Nonnull EventHandler<? super T> handler);
+
+    <T extends DynamicChildEvent> void deregister(@Nonnull Class<T> parentType, @Nonnull Object childKey, @Nonnull EventHandler<? super T> handler);
 
     /**
-     * 释放所有的资源，因为{@link #register(Class, EventHandler)} 会捕获太多对象，当不再使用{@link EventHandlerRegistry}时，
+     * 释放所有的资源，因为{@link #register(Class, String, EventHandler)} 会捕获太多对象，当不再使用{@link EventHandlerRegistry}时，
      * 手动的释放，避免因为registry对象存在导致内存泄漏。
      */
     void release();
