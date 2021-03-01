@@ -98,20 +98,6 @@ public interface TimerSystem extends TimeProvider {
     FixedRateHandle newFixedRate(long initialDelay, long period, @Nonnull TimerTask task);
 
     /**
-     * 创建一个以固定延迟执行，并执行指定次数的任务。
-     * 目前设计中，delay的设计与{@link FixedDelayHandle}相同。
-     * (注意：任何周期性的任务与其它任务之间都不具备时序保证)
-     *
-     * @param initialDelay 首次执行延迟，毫秒。允许小于0，但如果小于0，可能会影响当前帧的部分timer。
-     * @param period       执行间隔，毫秒，必须大于0。
-     * @param times        期望的执行次数，必须大于0。
-     * @param task         定时执行的任务
-     * @return Timer对应的句柄
-     */
-    @Nonnull
-    FixedTimesHandle newFixedTimes(long initialDelay, long period, int times, @Nonnull TimerTask task);
-
-    /**
      * @param period 执行间隔，毫秒，必须大于0。
      * @param task   定时执行的任务
      * @return Timer对应的句柄

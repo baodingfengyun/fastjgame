@@ -61,12 +61,6 @@ public class NetTimerManager implements TimerSystem {
     }
 
     @Override
-    @Nonnull
-    public FixedTimesHandle newFixedTimes(long initialDelay, long period, int times, @Nonnull TimerTask task) {
-        return timerSystem.newFixedTimes(initialDelay, period, times, task);
-    }
-
-    @Override
     public void tick() {
         timerSystem.tick();
     }

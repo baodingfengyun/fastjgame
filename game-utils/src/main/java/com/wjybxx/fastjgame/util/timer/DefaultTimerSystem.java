@@ -113,14 +113,6 @@ public class DefaultTimerSystem implements TimerSystem {
         return tryAddTimerAndInit(fixedRateHandleImp);
     }
 
-    @Nonnull
-    @Override
-    public FixedTimesHandle newFixedTimes(long initialDelay, long period, int times, @Nonnull TimerTask task) {
-        FixedTimesHandleImpl.ensureRemainTimesGreaterThanZero(times);
-        final FixedTimesHandleImpl fixedTimesHandle = new FixedTimesHandleImpl(this, task, initialDelay, period, times);
-        return tryAddTimerAndInit(fixedTimesHandle);
-    }
-
     /**
      * 将timer压入队列，并进行适当的初始化。
      */

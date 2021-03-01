@@ -22,7 +22,6 @@ import com.wjybxx.fastjgame.util.time.CachedTimeProvider;
 import com.wjybxx.fastjgame.util.time.TimeProviders;
 import com.wjybxx.fastjgame.util.time.TimeUtils;
 import com.wjybxx.fastjgame.util.timer.DefaultTimerSystem;
-import com.wjybxx.fastjgame.util.timer.FixedTimesHandle;
 import com.wjybxx.fastjgame.util.timer.TimerHandle;
 import com.wjybxx.fastjgame.util.timer.TimerSystem;
 
@@ -78,11 +77,6 @@ public class TimerSystemTest {
 
         final TimerHandle handle5 = timerSystem.newFixedRate(0, 3 * TimeUtils.SEC, handle -> {
             System.out.println("fixRateTask " + System.currentTimeMillis());
-        });
-
-        final TimerHandle handle6 = timerSystem.newFixedTimes(0, 3 * TimeUtils.SEC, 3, handle -> {
-            final FixedTimesHandle h = (FixedTimesHandle) handle;
-            System.out.println(String.format("fixedTimes, executedTimes: %s, remianTimes: %s", h.executedTimes(), h.remainTimes()));
         });
 
         IntStream.rangeClosed(1, 10).forEach(index -> {
